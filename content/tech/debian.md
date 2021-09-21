@@ -34,6 +34,9 @@ wsl --set-default-version 2
 # 子系统迁移到非系统盘 https://github.com/DDoSolitary/LxRunOffline
 LxRunOffline.exe move -n Debian -d D:\wsl2\Debian
 
+# 安装多个相同子系统
+LxRunOffline.exe d -n Debian -d D:\wsl2\Debian-1\ -N Debian-1
+
 # 重启子系统
 net stop LxssManager
 net start LxssManager
