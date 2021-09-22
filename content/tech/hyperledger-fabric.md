@@ -12,6 +12,8 @@ tags:
 
 [hyperledger-fabric](https://github.com/hyperledger/fabric) 是一个企业级的分布式账本框架，提供了基于java,go,nodejs等通用编程语言的sdk开发智能合约(**smart contract**)，本文主要介绍如何搭建要给超级账本的网络，并且基于go语言开发简单的智能合约。
 
+<!--more-->
+
 ## 基础概念
 
 hyperledger fabric符合上面说过的区块链的所有特性。我们必须先了解它的一些概念，才能进一步理解其架构设计。由于英文资料居多，所以这些概念我都以英文描述为准：
