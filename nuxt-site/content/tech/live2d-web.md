@@ -139,45 +139,45 @@ https://github.com/Yukariin/AzurLaneL2DViewer
 <!-- Pollyfill script -->
 <script src="https://unpkg.com/core-js-bundle@3.6.1/minified.js"></script>
 <!-- Live2DCubismCore script -->
-<script src = "https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+<script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
 <!-- Build script -->
-<script src = "./assets/js/live2dv3.js"></script>
+<script src="../../assets/js/live2dv3.js"></script>
 
 <!------ 加载Live2d模型 | Load Live2d model ------>
 <script>
-    var l2dv;
+  var l2dv;
   window.onload = () => {
     l2dv = new L2dViewer({
-        el: document.getElementById('L2dCanvas'),
-        modelHomePath: './assets/model/moc3/',
-        // modelHomePath: 'https://cdn.jsdelivr.net/gh/alg-wiki/AzurLaneL2DViewer@gh-pages/assets/',
-        model: 'yichui_2',
-        // bgImg: 'https://cdn.jsdelivr.net/gh/alg-wiki/AzurLaneL2DViewer@gh-pages/assets/bg/bg_church_jp.png',
-        bgImg: './assets/image/bg/bg_1.png',
-        width: 500,
-        height: 300,
-        autoMotion: false,
-        _finishedLoadModel: function() {
-          var motionDiv = document.getElementById("motionDiv"); 
-          motionDiv.innerHTML = "";
-          l2dv.getMotions().forEach((v,k) => {
-            let motionName = k;
-            if(motionName.startsWith('motions/')) {
-              motionName = motionName.replace('motions/', '');
-            }
-            motionName = motionName.replace('.motion3.json', '');
-            var bt = document.createElement("button");
-            bt.innerHTML = motionName; 
-            bt.classList.add('btnGenericText');
-            bt.onclick = function () {                          //绑定点击事件
-              l2dv.startMotion(k);
-            };
-            motionDiv.appendChild(bt);
-          })
-        },
-        _onTap: function() {
-            // 点击canvas触发事件
-        }
+      el: document.getElementById('L2dCanvas'),
+      modelHomePath: './assets/model/moc3/',
+      // modelHomePath: 'https://cdn.jsdelivr.net/gh/alg-wiki/AzurLaneL2DViewer@gh-pages/assets/',
+      model: 'yichui_2',
+      // bgImg: 'https://cdn.jsdelivr.net/gh/alg-wiki/AzurLaneL2DViewer@gh-pages/assets/bg/bg_church_jp.png',
+      bgImg: './assets/image/bg/bg_1.png',
+      width: 500,
+      height: 300,
+      autoMotion: false,
+      _finishedLoadModel: function () {
+        var motionDiv = document.getElementById("motionDiv");
+        motionDiv.innerHTML = "";
+        l2dv.getMotions().forEach((v, k) => {
+          let motionName = k;
+          if (motionName.startsWith('motions/')) {
+            motionName = motionName.replace('motions/', '');
+          }
+          motionName = motionName.replace('.motion3.json', '');
+          var bt = document.createElement("button");
+          bt.innerHTML = motionName;
+          bt.classList.add('btnGenericText');
+          bt.onclick = function () {                          //绑定点击事件
+            l2dv.startMotion(k);
+          };
+          motionDiv.appendChild(bt);
+        })
+      },
+      _onTap: function () {
+        // 点击canvas触发事件
+      }
     });
   }
 </script>
