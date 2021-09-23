@@ -21,10 +21,12 @@ yarn generate
 # 编译go
 cd ../
 go env -w GOPROXY=https://goproxy.cn,direct
+go env -w GO111MODULE=on
+go env -w CGO_ENABLED=0
+go env -w GOARCH=amd64
+go env -w GOOS=linux
 go mod vendor
-set GOARCH=amd64
-set GOOS=linux
-go build -o mysite main.go
+go build -tags netgo -o mysite main.go
 
 # 打包docker镜像
 docker build -t mysite:v0.0.1 .
@@ -37,4 +39,4 @@ cd ${BASEDIR}
 kill -9 `netstat -nlp | grep :8081 | awk '{print $7}' | awk -F"/" '{ print $1 }'`
 docker pull jianchengwang/mysite:latest
 docker-compose up -d
-
+docker rmi $(docker images | grep "none" | awk '{print $3}')
