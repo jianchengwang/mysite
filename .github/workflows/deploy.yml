@@ -63,6 +63,6 @@ jobs:
           command_timeout: 200m
           script: |
             echo 'deploy begin'
-            nohup /root/_git/my-site/backup.sh u &!
+            /root/_git/my-site/backup.sh u
             echo 'deploy done'
 
