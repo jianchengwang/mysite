@@ -5,5 +5,7 @@ nuxt-site/dist
 nuxt-site/node_modules/
 
 # go
+go.sum
+vendor/
 *.exe
 mysite
