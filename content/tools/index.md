@@ -55,6 +55,7 @@
 - [SvgToPng](https://svgtopng.com/zh/) svg图片转换
 - [改图宝](https://www.gaitubao.com/) 图片大小转换
 - [Img2Icon](http://www.img2icnsapp.com/) 图片转成成icon
+- [图片文字识别](https://web.baimiaoapp.com/)
 
 #### 站长相关
 - [freessl](https://freessl.cn/) 免费ssl证书申请

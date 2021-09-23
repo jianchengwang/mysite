@@ -108,6 +108,12 @@ git config --global core.autocrlf false
 git config --global user.name "jianchengwang"
 git config --global user.email "jiancheng_wang@yahoo.com"
 
+# proxychains4，防火墙要允许ssr应用通过
+sudo apt-get install -y proxychains4
+ip route | grep default | awk '{print $3}'
+sudo vim /etc/proxychains4.conf
+proxychains4 curl www.google.com
+
 # zsh
 sudo apt-get install zsh
 sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"

@@ -18,21 +18,25 @@ tags:
 ### env
 
 ```shell
-## install python3 https://www.python.org/downloads/
-## creating virtual environments https://docs.python.org/3/library/venv.html
+# install python3 https://www.python.org/downloads/
+# creating virtual environments https://docs.python.org/3/library/venv.html
 python3 -m venv /path/to/new/virtual/environment
-## update pip
+# update pip
 python3 -m pip install --upgrade pip
-## config pip source
+# config pip source
 pip3 config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
-## install pandas
+# install pandas
 pip3 install pandas -i https://mirrors.aliyun.com/pypi/simple
-## install matplotlib
+# install matplotlib
 pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple matplotlib
-## install scikit-learn https://scikit-learn.org/stable/install.html
+# install scikit-learn https://scikit-learn.org/stable/install.html
 pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple scikit-learn
-## install jupyter https://pypi.org/project/jupyter/
+# install jupyter https://pypi.org/project/jupyter/
 pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple jupyter
+# install pytorch
+pip3 install torch torchvision
+# d2l
+pip3 install -U d2l
 ```
 
 ### data

@@ -14,7 +14,7 @@ tags:
 
 <!--more-->
 
-## 基础概念
+## basic concept
 
 hyperledger fabric符合上面说过的区块链的所有特性。我们必须先了解它的一些概念，才能进一步理解其架构设计。由于英文资料居多，所以这些概念我都以英文描述为准：
 
@@ -51,10 +51,10 @@ wget https://raw.githubusercontent.com/hyperledger/fabric/master/scripts/bootstr
 bash ./bootstrap.sh
 # 如果你二进制文件也下载不下来，可以用可以代理的机器先下载，然后把脚本里的downlaod方法注释掉即可，然后把下载的二进制文件解压得到bin,config文件夹，复制到官方的示例项目fabric-simples即可
 bash ./bootstrap.sh
-wget https://github.com/hyperledger/fabric/releases/download/v2.3.2/hyperledger-fabric-linux-amd64-2.3.2.tar.gz
-wget https://github.com/hyperledger/fabric-ca/releases/download/v1.5.0/hyperledger-fabric-ca-linux-amd64-1.5.0.tar.gz
-tar -zxvf https://github.com/hyperledger/fabric/releases/download/v2.3.2/hyperledger-fabric-linux-amd64-2.3.2.tar.gz
-tar -zxvf https://github.com/hyperledger/fabric-ca/releases/download/v1.5.0/hyperledger-fabric-ca-linux-amd64-1.5.0.tar.gz
+wget https://github.com/hyperledger/fabric/releases/download/v2.3.2/hyperledger-fabric-linux-amd64-2.3.3.tar.gz
+wget https://github.com/hyperledger/fabric-ca/releases/download/v1.5.0/hyperledger-fabric-ca-linux-amd64-1.5.2.tar.gz
+tar -zxvf https://github.com/hyperledger/fabric/releases/download/v2.3.2/hyperledger-fabric-linux-amd64-2.3.3.tar.gz
+tar -zxvf https://github.com/hyperledger/fabric-ca/releases/download/v1.5.0/hyperledger-fabric-ca-linux-amd64-1.5.2.tar.gz
 mv bin ./fabric-samples
 mv config ./fabric-samples
 # 配置环境变量
@@ -65,7 +65,7 @@ export GOPATH=/home/wjc/gopath
 export GOPROXY=https://goproxy.cn,direct
 export GO111MODULE=on
 # config fabric
-export FABRICBIN=/mnt/d/workspace/blockchain/todo-blockchain/fabric-test/fabric-samples/bin
+export FABRICBIN=/home/wjc/workspace/todo-blockchain/fabric-test/fabric-samples/bin
 # config path
 PATH=$PATH:${GOROOT}/bin:${FABRICBIN}
 export PATH
@@ -131,14 +131,23 @@ cd $PWD # fix sometime win10 wls2 docker-compose cant work
 ./network.sh down
 ```
 
-## 部署一个生产网络
+## deploying a production network
 
 ```shell
 mkdir fabirc-test/twonodes
 cd twonodes
 ```
 
-### cryptogen命令生成证书文件
+### config host
+
+```shell
+sudo vim /etc/hosts
+127.0.0.1	orderer.example.com
+127.0.0.1	peer0.org1.example.com
+127.0.0.1	peer0.org2.example.com
+```
+
+### cryptogen ca files
 
 ```shell
 cryptogen template > cryto-config.yaml
@@ -266,7 +275,7 @@ PeerOrgs:
 
 
 
-### configtx.yaml来创建通道配置
+### configtx.yaml
 
 ```shell
 cp ../fabric-samples/test-network/configtx/configtx.yaml .
@@ -416,7 +425,6 @@ Capabilities:
         # Prior to enabling V2.0 channel capabilities, ensure that all
         # orderers and peers on a channel are at v2.0.0 or later.
         V2_0: true
-        V1_4_3: true
 
     # Orderer capabilities apply only to the orderers, and may be safely
     # used with prior release peers.
@@ -429,7 +437,6 @@ Capabilities:
         # Prior to enabling V2.0 orderer capabilities, ensure that all
         # orderers on channel are at v2.0.0 or later.
         V2_0: true
-        V1_4_3: true
 
     # Application capabilities apply only to the peer network, and may be safely
     # used with prior release orderers.
@@ -442,7 +449,6 @@ Capabilities:
         # Prior to enabling V2.0 application capabilities, ensure that all
         # peers on channel are at v2.0.0 or later.
         V2_0: true
-        V1_4_3: true
 
 ################################################################################
 #
@@ -631,7 +637,7 @@ configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts
 configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org2MSPanchors.tx -channelID mychannel -asOrg Org2MSP
 ```
 
-### docker-compose 创建peer节点
+### docker-compose peer
 
 ```shell
 cp ../fabric-samples/test-network/docker/docker-compose-test-net.yaml ./docker-compose.yaml
@@ -855,7 +861,9 @@ docker-compose up -d
 
 ### peer channel
 
-#### 创建通道
+[官方文档-peerchannel](https://hyperledger-fabric.readthedocs.io/en/release-2.3/commands/peerchannel.html)
+
+#### create channel
 
 ```shell
 docker exec -it cli1 bash
@@ -863,13 +871,13 @@ docker exec -it cli1 bash
 peer channel create -o orderer.example.com:7050 -c mychannel -f ./channel-artifacts/channel.tx --tls true --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/msp/tlscacerts/tlsca.example.com-cert.pem
 # 退出容器
 exit
-# 复制cli1生成的mychannel.block到cli2
+# 复制到cli2容器
 docker cp cli1:/opt/gopath/src/github.com/hyperledger/fabric/peer/mychannel.block ./
 docker cp ./mychannel.block cli2:/opt/gopath/src/github.com/hyperledger/fabric/peer
 rm -rf mychannel.block
 ```
 
-#### 加入通道
+#### join channel
 
 ```shell
 # Org1 join
@@ -881,4 +889,160 @@ docker exec -it cli2 bash
 peer channel join -b mychannel.block
 exit
 ```
+
+#### update channel
+
+```shell
+# 更新Org1
+docker exec -it cli1 bash
+peer channel update -o orderer.example.com:7050 -c mychannel -f ./channel-artifacts/Org1MSPanchors.tx --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
+# 更新Org2
+docker exec -it cli2 bash
+peer channel update -o orderer.example.com:7050 -c mychannel -f ./channel-artifacts/Org2MSPanchors.tx --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
+```
+
+### chaincode
+
+[官方文档-peerlifecycle](https://hyperledger-fabric.readthedocs.io/en/release-2.3/commands/peerlifecycle.html)
+
+#### get chaincode file
+
+```shell
+# 先使用官方例子的sacc.go
+mkdir ./chaincode/go/sacc
+cp ../fabric-samples/chaincode/sacc/sacc.go ./chaincode/go/sacc
+```
+
+#### package
+
+```shell
+# Org1打包链码
+docker exec -it cli1 bash
+cd /opt/gopath/src/github.com/hyperledger/fabric-cluster/chaincode/go/sacc
+go env -w GOPROXY=https://goproxy.cn,direct
+go mod init
+go mod vendor
+cd /opt/gopath/src/github.com/hyperledger/fabric/peer
+# 打包链码
+peer lifecycle chaincode package sacc.tar.gz --path /opt/gopath/src/github.com/hyperledger/fabric-cluster/chaincode/go/sacc/ --label sacc_1
+# 退出容器
+exit
+# 复制到cli2容器
+docker cp cli1:/opt/gopath/src/github.com/hyperledger/fabric/peer/sacc.tar.gz ./
+docker cp ./sacc.tar.gz cli2:/opt/gopath/src/github.com/hyperledger/fabric/peer
+rm -rf sacc.tar.gz
+```
+
+#### install
+
+```shell
+# Org1 安装链码
+docker exec -it cli1 bash
+peer lifecycle chaincode install sacc.tar.gz 
+# Chaincode code package identifier: sacc_1:d62238578eba215488f27f94b582ef72858c2026805d50e84e3007de4bca4016
+# Org2 安装链码
+docker exec -it cli2 bash
+peer lifecycle chaincode install sacc.tar.gz
+# Chaincode code package identifier: sacc_1:d62238578eba215488f27f94b582ef72858c2026805d50e84e3007de4bca4016
+```
+
+#### approveformyorg
+
+```shell
+# Org1同意
+docker exec -it cli1 bash
+# 查询Package ID
+peer lifecycle chaincode queryinstalled
+# 同意该链码
+peer lifecycle chaincode approveformyorg --channelID mychannel --name sacc --version 1.0 --init-required --package-id sacc_1:d62238578eba215488f27f94b582ef72858c2026805d50e84e3007de4bca4016 --sequence 1 --tls true --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
+# Org2同意
+docker exec -it cli2 bash
+# 同意该链码
+peer lifecycle chaincode approveformyorg --channelID mychannel --name sacc --version 1.0 --init-required --package-id sacc_1:d62238578eba215488f27f94b582ef72858c2026805d50e84e3007de4bca4016 --sequence 1 --tls true --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
+# 查询是否approve成功
+peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name sacc --version 1.0 --init-required --sequence 1 --tls true --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem --output json 
+# 可以看到两个组织都同意了
+{
+        "approvals": {
+                "Org1MSP": true,
+                "Org2MSP": true
+        }
+}
+```
+
+#### commit
+
+```shell
+# 任意一个peer节点commit就行
+docker exec -it cli1 bash
+# commit操作
+peer lifecycle chaincode commit -o orderer.example.com:7050 --channelID mychannel --name sacc --version 1.0 --sequence 1 --init-required --tls true --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem --peerAddresses peer0.org1.example.com:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses peer0.org2.example.com:9051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
+```
+
+#### invoke
+
+```shell
+docker exec -it cli1 bash
+# cli1调用链码
+peer chaincode invoke -o orderer.example.com:7050 --isInit --ordererTLSHostnameOverride orderer.example.com --tls true --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n sacc --peerAddresses peer0.org1.example.com:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses peer0.org2.example.com:9051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"Args":["a","b"]}'
+# cli2查询
+docker exec -it cli2 bash
+peer chaincode query -C mychannel -n sacc -c '{"Args":["query","a"]}'
+# cli2数据覆盖
+peer chaincode invoke -o orderer.example.com:7050 --tls true --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n sacc --peerAddresses peer0.org1.example.com:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses peer0.org2.example.com:9051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"Args":["set","a","c"]}'
+# 再进行查询，发现结果变为c
+peer chaincode query -C mychannel -n sacc -c '{"Args":["query","a"]}'
+# 再到cli1进行查询，结果也是变为c
+docker exec -it cli1 bash
+peer chaincode query -C mychannel -n sacc -c '{"Args":["query","a"]}'
+```
+
+## explorer
+
+[blockchain-explorer](https://github.com/hyperledger/blockchain-explorer)
+
+```shell
+mkdir explorer
+cd explorer
+# 下载示例配置
+proxychains4 wget https://raw.githubusercontent.com/hyperledger/blockchain-explorer/main/examples/net1/config.json
+proxychains4 wget https://raw.githubusercontent.com/hyperledger/blockchain-explorer/main/examples/net1/connection-profile/test-network.json -P connection-profile
+proxychains4 wget https://raw.githubusercontent.com/hyperledger/blockchain-explorer/main/docker-compose.yaml
+# 复制ca证书目录
+cp -r ../twonodes/crypto-config ./organizations
+# 保留示例配置
+mkdir testbe
+mv config.json connection-profile/ docker-compose.yaml organizations/ testbe
+# 创建一个生产浏览器
+cp -r testbe explorer
+cd exporer
+mv ./connection-profile/test-network.json ./connection-profile/org1-network.json
+# 修改下网络名
+vim ./connection-profile/org1-network.json
+cp ./connection-profile/org1-network.json ./connection-profile/org2-network.json
+# 修改下网络名跟组织信息等
+vim ./connection-profile/org2-network.json
+# 修改config.json添加组织1，组织2网络
+vim config.json
+# 修改docker-compose.yaml网络配置，挂载目录等
+vim docker-compose.yaml
+# 运行
+docker-compose up -d
+```
+
+## chaincode
+
+参照官方文档，这里不多赘述
+
+## 相关链接
+
+[手动搭建超级账本网络](https://space.bilibili.com/373566326)
+
+[hyperledger-fabric-2.3 doc](https://hyperledger-fabric.readthedocs.io/en/release-2.3/)
+
+[sxguan/fabric-network](https://github.com/sxguan/fabric-network)
+
+[sxguan/fabric-go-sdk](https://github.com/sxguan/fabric-go-sdk)
+
+[jianchengwang/todo-blockchain/fabric-test](https://github.com/jianchengwang/todo-blockchain/tree/main/fabric-test)
 
