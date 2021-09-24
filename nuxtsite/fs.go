@@ -1,4 +1,4 @@
-package nuxt_site
+package nuxtsite
 
 import (
 	"embed"

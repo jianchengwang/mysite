@@ -1,5 +1,5 @@
 ---
-title: nuxt-my-site
+title: build-my-site
 createdAt: 2020-12-23
 categories: 
 - web
@@ -13,6 +13,8 @@ tags:
 之前个人站点使用的`hexo`构建，因为主题都是依赖别人的，感觉不是很好改，而且现在构建一个静态网站，也不是太难，所以这边就花个两三天时间，利用`nuxt`构建一波，这边简单做个记录
 
 选择`nuxt`主要是基于vuejs，现在社区很活跃，提供了很多插件，比如`nuxt-content`可以方便渲染markdown文件，对于前端菜鸡的后端狗来说，上手容易，内置路由基本不需要配置，跟据目录结构生成动态路由，支持ssr等
+
+后端服务使用`go`，上手也比较容易，性能不错
 
 <!--more-->
 
@@ -296,6 +298,77 @@ plugins: [
  ],
 ```
 
+## go serve
+
+之前服务端用node.js做一些简单的接口服务，
+
+```js
+  serverMiddleware: [
+    // API middleware
+    '~/server/index.js'
+  ],
+```
+
+后面学习了`go`，所以就替换为go语言实现，
+
+起先挂载`nuxt`生成的静态目录，使用`go embed`，
+
+```go
+package nuxtsite
+
+import (
+	"embed"
+)
+
+//go:embed dist
+var FS embed.FS
+```
+
+```go
+fe, err := fs.Sub(nuxtsite.FS, "dist")
+if err != nil {
+	log.Fatal("Failed to sub path `dist`: %v", err)
+}
+http.Handle("/", http.FileServer(http.FS(fe)))
+```
+
+不过，因为生成的`dits`里面包含`_nuxt`目录，这种下划线的前缀的目录被go认为是隐藏文件，所以`go embed`会忽略掉，感兴趣的可以自行了解[cmd/go: avoid surprising inclusion of "hidden" files when using //go:embed](https://github.com/golang/go/issues/42328)
+
+所以这里换一种写法
+
+```go
+http.Handle("/", http.FileServer(http.Dir("./nuxtsite/dist")))
+```
+
+## docker
+
+这里就不都赘述了，`Dockerfile`文件如下，
+
+```shell
+FROM alpine:latest
+
+RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+RUN echo 'Asia/Shanghai' >/etc/timezone
+
+# install git - apt-get replace with apk
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache bash git openssh
+
+RUN mkdir /etc/mysite
+WORKDIR /etc/mysite
+
+ADD mysite /etc/mysite
+
+RUN chmod 655 /etc/mysite/mysite
+
+ENTRYPOINT ["/etc/mysite/mysite"]
+EXPOSE 8081
+```
+
+
+
 ## github workflow
 
 这个就不多说了，直接贴代码，仅供参考，
@@ -367,8 +440,55 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
             echo 'deploy begin'
-            /root/_git/my-site/backup.sh u
+            /root/_git/my-site/nuxtsite/build.sh
             echo 'deploy done'
+```
+
+以下是`build.sh`脚本内容，
+
+```shell
+#!/bin/bash
+
+# Get real path
+BASEDIR=$(cd `dirname $0` && pwd)
+cd ${BASEDIR}
+
+# Log Location on Server.
+LOG_LOCATION=${BASEDIR}
+exec > >(tee -i $LOG_LOCATION/build.`date +%Y%m%d%H%M%S`.log)
+exec 2>&1
+
+cd ../
+# 拉取代码
+git pull origin main
+
+# 打包nuxtsite
+cd ./nuxtsite
+yarn install
+yarn generate
+
+# 编译go
+cd ../
+go env -w GOPROXY=https://goproxy.cn,direct
+go env -w GO111MODULE=on
+go env -w CGO_ENABLED=0
+go env -w GOARCH=amd64
+go env -w GOOS=linux
+go mod vendor
+go build -tags netgo -o mysite main.go
+
+# 打包docker镜像
+docker build -t mysite:v0.0.1 .
+docker tag mysite:v0.0.1 jianchengwang/mysite
+docker login
+docker push jianchengwang/mysite
+
+# 部署
+cd ${BASEDIR}
+kill -9 `netstat -nlp | grep :8081 | awk '{print $7}' | awk -F"/" '{ print $1 }'`
+docker pull jianchengwang/mysite:latest
+docker-compose up -d
+docker rmi $(docker images | grep "none" | awk '{print $3}')
 ```
 
 

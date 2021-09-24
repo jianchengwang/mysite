@@ -13,8 +13,8 @@ cd ../
 # 拉取代码
 git pull origin main
 
-# 打包nuxt-site
-cd ./nuxt-site
+# 打包nuxtsite
+cd ./nuxtsite
 yarn install
 yarn generate
 

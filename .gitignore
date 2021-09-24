@@ -1,8 +1,8 @@
 # nuxt
 *.log*
-nuxt-site/.nuxt
-nuxt-site/dist
-nuxt-site/node_modules/
+nuxtsite/.nuxt/
+nuxtsite/dist/
+nuxtsite/node_modules/
 
 # go
 go.sum

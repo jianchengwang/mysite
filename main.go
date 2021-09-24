@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	nuxtsite "github.com/jianchengwang/my-site/nuxt-site"
 	"log"
 	"net/http"
 	"strings"
@@ -22,8 +21,8 @@ func sayhelloName(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	http.Handle("/", http.FileServer(http.Dir("./nuxtsite/dist")))
 	http.HandleFunc("/sayHello", sayhelloName) // 设置访问的路由
-	http.FS(nuxtsite.FS)
 	err := http.ListenAndServe(":8081", nil) // 设置监听的端口
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
