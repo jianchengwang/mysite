@@ -6,7 +6,7 @@ export default {
   head: {
     title: '猫九大大の小窝',
     htmlAttrs: {
-      lang: 'zh-cmn-Hans',
+      lang: 'zh-cmn-Hans'
     },
     meta: [
       { charset: 'utf-8' },
@@ -17,14 +17,14 @@ export default {
       { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
       { rel: 'preconnect', href: 'https://fonts.gstatic.com' },
       { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap' },
-      { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,700;1,400;1,700&display=swap' },
+      { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,700;1,400;1,700&display=swap' }
     ],
     script: [
       {
-        src: "https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/live2dv3.init.js",
-        mode: "client",
-      },
-    ],
+        src: 'https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/live2dv3.init.js',
+        mode: 'client'
+      }
+    ]
   },
 
   // Global CSS (https://go.nuxtjs.dev/config-css)
@@ -42,7 +42,7 @@ export default {
     '@nuxt/typescript-build',
     '@nuxtjs/tailwindcss',
     '@nuxtjs/svg',
-    '@nuxtjs/color-mode',
+    '@nuxtjs/color-mode'
   ],
 
   // Modules (https://go.nuxtjs.dev/config-modules)
@@ -51,7 +51,7 @@ export default {
     '@nuxtjs/pwa',
     // https://go.nuxtjs.dev/content
     '@nuxt/content',
-    ['nuxt-tailvue', { all: true }],
+    ['nuxt-tailvue', { all: true }]
   ],
 
   // Content module configuration (https://go.nuxtjs.dev/config-content)
@@ -77,4 +77,15 @@ export default {
       devtools: true
     }
   },
+
+  generate: {
+    routes () {
+      const genUtils = require('./gen/genUtils')
+      return genUtils.genRoutes('./content').map((path) => {
+        return {
+          route: path
+        }
+      })
+    }
+  }
 }

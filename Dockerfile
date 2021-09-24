@@ -9,10 +9,14 @@ RUN apk update && \
     apk upgrade && \
     apk add --no-cache bash git openssh
 
-RUN mkdir /etc/mysite
+RUN mkdir -p /etc/mysite/nuxtsite
 WORKDIR /etc/mysite
 
+# 添加go二进制文件
 ADD mysite /etc/mysite
+
+# 添加静态文件dist目录
+COPY ./nuxtsite/dist /etc/mysite/nuxtsite/dist
 
 RUN chmod 655 /etc/mysite/mysite
 

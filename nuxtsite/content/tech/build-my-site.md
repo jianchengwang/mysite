@@ -340,6 +340,59 @@ http.Handle("/", http.FileServer(http.FS(fe)))
 http.Handle("/", http.FileServer(http.Dir("./nuxtsite/dist")))
 ```
 
+并且，`nuxt`使用`nuxt generate`生成`dist`目录，默认动态路由是没有生成静态文件的，详情请看[configuration-generate](https://www.nuxtjs.cn/api/configuration-generate)
+
+所以这里要写个工具类，自动生成静态路由配置，
+
+```js
+const fs = require('fs')
+const path = require('path')
+
+const travel = function travel (dir, callback) {
+  fs.readdirSync(dir).forEach((file) => {
+    const pathname = path.join(dir, file)
+    if (fs.statSync(pathname).isDirectory()) {
+      travel(pathname, callback)
+    } else {
+      callback(pathname)
+    }
+  })
+}
+
+const genRoutes = function (dir) {
+  const asyncRoutes = []
+  travel(dir, function (pathname) {
+    const targetDir = dir.replace('./', '')
+    pathname = pathname.replace(targetDir, '').replace('\\', '/').replace('\\', '/').replace('.md', '')
+    console.info(pathname)
+    asyncRoutes.push(pathname)
+  })
+  return asyncRoutes
+}
+
+const genUtils = {
+  travel,
+  genRoutes
+}
+
+module.exports = genUtils
+```
+
+然后在`nuxt.config.js`进行配置
+
+```js
+generate: {
+    routes () {
+      const genUtils = require('./gen/genUtils')
+      return genUtils.genRoutes('./content').map((path) => {
+        return {
+          route: path
+        }
+      })
+    }
+  }
+```
+
 ## docker
 
 这里就不都赘述了，`Dockerfile`文件如下，
@@ -356,10 +409,14 @@ RUN apk update && \
     apk upgrade && \
     apk add --no-cache bash git openssh
 
-RUN mkdir /etc/mysite
+RUN mkdir -p /etc/mysite/nuxtsite
 WORKDIR /etc/mysite
 
+# 添加go二进制文件
 ADD mysite /etc/mysite
+
+# 添加静态文件dist目录
+COPY ./nuxtsite/dist /etc/mysite/nuxtsite/dist
 
 RUN chmod 655 /etc/mysite/mysite
 
