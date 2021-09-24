@@ -462,20 +462,20 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-       - name: Setup Node
-         uses: actions/setup-node@v1
-         with:
-           node-version: "12.x"
+     - name: Setup Node
+       uses: actions/setup-node@v1
+       with:
+         node-version: "12.x"
 
-       - name: Build
-         run: yarn && yarn generate
+     - name: Build
+       run: yarn && yarn generate
 
-       - name: Deploy Github Page
-         uses: peaceiris/actions-gh-pages@v3
-         with:
-           github_token: ${{ secrets.GITHUB_TOKEN }}
-           publish_dir: ./nuxtsite/dist
-           publish_branch: gh-pages
+     - name: Deploy Github Page
+       uses: peaceiris/actions-gh-pages@v3
+       with:
+         github_token: ${{ secrets.GITHUB_TOKEN }}
+         publish_dir: ./nuxtsite/dist
+         publish_branch: gh-pages
 
       # - name: Deploy Ty
       #   uses: AEnterprise/rsync-deploy@v1.0  # 使用别人包装好的步骤镜像
@@ -495,9 +495,10 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.DEPLOY_KEY }}
+          command_timeout: 200m
           script: |
             echo 'deploy begin'
-            /root/_git/my-site/nuxtsite/build.sh
+            /root/_git/my-site/deploy/build.sh
             echo 'deploy done'
 ```
 
