@@ -1,1 +1,0 @@
-__NUXT_JSONP__("/tag/js", (function(a,b){return {data:[{postPath:"tag",docs:[{slug:a,description:"今天本来打算喵下 ES6 ，然后发现 js 胖箭头函数 =\u003E  的 this 跟预期的不大一样，所以就翻阅下资料，这里做个记录，本文大部分内容都摘自互联网，哥哥只是个搬运工，底下会列出相关链接，感兴趣地可以去看下。",title:a,createdAt:"2019-12-09"}],listTitle:"#js",postId:b,tags:b}],fetch:[],mutations:[]}}("this-in-javascript",void 0)));

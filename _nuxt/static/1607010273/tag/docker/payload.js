@@ -1,1 +1,0 @@
-__NUXT_JSONP__("/tag/docker", (function(a,b){return {data:[{postPath:"tag",docs:[{slug:a,description:"Docker是一个开源的容器引擎，它可以帮助我们更快地交付应用。Docker可将应用程序和基础设施层隔离，并且能将基础设施当作程序一样进行管理。使用Docker，可更快地打包、测试以及部署应用程序，并可减少从编写到部署运行代码的周期。",title:a,createdAt:"2020-09-10"}],listTitle:"#docker",postId:b,tags:b}],fetch:[],mutations:[]}}("docker",void 0)));

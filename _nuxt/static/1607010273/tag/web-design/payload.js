@@ -1,1 +1,0 @@
-__NUXT_JSONP__("/tag/web-design", (function(a,b){return {data:[{postPath:"tag",docs:[{slug:a,description:"如何在4分钟内设计一个好看的页面，原文地址",title:a,createdAt:"2019-07-03"}],listTitle:"#web-design",postId:b,tags:b}],fetch:[],mutations:[]}}("web-design-in-4-minutes",void 0)));

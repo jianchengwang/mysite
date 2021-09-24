@@ -1,1 +1,0 @@
-__NUXT_JSONP__("/tag/manjaro", (function(a,b){return {data:[{postPath:"tag",docs:[{slug:a,description:"之前使用 Deepin 的操作系统，虽然新版本稳定性跟易用性大大提高了，但软件源都比较旧，然后就安装下 Manjaro Linux 尝尝鲜，之前使用 i3 桌面，后面发现 Teamview 远程连接的时候，快捷键跟本机的经常冲突，所以还是使用 DDE 的桌面，懒得折腾。\n官网地址",title:a,createdAt:"2019-09-20"}],listTitle:"#manjaro",postId:b,tags:b}],fetch:[],mutations:[]}}("manjaro",void 0)));

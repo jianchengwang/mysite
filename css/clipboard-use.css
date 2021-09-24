@@ -1,0 +1,37 @@
+.code-highlight {
+  position: relative;
+}
+
+.code-highlight ::before {
+  content: attr(data-lang);
+  font-size: 0.6em;
+  color: #b1b1b1;
+  line-height: 18px;
+  position: absolute;
+  top: 4px;
+  right: 7px;
+  z-index: 1;
+}
+
+.code-highlight:hover .codecopy-btn {
+  display: block;
+}
+
+.codecopy-btn {
+  width: 24px;
+  height: 26px;
+  position: absolute;
+  top: 24px;
+  right: 7px;
+  border: none;
+  box-shadow: none;
+  background: none;
+  z-index: 1;
+  font-size: 12px;
+  transition: color 0.2s;
+  display: none;
+}
+
+.codecopy-btn :hover {
+  color: #DD4A68;
+}

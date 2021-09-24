@@ -1,1 +1,0 @@
-__NUXT_JSONP__("/books", (function(a){return {data:[{title:"Books",books:[{title:"平凡的世界",resource:a},{title:"今日简史：人类命运大议题",resource:a},{title:"极简宇宙史",resource:a},{title:"中国近代史",resource:a},{title:"大秦帝国",resource:a},{title:"当我跑步的时候我在想什么",resource:a},{title:"假面饭店",resource:a}]}],fetch:[],mutations:[]}}(null)));

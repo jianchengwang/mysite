@@ -1,1 +1,0 @@
-__NUXT_JSONP__("/life", {data:[{docs:[{slug:"helloword",title:"helloworld",path:"\u002Flife\u002Fhelloword",createdAt:"2020-12-03"}],listTitle:"LIFE",tags:void 0,postPath:"life"}],fetch:[],mutations:[]});

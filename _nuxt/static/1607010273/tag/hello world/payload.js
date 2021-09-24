@@ -1,1 +1,0 @@
-__NUXT_JSONP__("/tag/hello world", (function(a){return {data:[{postPath:"tag",docs:[{slug:"helloword",title:"helloworld",createdAt:"2020-12-03"}],listTitle:"#hello world",postId:a,tags:a}],fetch:[],mutations:[]}}(void 0)));

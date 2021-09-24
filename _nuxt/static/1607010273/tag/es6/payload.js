@@ -1,1 +1,0 @@
-__NUXT_JSONP__("/tag/es6", (function(a,b){return {data:[{postPath:"tag",docs:[{slug:a,description:"现代浏览器基本都支持 ES6 大部分特性，如果你想知道有哪些浏览器支持 ES6 的特性，请戳\nNode 是 JavaScript 的服务器运行环境（runtime）。它对 ES6 的支持度更高。除了那些默认打开的功能，还有一些语法功能已经实现了，但是默认没有打开。",title:a,createdAt:"2019-12-09"}],listTitle:"#es6",postId:b,tags:b}],fetch:[],mutations:[]}}("es6",void 0)));

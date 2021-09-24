@@ -1,1 +1,0 @@
-__NUXT_JSONP__("/tag/java8", (function(a,b){return {data:[{postPath:"tag",docs:[{slug:a,description:"Java8 从2014年发行到现在已经有五个年头了，之前公司的项目都还是基于Java7，所以对 Java8 不甚了解。于是乎，花一两个礼拜学习下，做个记录，以下部分文字复制于其他文章，最底下会列出相关链接，感兴趣的可以去了解下。",title:a,createdAt:"2019-06-09"}],listTitle:"#java8",postId:b,tags:b}],fetch:[],mutations:[]}}("java8",void 0)));

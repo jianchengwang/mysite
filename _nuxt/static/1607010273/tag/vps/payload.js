@@ -1,1 +1,0 @@
-__NUXT_JSONP__("/tag/vps", (function(a,b){return {data:[{postPath:"tag",docs:[{slug:a,description:"VPS厂商很多，\n如果使用vultr厂商注册新用户的话，请戳，vultr推广连接\n如果使用阿里云的话，请戳， 阿里云大使\n以下是vultr的官方测速服务器，你可以进行下载测试，因为运营商或是位置的不同，不同位置速度都有差异，自行选择最适合自己的。",title:a,createdAt:"2019-04-09"}],listTitle:"#vps",postId:b,tags:b}],fetch:[],mutations:[]}}("vps",void 0)));

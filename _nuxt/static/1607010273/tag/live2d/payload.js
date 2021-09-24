@@ -1,1 +1,0 @@
-__NUXT_JSONP__("/tag/live2d", (function(a,b){return {data:[{postPath:"tag",docs:[{slug:a,description:"萌萌哒的看板娘，以下资源来源于互联网，最底下会给出相关链接，github示例",title:a,createdAt:"2020-10-25"}],listTitle:"#live2d",postId:b,tags:b}],fetch:[],mutations:[]}}("live2d-web",void 0)));

@@ -1,1 +1,0 @@
-__NUXT_JSONP__("/tag/serverless", (function(a,b){return {data:[{postPath:"tag",docs:[{slug:a,description:"最近喵了下 Introduction to Serverless Functions 视频感觉还不错。下面主要根据视频作者Jason Lengstorf 的ppt 简单做下笔记，最底下会列出相关链接。\n示例代码 示例网站",title:a,createdAt:"2020-11-13"}],listTitle:"#serverless",postId:b,tags:b}],fetch:[],mutations:[]}}("intro-to-serverless-functions",void 0)));

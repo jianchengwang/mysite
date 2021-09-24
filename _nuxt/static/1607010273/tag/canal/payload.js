@@ -1,1 +1,0 @@
-__NUXT_JSONP__("/tag/canal", (function(a,b){return {data:[{postPath:"tag",docs:[{slug:a,description:"canal [kə'næl]，译意为水道\u002F管道\u002F沟渠，主要用途是基于 MySQL 数据库增量日志解析，提供增量数据订阅和消费",title:a,createdAt:"2019-11-20"}],listTitle:"#canal",postId:b,tags:b}],fetch:[],mutations:[]}}("canal",void 0)));
