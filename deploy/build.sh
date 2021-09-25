@@ -35,7 +35,7 @@ docker login
 docker push jianchengwang/mysite
 
 # 部署
-cd ${BASEDIR}
+cd /root/docker/mysite
 kill -9 `netstat -nlp | grep :8081 | awk '{print $7}' | awk -F"/" '{ print $1 }'`
 docker pull jianchengwang/mysite:latest
 docker-compose up -d

@@ -1,6 +1,8 @@
 > 在线小工具，有自己造轮子的，有链接大佬的网址的，个人觉得有意思或者有帮助的网站地址都会在这里显示...
 #### 造轮子系列
-- [downgit](/tools/downgit) 下载github仓库指定文件夹
+- [downGit](/tools/downGit) 下载github仓库指定文件夹
+- [portScan](/tools/portScan) 网站端口扫描
+- [tencentOcr](/tools/tencentOcr) 腾讯云Ocr
 - [live2d-models](https://jianchengwang.github.io/live2d_models/) 萌萌的看板娘在线预览
 - [coderunner](https://coderunner.jianchengwang.info/) coderunner base on docker
 - 待定

@@ -1,5 +1,6 @@
 ---
 title: mac-m1
+createdAt: 2021-03-02
 categories: 
 - mac
 - env

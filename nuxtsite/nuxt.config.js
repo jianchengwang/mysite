@@ -31,7 +31,7 @@ export default {
   css: ['~assets/main.scss', '~static/css/typo.css'],
 
   // Plugins to run before rendering page (https://go.nuxtjs.dev/config-plugins)
-  plugins: ['~/plugins/common.js', '~/plugins/vueLazyLoad.js'],
+  plugins: ['~/plugins/common.js', '~/plugins/vueLazyLoad.js', '~/plugins/axios'],
 
   // Auto import components (https://go.nuxtjs.dev/config-components)
   components: true,
@@ -51,7 +51,8 @@ export default {
     '@nuxtjs/pwa',
     // https://go.nuxtjs.dev/content
     '@nuxt/content',
-    ['nuxt-tailvue', { all: true }]
+    ['nuxt-tailvue', { all: true }],
+    '@nuxtjs/axios'
   ],
 
   // Content module configuration (https://go.nuxtjs.dev/config-content)
@@ -79,7 +80,7 @@ export default {
   },
 
   generate: {
-    routes () {
+    routes() {
       const genUtils = require('./gen/genUtils')
       return genUtils.genRoutes('./content').map((path) => {
         return {
@@ -87,5 +88,9 @@ export default {
         }
       })
     }
-  }
+  },
+
+  axios: {
+    baseURL: 'http://localhost:8081', // Used as fallback if no runtime config is provided
+  },
 }

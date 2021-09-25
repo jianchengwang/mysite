@@ -74,5 +74,36 @@ girls:
     from: 鬼灭之刃
     reason: 早....早上好!!!!
 
+  - name: 洛琪希
+    avatar: https://blog.res.jianchengwang.info/girls/luoqixi.jfif
+    from: 无职转生
+    reason: 师傅，YYDS!!!!
+  
+  - name: 结城明日奈
+    avatar: https://blog.res.jianchengwang.info/girls/jiechengmingrinai.jpg
+    from: 刀剑神域
+    reason: 做饭好手!!!!
+
+  - name: 桐谷直叶
+    avatar: https://blog.res.jianchengwang.info/girls/tongguzhiye.jpg
+    from: 刀剑神域
+    reason: 兄控莉法桑!!!!
+
+  - name: 司空千落
+    avatar: https://blog.res.jianchengwang.info/girls/sikongqianluo.jpg
+    from: 少年歌行
+    reason: 我以一枪入逍遥!!!!
+
+  - name: 石兰
+    avatar: https://blog.res.jianchengwang.info/girls/shilan.jfif
+    from: 秦时明月
+    reason: 虞姬虞姬!!!!
+
+  - name: 白月魁
+    avatar: https://blog.res.jianchengwang.info/girls/baiyuekui.jfif
+    from: 灵笼
+    reason: 白老板，YYDS!!!!
+
+
 
 ---

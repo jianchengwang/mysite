@@ -6,3 +6,12 @@ services:
       - "8081:8081"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - /root/_git:/etc/mysite/_git
+      - /root/files/tmp:/etc/mysite/tmp
+    environment:
+      APP_URL: *
+      APP_PASSWORD: 123456
+      APP_GIT_PATH: /root/_git
+      APP_TMP_PATH: /root/files/tmp
+      TENCENT_SECRET_ID:
+      TENCENT_SECRET_KEY:
