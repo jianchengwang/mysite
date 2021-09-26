@@ -147,6 +147,15 @@ sudo vim /etc/hosts
 127.0.0.1	peer0.org2.example.com
 ```
 
+### config sudo
+
+因为我们这边使用非root用户，所以要配置一下，详情请参阅[some-programs-not-found-when-used-with-sudo](https://askubuntu.com/questions/118263/some-programs-not-found-when-used-with-sudo)
+
+```shell
+sudo vim /etc/sudoers
+Defaults secure_path = /usr/local/go/bin;/usr/local/bin...
+```
+
 ### cryptogen ca files
 
 ```shell
