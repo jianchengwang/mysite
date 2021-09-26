@@ -359,7 +359,7 @@ Organizations:
                 Rule: "OR('Org1MSP.peer')"    
         
         AnchorPeers:
-            - Host: 127.0.0.1
+            - Host: peer0.org1.example.com
               Port: 7051
            
 
@@ -391,7 +391,7 @@ Organizations:
                 Rule: "OR('Org2MSP.peer')"   
 
         AnchorPeers:
-            - Host: 127.0.0.1
+            - Host: peer0.org2.example.com
               Port: 9051
 
 ################################################################################
@@ -1034,6 +1034,93 @@ docker-compose up -d
 
 参照官方文档，这里不多赘述
 
+## fabric-go-sdk
+
+[fabric-sdk-go](https://github.com/hyperledger/fabric-sdk-go)是Hyperledger Fabric官方提供的Go语言开发包， 应用程序可以利用fabric-sdk-go与fabric网络进行交互并访问链码
+
+### 基本目录
+
+pkg目录是fabric-sdk-go的主要实现，doc文档介绍了不同目录所提供的功能，以及给出 了接口调用样例：
+
+- pkg/fabsdk：主package，主要用来生成fabsdk以及fabric-sdk-go中其他pkg使用的option context。
+- pkg/client/channel：主要用来调用、查询Fabric链码，或者注册链码事件。
+- pkg/client/resmgmt：主要用来Hyperledger fabric网络的管理，比如创建通道、加入通道，安装、实例化和升级链码。
+- pkg/client/event:配合channel模块来进行Fabric链码事件的注册和过滤。
+- pkg/client/ledger：主要用来实现Fabric账本的查询，查询区块、交易、配置等。
+- pkg/client/msp：主要用来管理fabric网络中的成员关系。
+
+### 一般步骤
+
+- 为client编写配置文件config.yaml
+- 为client创建fabric sdk实例fabsdk
+- 为client创建resource manage client，简称RC，RC用来进行管理操作的client， 比如通道的创建，链码的安装、实例化和升级等
+- 为client创建channel client，简称CC，CC用来链码的调用、查询以及链码事件 的注册和取消注册
+
+### fabric-sdk-go配置文件config.yaml概述
+
+client使用sdk与fabric网络交互，需要告诉sdk两类信息：
+
+- 我是谁：即当前client的信息，包含所属组织、密钥和证书文件的路径等， 这是每个client专用的信息。
+- 对方是谁：即fabric网络结构的信息，channel、org、orderer和peer等 的怎么组合起当前fabric网络的，这些结构信息应当与configytx.yaml中是一致的。这是通用配置，每个客户端都可以拿来使用。另外，这部分信息并不需要是完整fabric网络信息，如果当前client只和部分节点交互，那配置文件中只需要包含所使用到的网络信息。
+
+![img](https://blog.res.jianchengwang.info/posts/hyperledger-fabric/fabric-sdk-go-config.png)
+
+### 使用go mod管理fabric-sdk-go项目的依赖
+
+fabric-sdk-go目前本身使用go modules管理依赖，从go.mod可知，依赖的一些包指定了具体的版本， 如果你的项目依赖的版本和fabric-sdk-go依赖的版本不同，会产生编译问题。
+
+因此建议项目也使用go moudles管理依赖，然后相同的软件包可以使用相同的版本，可以这样操作：
+
+- go mod init初始化好项目的go.mod文件。
+- 编写代码，完成后运行go mod run，会自动下载依赖的项目，但版本可能与 fabric-sdk-go中的依赖版本不同，编译存在问题。
+- 把go.mod中的内容复制到项目的go.mod中，然后保存，go mod会自动合并相同的依赖， 运行go mod tidy，会自动添加新的依赖或删除不需要的依赖。
+
+### 创建入口实例
+
+通过config.FromFile解析配置文件，然后通过fabsdk.New创建fabric-sdk-go的入口实例。
+
+```go
+import "github.com/hyperledger/fabric-sdk-go/pkg/core/config"
+import "github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
+
+sdk, err := fabsdk.New(config.FromFile(c.ConfigPath))
+if err != nil {
+  log.Panicf("failed to create fabric sdk: %s", err)
+}
+```
+
+### 资源管理客户端
+
+管理员账号才能进行Hyperledger fabric网络的管理操作，所以创建资源管理客户端一定要 使用管理员账号。
+
+通过fabsdk.WithOrg(“Org1”)和fabsdk.WithUser(“Admin”)指定Org1的Admin账户，使用 sdk.Context创建clientProvider，然后通过resmgmt.New创建fabric-sdk-go资源管理客户端。
+
+```go
+import 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
+
+rcp := sdk.Context(fabsdk.WithUser("Admin"), fabsdk.WithOrg("Org1"))
+rc, err := resmgmt.New(rcp)
+if err != nil {
+  log.Panicf("failed to create resource client: %s", err)
+}
+```
+
+### 创建通道客户端
+
+使用用户账号创建fabric-sdk-go的通道客户端，以便进行fabric链码的调用和查询。 使用sdk.ChannelContext创建channelProvider，需要指定channelID和用户User1， 然后通过channel.New创建通道客户端，这个通道客户端就是调用channelID对应channel上链码的channel client。
+
+```go
+import 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
+
+ccp := sdk.ChannelContext(ChannelID, fabsdk.WithUser("User1"))
+cc, err := channel.New(ccp)
+if err != nil {
+  log.Panicf("failed to create channel client: %s", err)
+}
+```
+
+
+
 ## 相关链接
 
 [手动搭建超级账本网络](https://space.bilibili.com/373566326)
@@ -1043,6 +1130,8 @@ docker-compose up -d
 [sxguan/fabric-network](https://github.com/sxguan/fabric-network)
 
 [sxguan/fabric-go-sdk](https://github.com/sxguan/fabric-go-sdk)
+
+[fabric-sdk-go-tutorial](http://blog.hubwiz.com/2020/03/18/fabric-sdk-go-tutorial/)
 
 [jianchengwang/todo-blockchain/fabric-test](https://github.com/jianchengwang/todo-blockchain/tree/main/fabric-test)
 

@@ -46,6 +46,9 @@ bash
 
 # 访问宿主机目录
 cd /mnt
+
+# 宿主机访问wsl2
+\\wsl$\Debian\
 ```
 
 ### set sources.list
