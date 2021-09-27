@@ -51,6 +51,24 @@ cd /mnt
 \\wsl$\Debian\
 ```
 
+这个如果是外部访问的话，使用golang等编辑器编辑wsl2内部的文件，容易出现在WSL中如果有和Windows中相同名称的命令,可能会出现调用紊乱，
+
+```shell
+echo $PATH
+```
+
+会看到大量window的path变量，所以这里配置下，wsl.conf
+
+```shell
+sudo vim /etc/wsl.conf
+# no load windows path
+[interop]
+appendWindowsPath = false
+#[automount]
+#enabled = false
+wsl --terminate Debian
+```
+
 ### set sources.list
 
 ```shell
