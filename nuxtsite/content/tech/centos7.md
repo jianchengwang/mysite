@@ -17,6 +17,9 @@ tags:
 ### 安装基础软件
 
 ```shell
+# 安装gcc
+yum -y install gcc
+
 # 使用ifconfig等命令
 yum -y install net-tools
 
@@ -42,12 +45,29 @@ netstat -an | grep 22 # 检查22端口是否监听
 
 systemctl enable sshd # 开启自启动sshd
 
-# 安装zsh
+# 安装git
 sudo yum install git
+# 如果该项保持启用状态，由于行尾结束符的差异，此设置可能导致你未编辑的文件中出现了修改操作
+git config --global core.autocrlf false 
+git config --global user.name "jianchengwang"
+git config --global user.email "jiancheng_wang@yahoo.com"
+
+# 安装zsh
 sudo yum install zsh
 sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 chsh -s /bin/zsh
 
+# 安装proxychain4
+git clone https://github.com/rofl0r/proxychains-ng
+cd proxychains-ng
+./configure --prefix=/usr --sysconfdir=/etc
+make 
+make install
+make install-config
+cd .. && rm -rf proxychains-ng
+vim /etc/proxychains.conf 
+socks5  192.168.20.19 7890   
+http    192.168.20.19 7890
 ```
 
 

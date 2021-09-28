@@ -62,11 +62,11 @@ mv config ./fabric-samples
 sudo vim /etc/profile
 # config go
 export GOROOT=/usr/local/go
-export GOPATH=/home/wjc/gopath
+export GOPATH=/root/gopath
 export GOPROXY=https://goproxy.cn,direct
 export GO111MODULE=on
 # config fabric
-export FABRICBIN=/home/wjc/workspace/todo-blockchain/fabric-test/fabric-samples/bin
+export FABRICBIN=/root/workspace/todo-blockchain/fabric-test/fabric-samples/bin
 # config path
 PATH=$PATH:${GOROOT}/bin:${FABRICBIN}
 export PATH
