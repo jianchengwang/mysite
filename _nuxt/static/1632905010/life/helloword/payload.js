@@ -1,0 +1,1 @@
+__NUXT_JSONP__("/life/helloword", (function(a,b,c){return {data:[{doc:{slug:a,title:"helloworld",categories:["life"],tags:["hello world"],toc:[],body:{type:"root",children:[]},dir:"\u002Flife",path:"\u002Flife\u002Fhelloword",extension:".md",createdAt:b,updatedAt:b},prev:c,next:c,postId:a,tags:void 0}],fetch:[],mutations:[]}}("helloword","2021-09-29T08:40:58.941Z",null)));

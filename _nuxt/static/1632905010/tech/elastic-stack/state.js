@@ -1,0 +1,1 @@
+window.__NUXT__=(function(a,b,c){return {staticAssetsBase:"\u002F_nuxt\u002Fstatic\u002F1632905010",layout:"default",error:null,state:{siedeBar:a},serverRendered:b,routePath:"\u002Ftech\u002Felastic-stack",config:{content:{dbHash:"5cf59bc9"}},colorMode:{preference:c,value:c,unknown:b,forced:a}}}(false,true,"system"));
