@@ -29,7 +29,9 @@ tags:
 4. 代币符号： BNB
 5. 区块链浏览器：https://testnet.bscscan.com/
 
-然后可以到这个网站24小时领取一个BNB，[https://testnet.binance.org/faucet-smart ](https://testnet.binance.org/faucet-smart)
+然后可以到这个网站24小时领取一个BNB，[https://testnet.binance.org/faucet-smart ](https://testnet.binance.org/faucet-smart)，用于支付`gas`，
+
+如果是`ETH`可以到这个网站免费领取，https://faucet.ropsten.be/
 
 ## Develop Enviroment
 
@@ -73,6 +75,33 @@ npx hardhat compile
 
 ```shell
 npx hardhat test
+```
+
+### localhost
+
+hardhat内置了eth的节点网络，方便本地开发，
+
+```shell
+# kill 8545
+lsof -i :8545
+# or window
+netstat -aon|findstr "8545"
+tasklist|findstr "23292"
+taskkill /f /t /im "23292"
+
+# 启动localhost网络
+npx hardhat node
+# 复制初始的钱包密钥，导入metamask
+
+# 部署到测试网络
+npx hardhat run --network localhost scripts/deploy.js
+
+# 编译合约生成java封装类
+solc <smart-contract>.sol –bin –abi –optimize -o <output-dir>/
+web3j solidity generate -b /path/to/<smart-contract>.bin \
+        -a /path/to/<smart-contract>.abi \
+        -o /path/to/src/main/java \
+        -p com.your.organisation.name
 ```
 
 ### deploying
@@ -198,6 +227,77 @@ https://testnet.bscscan.com/address/0x25F547DeE6A315dc841830B7bB72fC9CE6EbF420#c
 我们可以到地址[https://testnet.bscscan.com/address/0x25F547DeE6A315dc841830B7bB72fC9CE6EbF420#code](https://testnet.bscscan.com/address/0x25F547DeE6A315dc841830B7bB72fC9CE6EbF420#code)
 
 就可以对代币合约进行，`read`，`write`操作了，
+
+## 本地开发
+
+### localhost network
+
+hardhat内置了eth的节点网络，方便本地开发，
+
+```shell
+# kill 8545
+lsof -i :8545
+# or window
+netstat -aon|findstr "8545"
+tasklist|findstr "23292"
+taskkill /f /t /im "23292"
+
+# 启动localhost网络
+npx hardhat node
+# 复制初始的钱包密钥，导入metamask
+
+# 部署到测试网络
+npx hardhat run --network localhost scripts/deploy.js
+```
+
+### build java
+
+首先要编译输出abi，
+
+```shell
+ npm install -g solc
+ solcjs <smart-contract>.sol –bin –abi –optimize -o <output-dir>
+```
+
+我们这边应该使用hardhat框架的插件
+
+```shell
+# 这里使用hardhat插件
+yarn add --dev hardhat-abi-exporter
+```
+
+ 编辑`harthat.config.js`
+
+```js
+require('hardhat-abi-exporter');
+
+```
+
+我们这边后端使用java调用，
+
+这里用到https://github.com/web3j/web3j这个类库，
+
+然后从[这里](https://github.com/web3j/web3j/releases)下载web3j命令行工具，解压并设置PATH环境变量，以便可以在任何目录调用。
+
+```shell
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/web3j/web3j-installer/master/installer.ps1'))
+```
+
+所以我们需要把智能合约编译，并生成java的封装类，
+
+```shell
+web3j solidity generate -b /path/to/<smart-contract>.bin \
+        -a /path/to/<smart-contract>.abi \
+        -o /path/to/src/main/java \
+        -p com.your.organisation.name
+```
+
+```shell
+
+ 
+```
+
+
 
 ## 相关链接
 
