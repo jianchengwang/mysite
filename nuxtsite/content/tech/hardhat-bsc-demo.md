@@ -206,7 +206,7 @@ module.exports = {
 执行校验命令，
 
 ```shell
-npx hardhat  verify --network testnet 0x25F547DeE6A315dc841830B7bB72fC9CE6EbF420
+npx hardhat verify --network testnet 0x25F547DeE6A315dc841830B7bB72fC9CE6EbF420
 ```
 
 `0x25F547DeE6A315dc841830B7bB72fC9CE6EbF420`为代币合约地址
@@ -228,7 +228,7 @@ https://testnet.bscscan.com/address/0x25F547DeE6A315dc841830B7bB72fC9CE6EbF420#c
 
 就可以对代币合约进行，`read`，`write`操作了，
 
-## 本地开发
+## Local Dev
 
 ### localhost network
 
@@ -250,27 +250,50 @@ npx hardhat node
 npx hardhat run --network localhost scripts/deploy.js
 ```
 
+### eth network
+
+```shell
+# 拉取镜像：
+docker pull ethereum/client-go
+# 启动一个节点：
+docker run -it -p 30303:30303 ethereum/client-go
+# 启动一个节点并在8545上运行JSON-RPC接口：
+docker run -it -p 8545:8545 -p 30303:30303 ethereum/client-go --rpc --rpcaddr "0.0.0.0"
+# 注意：“0.0.0.0”参数会在8545接口上接收所有主机发送的请求，公共网络慎用！
+# 使用javascript控制台进行交互操作，可运行下命令启动节点：
+docker run -it -p 30303:30303 ethereum/client-go console
+```
+
 ### build java
 
 首先要编译输出abi，
 
 ```shell
+ # install solcjs
  npm install -g solc
- solcjs <smart-contract>.sol –bin –abi –optimize -o <output-dir>
+ solcjs <smart-contract>.sol –-bin –-abi –-optimize -o <output-dir>
+ # 我这边使用win10，所以这边用docker安装
+ docker run ethereum/solc:stable <smart-contract>.sol –-bin –-abi –-optimize -o <output-dir>
+ # 例子
+ docker run -v /mnt/d/workspace/shangchain/performance-coin/backend/scfz-web3j/src/main/solidity/contracts:/sources -v /mnt/d/workspace/shangchain/performance-coin/backend/scfz-web3j/src/main/solidity/data:/output ethereum/solc:stable -o /output --abi --bin /sources/PerformanceToken.sol
 ```
 
-我们这边应该使用hardhat框架的插件
+我们这边应该使用`hardhat`框架的插件
 
 ```shell
 # 这里使用hardhat插件
 yarn add --dev hardhat-abi-exporter
+# 如果出现 fatal: unable to access 'https://github.com/ethereumjs/ethereumjs-abi.git/': OpenSSL SSL_read: Connection was reset, errno 10054
+# 正是因为安装包 needs to be downloaded from git in "git ssh mode" not via https.
+# /usr/bin/git ls-remote -h -t ssh://git@github.com/ethereumjs/ethereumjs-abi.git
+# 测试一下是否配置了github免密登录
+ssh -T git@github.com
 ```
 
  编辑`harthat.config.js`
 
 ```js
 require('hardhat-abi-exporter');
-
 ```
 
 我们这边后端使用java调用，
@@ -293,8 +316,7 @@ web3j solidity generate -b /path/to/<smart-contract>.bin \
 ```
 
 ```shell
-
- 
+web3j solidity generate -b ./data/token.bin -a ./data/token.abi -o /data/src/main/java -p com.your.organisation.nameweb
 ```
 
 
