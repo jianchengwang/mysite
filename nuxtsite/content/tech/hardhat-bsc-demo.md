@@ -77,33 +77,6 @@ npx hardhat compile
 npx hardhat test
 ```
 
-### localhost
-
-hardhat内置了eth的节点网络，方便本地开发，
-
-```shell
-# kill 8545
-lsof -i :8545
-# or window
-netstat -aon|findstr "8545"
-tasklist|findstr "23292"
-taskkill /f /t /im "23292"
-
-# 启动localhost网络
-npx hardhat node
-# 复制初始的钱包密钥，导入metamask
-
-# 部署到测试网络
-npx hardhat run --network localhost scripts/deploy.js
-
-# 编译合约生成java封装类
-solc <smart-contract>.sol –bin –abi –optimize -o <output-dir>/
-web3j solidity generate -b /path/to/<smart-contract>.bin \
-        -a /path/to/<smart-contract>.abi \
-        -o /path/to/src/main/java \
-        -p com.your.organisation.name
-```
-
 ### deploying
 
 首先在`hardhat.config.js`配置下网络信息，
@@ -246,22 +219,8 @@ taskkill /f /t /im "23292"
 npx hardhat node
 # 复制初始的钱包密钥，导入metamask
 
-# 部署到测试网络
+# 部署到本地网络
 npx hardhat run --network localhost scripts/deploy.js
-```
-
-### eth network
-
-```shell
-# 拉取镜像：
-docker pull ethereum/client-go
-# 启动一个节点：
-docker run -it -p 30303:30303 ethereum/client-go
-# 启动一个节点并在8545上运行JSON-RPC接口：
-docker run -it -p 8545:8545 -p 30303:30303 ethereum/client-go --rpc --rpcaddr "0.0.0.0"
-# 注意：“0.0.0.0”参数会在8545接口上接收所有主机发送的请求，公共网络慎用！
-# 使用javascript控制台进行交互操作，可运行下命令启动节点：
-docker run -it -p 30303:30303 ethereum/client-go console
 ```
 
 ### build java
@@ -269,54 +228,33 @@ docker run -it -p 30303:30303 ethereum/client-go console
 首先要编译输出abi，
 
 ```shell
- # install solcjs
- npm install -g solc
- solcjs <smart-contract>.sol –-bin –-abi –-optimize -o <output-dir>
- # 我这边使用win10，所以这边用docker安装
+# 我这边使用win10，所以这边用docker安装
  docker run ethereum/solc:stable <smart-contract>.sol –-bin –-abi –-optimize -o <output-dir>
  # 例子
- docker run -v /mnt/d/workspace/shangchain/performance-coin/backend/scfz-web3j/src/main/solidity/contracts:/sources -v /mnt/d/workspace/shangchain/performance-coin/backend/scfz-web3j/src/main/solidity/data:/output ethereum/solc:stable -o /output --abi --bin /sources/PerformanceToken.sol
-```
-
-我们这边应该使用`hardhat`框架的插件
-
-```shell
-# 这里使用hardhat插件
-yarn add --dev hardhat-abi-exporter
-# 如果出现 fatal: unable to access 'https://github.com/ethereumjs/ethereumjs-abi.git/': OpenSSL SSL_read: Connection was reset, errno 10054
-# 正是因为安装包 needs to be downloaded from git in "git ssh mode" not via https.
-# /usr/bin/git ls-remote -h -t ssh://git@github.com/ethereumjs/ethereumjs-abi.git
-# 测试一下是否配置了github免密登录
-ssh -T git@github.com
-```
-
- 编辑`harthat.config.js`
-
-```js
-require('hardhat-abi-exporter');
+docker run --rm -v /solidity/build:/sources -v /solidity/build/output:/output ethereum/solc:stable -o /output --abi --bin /sources/Token.sol
 ```
 
 我们这边后端使用java调用，
 
 这里用到https://github.com/web3j/web3j这个类库，
 
-然后从[这里](https://github.com/web3j/web3j/releases)下载web3j命令行工具，解压并设置PATH环境变量，以便可以在任何目录调用。
+所以我们需要把智能合约编译，并生成java的封装类，这边使用官方提供的代码工具类`SolidityFunctionWrapperGenerator `
 
 ```shell
-Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/web3j/web3j-installer/master/installer.ps1'))
+org.web3j.codegen.SolidityFunctionWrapperGenerator -b /path/to/<smart-contract>.bin -a /path/to/<smart-contract>.abi -o /path/to/src/main/java -p com.your.organisation.name
 ```
 
-所以我们需要把智能合约编译，并生成java的封装类，
-
-```shell
-web3j solidity generate -b /path/to/<smart-contract>.bin \
-        -a /path/to/<smart-contract>.abi \
-        -o /path/to/src/main/java \
-        -p com.your.organisation.name
-```
-
-```shell
-web3j solidity generate -b ./data/token.bin -a ./data/token.abi -o /data/src/main/java -p com.your.organisation.nameweb
+```java
+   List<String> options = new ArrayList<>();
+        options.add("-b");
+        options.add(TokenClassGen.class.getResource("/Token.bin").getPath());
+        options.add("-a");
+        options.add(TokenClassGen.class.getResource("/Token.abi").getPath());
+        options.add("-o");
+        options.add(TokenClassGen.class.getResource("/").getPath());
+        options.add("-p");
+        options.add("com.test.contract");
+        SolidityFunctionWrapperGenerator.main(options.toArray(new String[options.size()]));
 ```
 
 
@@ -332,4 +270,6 @@ web3j solidity generate -b ./data/token.bin -a ./data/token.abi -o /data/src/mai
 [openzeppelin](https://docs.openzeppelin.com/openzeppelin/)
 
 [oneclickdapp](https://oneclickdapp.com/)
+
+[web3jdoc](https://docs.web3j.io/4.8.7/)
 
