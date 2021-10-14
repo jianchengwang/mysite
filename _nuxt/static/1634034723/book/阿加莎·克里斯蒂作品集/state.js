@@ -1,1 +1,0 @@
-window.__NUXT__=(function(a,b,c){return {staticAssetsBase:"\u002F_nuxt\u002Fstatic\u002F1634034723",layout:"default",error:null,state:{siedeBar:a},serverRendered:b,routePath:"\u002Fbook\u002F阿加莎·克里斯蒂作品集",config:{content:{dbHash:"6e15c398"}},colorMode:{preference:c,value:c,unknown:b,forced:a}}}(false,true,"system"));
