@@ -257,7 +257,347 @@ org.web3j.codegen.SolidityFunctionWrapperGenerator -b /path/to/<smart-contract>.
         SolidityFunctionWrapperGenerator.main(options.toArray(new String[options.size()]));
 ```
 
+## Private Chain
 
+### 相关文档
+
+- BSC官网：https://www.binance.org/cn
+- BSC链github地址：https://github.com/binance-chain/bsc/releases
+- 主网区块链浏览器：https://bscscan.com/
+- 主网链官方部署文档：:https://docs.binance.org/smart-chain/developer/fullnode.html
+- 手续费（gasprice）：https://bscgas.info/gas
+- 创世文件及配置文件参考：https://api.github.com/repos/binance-chain/bsc/releases/latest
+- 开发者文档：https://docs.binance.org/index.html
+- 公共节点：https://docs.binance.org/smart-chain/developer/rpc.html
+- 生态系统：https://github.com/binance-chain/bsc-ecosystem
+
+### BSC开发镜像生成
+
+下载基础镜像
+
+```shell
+docker pull buildpack-deps:jessie-curl
+```
+
+编写`Dockerfile`
+
+```dockerfile
+FROM buildpack-deps:jessie-curl
+RUN wget -P /usr/local/bin/ https://github.com/binance-chain/bsc/releases/download/v1.1.2/geth_linux && mv /usr/local/bin/geth_linux /usr/local/bin/geth && chmod +x /usr/local/bin/geth
+EXPOSE 8545 8546 30303 30303/udp
+WORKDIR /data
+ENTRYPOINT ["geth"]
+```
+
+如果github下载不了，也可以先下载到本地
+
+```dockerfile
+FROM buildpack-deps:jessie-curl
+ADD geth_linux /usr/local/bin/
+RUN mv /usr/local/bin/geth_linux /usr/local/bin/geth && chmod +x /usr/local/bin/geth
+EXPOSE 8545 8546 30303 30303/udp
+WORKDIR /data
+ENTRYPOINT ["geth"]
+```
+
+生成私链镜像
+
+```shell
+docker build . -t private_bsc:v1.1.2
+```
+
+### BSC容器生成
+
+#### 配置文件编写
+
+参考: https://github.com/binance-chain/bsc/releases/download/v1.1.2/mainnet.zip
+
+```toml
+[Eth]
+NetworkId = 1024
+NoPruning = false
+NoPrefetch = false
+LightPeers = 100
+UltraLightFraction = 75
+TrieTimeout = 100000000000
+EnablePreimageRecording = false
+EWASMInterpreter = ""
+EVMInterpreter = ""
+
+[Eth.Miner]
+GasFloor = 30000000
+GasCeil = 40000000
+GasPrice = 1000000000
+Recommit = 10000000000
+Noverify = false
+
+[Eth.TxPool]
+Locals = []
+NoLocals = true
+Journal = "transactions.rlp"
+Rejournal = 3600000000000
+PriceLimit = 1000000000
+PriceBump = 10
+AccountSlots = 512
+GlobalSlots = 10000
+AccountQueue = 256
+GlobalQueue = 5000
+Lifetime = 10800000000000
+
+[Eth.GPO]
+Blocks = 20
+Percentile = 60
+OracleThreshold = 20
+
+[Node]
+IPCPath = "geth.ipc"
+HTTPHost = "0.0.0.0"
+NoUSB = true
+InsecureUnlockAllowed = false
+HTTPPort = 8545
+HTTPVirtualHosts = ["*"]
+HTTPModules = ["eth", "net", "web3", "txpool", "parlia"]
+WSPort = 8546
+WSModules = ["net", "web3", "eth"]
+WSHost = "0.0.0.0"
+WSOrigins = ["*"]
+
+
+[Node.P2P]
+MaxPeers = 30
+NoDiscovery = false
+ListenAddr = ":30311"
+EnableMsgEvents = false
+
+[Node.HTTPTimeouts]
+ReadTimeout = 30000000000
+WriteTimeout = 30000000000
+IdleTimeout = 120000000000
+
+[Node.LogConfig]
+FilePath = "bsc.log"
+MaxBytesSize = 10485760
+Level = "info"
+FileRoot = ""
+```
+
+> config.toml 文件可创建在/opt/docker/bsc-private
+
+注：本次部署最重要的目的是需要BSC开发网节点支持websocket协议，配置文件中需要注意以下参数：
+
+```yaml
+WSPort = 8546                         //指定WebSockets-RPC服务端口，默认值8546
+WSModules = ["net", "web3", "eth"]    //设定开放给WebSockets-RPC的接口，默认只开放eth、net、web3
+WSHost = "0.0.0.0"                    //指定WebSockets-RPC服务监听地址，默认值localhost
+WSOrigins = ["*"]                     //指定WebSockets-RPC服务允许从哪些域过来的跨域请求，*表示接受表示所有的域
+```
+
+#### 创建一个owner账户
+
+使用MetaMask或者其他工具预先创建一个账户地址，并保存好私钥，后面这个地址会配置在genesis文件中，并用做挖矿coinbase地址及初始化地址
+
+#### 创建genesis.json
+
+参考: https://github.com/binance-chain/bsc/releases/download/v1.1.2/mainnet.zip
+
+**根据需要修改特定的字段，常规的比如**
+
+- chainId 修改为自己的独有链id
+- coinbase 修改为预先创建的地址
+- alloc中的efe9fc587858ce20ee391834dc6d58fa6c18278c修改为初始资金接收地址，balance根据业务需要，计算相应预先发行数量（精度18位）的16进制
+
+**对于共识参数，可以根据需要再做修改**
+
+```yaml
+"congress": {
+    "period": 3, // 出块间隔（秒）
+    "epoch": 200 // 出块顺序刷新间隔（块数）,epoch为一个周期设定，单位是block，每个epoch结束的时候，会对验证人进行相应调整；
+}
+```
+
+**genesis.json 文件创建**
+
+```json
+{
+  "config": {
+    "chainId": 1024,
+    "homesteadBlock": 0,
+    "eip150Block": 0,
+    "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "eip155Block": 0,
+    "eip158Block": 0,
+    "byzantiumBlock": 0,
+    "constantinopleBlock": 0,
+    "petersburgBlock": 0,
+    "istanbulBlock": 0,
+    "muirGlacierBlock": 0,
+    "congress": {
+     "period": 20,
+      "epoch": 20000
+    }
+  },     
+     "nonce": "0x0000000000000061",
+     "timestamp": "0x0",
+     "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+     "gasLimit": "0x2625a00",
+     "difficulty": "0x100",
+     "mixhash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+     "coinbase": "efe9fc587858ce20ee391834dc6d58fa6c18278c",
+     "alloc": {
+       "efe9fc587858ce20ee391834dc6d58fa6c18278c":{
+       "balance": "6660010000000000000000000000"
+   	      }	
+     }
+}
+```
+
+> 注：genesis.json 应创建在/opt/docker/bsc-private
+
+#### 初始化geth
+
+将上面修改好的**geth.toml**和**genesis.json**以**及预生成的账户地址keystore文件**放到规划好的位置，我们此时放在 **/opt/docker/bsc-private/**
+
+- 初始化geth
+
+```shell
+cd /opt/docker/bsc-private
+
+docker run --rm -v $(pwd):/data private_bsc:v1.1.2 init /data/genesis.json --datadir /data/bsc
+```
+
+- 将预生成的账户地址keystore文件拷贝至初始数据文件中
+
+```shell
+cp UTC--2021-10-18T07-57-44.666000000Z--efe9fc587858ce20ee391834dc6d58fa6c18278c.json bsc/keystore/
+```
+
+或者可以将以上步骤编写为一个脚本，例如：
+
+```shell
+# vim /opt/docker/bsc-private/genesis.sh 
+
+#!/bin/bash
+
+docker run --rm -v $(pwd):/data private_bsc:v1.1.2 init /data/genesis.json --datadir /data/bsc
+cp UTC--* ./bsc/keystore/
+```
+
+#### 启动bsc
+
+win10启动提示socker问题，参照这个[issue](https://github.com/ethereum/go-ethereum/issues/16215)
+
+```shell
+docker run -itd --restart=unless-stopped -v /etc/localtime:/etc/localtime -v /etc/timezone:/etc/timezone --name private-bsc -v /mnt/d/bsc-private/:/data -p 30311:30311 -p 8545:8545 -p 8546:8546 private_bsc:v1.1.2 --config config.toml --datadir /data/bsc  --nodiscover --allow-insecure-unlock --ipcdisable
+```
+
+- 查看bsc启动日志
+
+```shell
+# tail -100 /opt/docker/bsc-private/bsc/bsc.log.2021-09-01_12
+
+t=2021-09-01T12:58:10+0800 lvl=info msg="Writing clean trie cache to disk"       path=/data/bsc/geth/triecache threads=1
+t=2021-09-01T12:58:10+0800 lvl=info msg="Persisted the clean trie cache"         path=/data/bsc/geth/triecache elapsed="893.611µs"
+```
+
+> 注意：此时私链并没有开启挖矿
+
+#### 启动挖矿
+
+启动后，进入ipc，解锁我们预先生成的地址，作为此节点的coinbase
+
+- 从另一个终端进入geth控制台
+
+```shell
+# docker exec -it private-bsc bash
+root@602e93dadf6a:/data# geth attach /data/bsc/geth.ipc
+```
+
+- 查看当前的的coinbase地址
+
+```shell
+> eth
+{
+  accounts: ["efe9fc587858ce20ee391834dc6d58fa6c18278c"],
+  blockNumber: 0,
+  coinbase: "efe9fc587858ce20ee391834dc6d58fa6c18278c",
+```
+
+accounts和coinbase都为以上步骤预先生成的地址
+
+- 设置该地址为无限期解锁，因为后面需要使用该私钥进行出块签名。0为无限期
+
+```shell
+> personal.unlockAccount("efe9fc587858ce20ee391834dc6d58fa6c18278c","123456",0)
+true
+```
+
+- 启动挖矿
+
+```shell
+>  miner.start(1)
+null
+```
+
+> 注：开启一个线程进行挖矿
+
+- 此时查看容器日志
+
+```shell
+# tail -100 /opt/docker/bsc-private/bsc/bsc.log.2021-09-01_13
+// 生成DAG数据
+t=2021-09-01T13:34:51+0800 lvl=info msg="Generating DAG in progress"             epoch=0 percentage=9 elapsed=7.342s
+t=2021-09-01T13:34:52+0800 lvl=info msg="Generating DAG in progress"             epoch=0 percentage=10 elapsed=8.072s
+t=2021-09-01T13:34:52+0800 lvl=info msg="Generating DAG in progress"             epoch=0 percentage=11 elapsed=8.816s
+
+// 开始出块
+t=2021-09-01T13:35:58+0800 lvl=info msg="Successfully sealed new block"          number=1 sealhash=0x0f990fcb956860fc1f050205d1aee1aff052f75327a0f1fe82a29b886d259f3b hash=0x8b79131b55f3447c988ac7c361dc0b903666c4dfcbae86bd08aed3f08d453c44 elapsed=1m15.471s
+t=2021-09-01T13:35:58+0800 lvl=info msg=" mined potential block"                number=1 hash=0x8b79131b55f3447c988ac7c361dc0b903666c4dfcbae86bd08aed3f08d453c44
+t=2021-09-01T13:35:58+0800 lvl=info msg="Commit new mining work"                 number=2 sealhash=0x42546fe2ddf49aacb6a5b87341035e41c55b74145a51fc0a60a364ae91228f15 uncles=0 txs=0 gas=0 elapsed="367.28µs"
+```
+
+节点出块主要是以下日志
+
+```shell
+// 成功封存新的区块
+t=2021-09-01T14:58:03+0800 lvl=info msg="Successfully sealed new block"          number=1421 sealhash=0x96c582534f19f90bf0c0a7d035723cbe131968d68c250b3b561c39d4e163543f hash=0x7a983d8db1630bb5d30b906d020e578f82608408150d23e08d41182d6f62f5d5 elapsed=13.696s
+
+// 区块进行上链
+t=2021-09-01T14:58:03+0800 lvl=info msg=" block reached canonical chain"        number=1410 hash=0x6cbcd8fa3606cb2d0a5395af3cd0c515eebb8b84ad864a1cf060eea5e852f107
+
+// 挖掘可能的区块
+t=2021-09-01T14:58:03+0800 lvl=info msg=" mined potential block"                number=1421 hash=0x7a983d8db1630bb5d30b906d020e578f82608408150d23e08d41182d6f62f5d5
+
+
+// 进行新的挖矿工作
+t=2021-09-01T14:58:03+0800 lvl=info msg="Commit new mining work"                 number=1422 sealhash=0x51bcd69f824944147b113afc8da20a50f7af89e31793969be64
+```
+
+### WS协议验证
+
+**查看websocket协议端口是否启动**
+
+- 安装netstat工具
+
+```
+docker exec -it private-bsc bash  //进入容器
+apt-get update                    //更新系统
+apt-get install net-tools         //安装网络工具
+```
+
+- 查看容器内websocket协议端口8546是否启动
+
+```
+# netstat -lnptu
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
+tcp6       0      0 :::8545                 :::*                    LISTEN      1/geth          
+tcp6       0      0 :::8546                 :::*                    LISTEN      1/geth          
+tcp6       0      0 :::30311                :::*                    LISTEN      1/geth
+```
+
+**测试websocket协议是否可用**
+
+使用postman模拟发送一个websocket请求，查询区块高度，查看是否可正常返回
 
 ## 相关链接
 
