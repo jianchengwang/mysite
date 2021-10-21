@@ -848,9 +848,23 @@ service network restart
 # 执行初始化脚本
 curl -O http://pigx.vip/os7init.sh
 sh os7init.sh wjc
+
+# 清空登录日志
+echo "" > /var/log/secure
+```
+
+### docker
+
+```shell
 # 安装docker
 curl -O -k https://tmp.jianchengwang.info/docker-install.sh
 sh docker-install.sh
+
+# 查看docker占用空间
+docker system df
+du -hs /var/lib/docker/
+docker image prune
+docker system prune
 ```
 
 ### 克隆
