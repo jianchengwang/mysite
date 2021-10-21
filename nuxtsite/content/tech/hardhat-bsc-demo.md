@@ -702,21 +702,21 @@ eth.getTransaction("交易id");
 {"jsonrpc":"2.0","id":1,"result":{"difficulty":"0x349dc","extraData":"0xd883010007846765746888676f312e31352e35856c696e7578","gasLimit":"0x7a1200","gasUsed":"0x0","hash":"0xd8b464d9cf8e28eeed6042480b54d07ad3425e6c1006873b2aedb022bd777392","logsBloom":"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","miner":"0x2770212031615c2fe2e0a9d3ae40461f85c5ee61","mixHash":"0x0306855db6701a71b56e6f4f6c67348748a1520c8e2bbaf80bbb95c3cb1e61c8","nonce":"0x6e859dfc02c48678","number":"0x46e","parentHash":"0x3dc65f09bf60a16fa54cc2e44b03ad2ff1a528760aa8be4f022f19a9e6bd4785","receiptsRoot":"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421","sha3Uncles":"0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347","size":"0x21a","stateRoot":"0xcf51398874cb0184bd9a4c7e4cc07e77ff75f562f1abf703c98af5d46ed02159","timestamp":"0x608507b6","totalDifficulty":"0xb820f5f","transactions":[],"transactionsRoot":"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421","uncles":[]}}
 ```
 
-## 4.10 根据区块哈希查询当前区块里的交易数
+根据区块哈希查询当前区块里的交易数
 
 ```
 # curl -H Content-Type:application/json -X POST --data '{"jsonrpc":"2.0","method":"eth_getBlockTransactionCountByHash","params":["0xbda7dcb2a96bdb184b00e063b0b4cccbe0237dac50863760da18ea2e97878279"],"id":1}' http://127.0.0.1:8545
 {"jsonrpc":"2.0","id":1,"result":"0x1"}
 ```
 
-## 4.11 根据区块高度查询当前区块里的交易数
+根据区块高度查询当前区块里的交易数
 
 ```
 # curl -H Content-Type:application/json -X POST --data '{"jsonrpc":"2.0","method":"eth_getBlockTransactionCountByNumber","params":["0x517"],"id":1}' http://127.0.0.1:8545
 {"jsonrpc":"2.0","id":1,"result":"0x1"}
 ```
 
-## 4.12 获取hashrate
+获取hashrate
 
 ```
 # curl -H Content-Type:application/json -X POST --data '{"jsonrpc":"2.0","method":"eth_hashrate","params":[],"id":1}' http://127.0.0.1:8545
