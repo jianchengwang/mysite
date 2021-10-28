@@ -1,1 +1,0 @@
-window.__NUXT__=(function(a,b,c){return {staticAssetsBase:"\u002F_nuxt\u002Fstatic\u002F1635407712",layout:"default",error:null,state:{siedeBar:a},serverRendered:b,routePath:"\u002Fbook\u002F网络是怎样连接的",config:{content:{dbHash:"57b3c06c"}},colorMode:{preference:c,value:c,unknown:b,forced:a}}}(false,true,"system"));

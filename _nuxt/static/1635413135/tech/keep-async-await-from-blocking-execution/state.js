@@ -1,0 +1,1 @@
+window.__NUXT__=(function(a,b,c){return {staticAssetsBase:"\u002F_nuxt\u002Fstatic\u002F1635413135",layout:"default",error:null,state:{siedeBar:a},serverRendered:b,routePath:"\u002Ftech\u002Fkeep-async-await-from-blocking-execution",config:{content:{dbHash:"7b73ef4b"}},colorMode:{preference:c,value:c,unknown:b,forced:a}}}(false,true,"system"));
