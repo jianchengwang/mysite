@@ -1,1 +1,0 @@
-window.__NUXT__=(function(a,b,c){return {staticAssetsBase:"\u002F_nuxt\u002Fstatic\u002F1634899367",layout:"default",error:null,state:{siedeBar:a},serverRendered:b,routePath:"\u002Ftag\u002F克莱儿·麦克福尔",config:{content:{dbHash:"4a603976"}},colorMode:{preference:c,value:c,unknown:b,forced:a}}}(false,true,"system"));
