@@ -1,0 +1,1 @@
+window.__NUXT__=(function(a,b,c){return {staticAssetsBase:"\u002F_nuxt\u002Fstatic\u002F1638755299",layout:"default",error:null,state:{siedeBar:a},serverRendered:b,routePath:"\u002Fbook\u002F绿林七宗罪",config:{content:{dbHash:"204fb557"}},colorMode:{preference:c,value:c,unknown:b,forced:a}}}(false,true,"system"));
