@@ -1,0 +1,1 @@
+window.__NUXT__=(function(a,b,c){return {staticAssetsBase:"\u002F_nuxt\u002Fstatic\u002F1649295198",layout:"default",error:null,state:{siedeBar:a},serverRendered:b,routePath:"\u002Fbook\u002F房思琪的初恋乐园",config:{content:{dbHash:"ad552f1e"}},colorMode:{preference:c,value:c,unknown:b,forced:a}}}(false,true,"system"));
