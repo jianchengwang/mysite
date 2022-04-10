@@ -1,0 +1,1 @@
+window.__NUXT__=(function(a,b,c){return {staticAssetsBase:"\u002F_nuxt\u002Fstatic\u002F1649594224",layout:"default",error:null,state:{siedeBar:a},serverRendered:b,routePath:"\u002Fstore\u002F断刀残雪",config:{content:{dbHash:"def66ed2"}},colorMode:{preference:c,value:c,unknown:b,forced:a}}}(false,true,"system"));
