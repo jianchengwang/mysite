@@ -82,3 +82,6 @@
 - [tech meituan](https://tech.meituan.com/) 美团技术博客
 - [mysql taobao](http://mysql.taobao.org/monthly/) 阿里数据库月报
 - [五分钟学算法](https://www.cxyxiaowu.com/) 五分钟学算法
+
+#### 其他
+- [jetbra](https://jetbra.in/s) idea注册码
