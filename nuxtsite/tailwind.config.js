@@ -1,24 +1,25 @@
-/*
- ** TailwindCSS Configuration File
- **
- ** Docs: https://tailwindcss.com/docs/configuration
- ** Default: https://github.com/tailwindcss/tailwindcss/blob/master/stubs/defaultConfig.stub.js
- */
+/** @type {import('tailwindcss').Config} */
+const defaultTheme = require('tailwindcss/defaultTheme')
+
 module.exports = {
+  darkMode: ['class', '[data-mode="dark"]'],
+  content: [
+    "components",
+    "pages"
+  ],
   theme: {
-    container: {
-      center: true,
-      padding: {
-        default: '1rem',
-        sm: '2rem',
-        lg: '4rem',
-        xl: '5rem',
+    extend: {
+      fontFamily: {
+        'header': ['Cabinet Grotesk', ...defaultTheme.fontFamily.sans],
+        'sans': ['Satoshi', ...defaultTheme.fontFamily.sans],
       },
     },
   },
-  purge: {
-    content: [
-      'node_modules/tv-*/dist/tv-*.umd.min.js',
-    ],
+  variants: {
+    typography: ["responsive", "dark"]
   },
-};
+  plugins: [
+    require('@tailwindcss/typography'),
+    // ...
+  ],
+}

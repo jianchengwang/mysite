@@ -1,5 +1,5 @@
 ---
-title: build-my-site
+title: build-mysite
 createdAt: 2020-12-23
 categories:
 - web
