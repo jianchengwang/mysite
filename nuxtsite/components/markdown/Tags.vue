@@ -50,7 +50,7 @@ const articleTags = [...new Set(flatten(data.value, "tags"))];
     <ul class="article-tags" :class="{ expanded: expanded }">
       <!-- list out tags with links -->
       <li v-for="(tag, n) in articleTags" :key="n" class="tag">
-        <NuxtLink :to="`/tech/tags/${tag}`" class="font-semibold"> {{ tag }} </NuxtLink>
+        <span class="font-semibold"> {{ tag }} </span>
       </li>
     </ul>
   </div>
@@ -65,7 +65,7 @@ const articleTags = [...new Set(flatten(data.value, "tags"))];
   @apply border-slate-200;
 }
 .article-tags {
-  @apply transition-all max-w-0 overflow-auto;
+  @apply transition-all max-w-0 overflow-hidden;
 }
 .article-tags.expanded {
   @apply max-w-full;

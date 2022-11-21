@@ -1,7 +1,7 @@
 <!-- ./pages/_post/index.vue -->
 
 <script setup>
-
+import Tags from "@/components/markdown/Tags.vue"
 const { 
   params
 } = useRoute();
@@ -34,7 +34,7 @@ useHead({
       </div>
     </header>
     <section class="page-section">
-      <Tags :posts="posts" />
+      <!-- <Tags :posts="posts" /> -->
 
       <!-- Render list of all articles in ./content/_post using `path` -->
       <!-- Provide only defined fieldsin the `:query` prop -->

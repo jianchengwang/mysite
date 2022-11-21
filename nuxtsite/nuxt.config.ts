@@ -11,21 +11,16 @@ export default defineNuxtConfig({
     // https://content.nuxtjs.org/api/configuration
     highlight: {
       theme: {
-        // Default theme (same as single string)
+        // // Default theme (same as single string)
         default: 'material-palenight',
-        // Theme used if `html.dark`
+        // // Theme used if `html.dark`
         dark: 'github-dark',
         sepia: 'monokai'
       },
       preload: [
-        'c',
         'java',
-        'kotlin',
         'go',
         'python',
-        'rust',
-        'toml',
-        'dart',
         'sql',
         'shellscript',
         'docker'
@@ -33,8 +28,8 @@ export default defineNuxtConfig({
     },
     markdown: {
       toc: {
-        depth: 5,
-        searchDepth: 5
+        depth: 3,
+        searchDepth: 1
       },
     }
   },
@@ -48,7 +43,7 @@ export default defineNuxtConfig({
         { name: 'viewport', content: 'width=device-width, initial-scale=1' }
       ],
       script: [
-        { src: 'https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/live2dv3.init.js', mode: 'client' }
+        { src: 'https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/live2dv3.init.js' }
       ],
       link: [
         { rel: 'preconnect', href: 'https://fonts.gstatic.com' },
@@ -64,10 +59,4 @@ export default defineNuxtConfig({
       ]
     }
   },
-  components: false,
-  buildModules: ['nuxt-build-optimisations'],
-  build: {
-    cache: true,
-    parallel: true
-  }
 })

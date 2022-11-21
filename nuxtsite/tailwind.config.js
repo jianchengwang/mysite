@@ -2,10 +2,7 @@
 const defaultTheme = require('tailwindcss/defaultTheme')
 
 module.exports = {
-  darkMode: ['class', '[data-mode="dark"]'],
   content: [
-    "components",
-    "pages"
   ],
   theme: {
     extend: {
@@ -14,9 +11,6 @@ module.exports = {
         'sans': ['Satoshi', ...defaultTheme.fontFamily.sans],
       },
     },
-  },
-  variants: {
-    typography: ["responsive", "dark"]
   },
   plugins: [
     require('@tailwindcss/typography'),
