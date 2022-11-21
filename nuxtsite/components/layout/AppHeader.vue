@@ -16,6 +16,7 @@
             <NuxtLink to="/life">Life | </NuxtLink>
             <NuxtLink to="/store">Store | </NuxtLink>
             <NuxtLink to="/book">Book | </NuxtLink>
+            <NuxtLink to="/girls">Girls | </NuxtLink>
           </li>
         </ul>
       </nav>

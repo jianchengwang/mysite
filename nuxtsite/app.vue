@@ -1,13 +1,13 @@
 <!-- ./app.vue -->
 <template>
   <div>
-    <SiteHeader />
+    <AppHeader />
     <NuxtPage />
-    <SiteFooter />
+    <AppFooter />
   </div>
 </template>
 
 <script setup>
-import SiteHeader from '@/components/layout/SiteHeader.vue';
-import SiteFooter from '@/components/layout/SiteFooter.vue';
+import AppHeader from '@/components/layout/AppHeader.vue';
+import AppFooter from '@/components/layout/AppFooter.vue';
 </script>

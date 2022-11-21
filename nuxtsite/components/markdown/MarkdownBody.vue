@@ -1,6 +1,6 @@
 <script setup>
-import Toc from "@/components/Toc.vue"
-import PrevNext from "@/components/PrevNext.vue"
+import Toc from "@/components/markdown/Toc.vue"
+import PrevNext from "@/components/markdown/PrevNext.vue"
 
 // define links prop
 const props = defineProps(["article", "surround", "showToc"]);
@@ -50,7 +50,7 @@ useHead({
     </section>
 
     <!-- PrevNext Component -->
-    <PrevNext v-if="props.surround" :prev="props.surround.prev" :next="props.surround.next" />
+    <PrevNext v-if="props.surround" :prev="props.surround[0]" :next="props.surround[1]" />
   </main>
 </template>
 
@@ -71,12 +71,6 @@ useHead({
   @apply font-medium text-lg;
 }
 
-.article-hr {
-  border-top-width: 1px;
-  color: var(--color);
-  height: 0;
-}
-
 .article-section {
   @apply grid grid-cols-8;
 }
@@ -90,6 +84,6 @@ useHead({
 }
 
 .article {
-  @apply col-span-full md:col-span-6 md:col-start-1 md:row-start-1 w-full p-4 max-w-3xl m-auto prose dark:prose-invert;
+  @apply col-span-full md:col-span-6 md:col-start-1 md:row-start-1 w-full p-4 max-w-3xl m-auto prose;
 }
 </style>
