@@ -1,0 +1,14 @@
+# nuxt
+*.log*
+nuxtsite/.nuxt/
+nuxtsite/dist/
+nuxtsite/node_modules/
+
+# go
+go.sum
+vendor/
+*.exe
+mysite
+
+
+./idea/
