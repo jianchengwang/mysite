@@ -1,29 +1,29 @@
 <script setup>
-import Toc from "~/components/markdown/Toc.vue"
-import PrevNext from "~/components/markdown/PrevNext.vue"
+import Toc from "@/components/Toc.vue"
+import PrevNext from "@/components/PrevNext.vue"
 
 // define links prop
-const props = defineProps(["article", "surround", "showToc"]);
+const props = defineProps(["content", "surround", "showToc"]);
 
 </script>
 
 <template>
   <main id="main" class="article-main">
-    <header v-if="article" class="article-header">
-      <h1 class="heading">{{ article.title }}</h1>
-      <div class="supporting">{{ article.description }}</div>
-      <ul class="article-tags" v-if="article.tags && article.tags.length">
-        <li class="tag" v-for="(tag, n) in article.tags" :key="n">{{ tag }}</li>
+    <header v-if="content" class="article-header">
+      <h1 class="heading">{{ content.title }}</h1>
+      <div class="supporting">{{ content.description }}</div>
+      <ul class="article-tags" v-if="content.tags && content.tags.length">
+        <li class="tag" v-for="(tag, n) in content.tags" :key="n">{{ tag }}</li>
       </ul>
     </header>
     <hr class="article-hr" />
     <section class="article-section">
       <aside class="aside" v-if="showToc">
         <!-- Toc Component -->
-        <Toc :links="article.body.toc.links" />
+        <Toc :links="content.body.toc.links" />
       </aside>
-      <article class="col-span-full md:col-span-6 md:col-start-1 md:row-start-1 w-full p-4 max-w-3xl m-auto prose" v-html="article">
-      </article>
+      <div class="article col-span-full md:col-span-6 md:col-start-1 md:row-start-1 w-full p-4 max-w-3xl m-auto prose dark:prose-invert" v-html="content">
+      </div>
     </section>
 
     <!-- PrevNext Component -->

@@ -1,12 +1,12 @@
 <template>
   <div>
-    <AppHeader />
+    <Header />
     <slot />
-    <AppFooter />
+    <Footer />
   </div>
 </template>
 
 <script setup>
-import AppHeader from '~/components/layout/AppHeader.vue';
-import AppFooter from '~/components/layout/AppFooter.vue';
+import Header from './partials/Header.vue';
+import Footer from './partials/Footer.vue';
 </script>

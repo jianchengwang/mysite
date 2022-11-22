@@ -1,7 +1,7 @@
 
 <template>
   <Layout>
-      <Article :article="$static.content.content" />
+      <PostBody :content="$static.content.content" />
   </Layout>
 </template>
 
@@ -15,7 +15,7 @@ query {
 </static-query>
 
 <script setup>
-import Article from '@/components/markdown/Article.vue';
+import PostBody from '@/components/PostBody.vue';
 
 </script>
   

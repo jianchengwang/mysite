@@ -11,7 +11,7 @@ module.exports = {
       use: "gridsome-plugin-tailwindcss2",
       options: {
         tailwindConfigFile: './tailwind.config.js',
-        mainCssFile: './src/assets/css/main.css',
+        mainCssFile: './src/assets/style/main.css',
       }
     },
     {
@@ -29,7 +29,7 @@ module.exports = {
       use: '@gridsome/source-filesystem',
       options: {
         path: './ob/**/*.md',
-        typeName: 'Ob',
+        typeName: 'Post',
         remark: {
           externalLinksTarget: '_blank',
           externalLinksRel: ['noopener', 'noreferrer'],
@@ -37,5 +37,20 @@ module.exports = {
         plugins: ['remark-toc']
       }
     }
-  ]
+  ],
+  templates: {
+    // Post: [
+    //   {
+    //     path: '/post/:type/:slug',
+    //     component: './src/templates/Post.vue'
+    //   }
+    // ]
+  },
+  chainWebpack: config => {
+    const svgRule = config.module.rule('svg')
+    svgRule.uses.clear()
+    svgRule
+      .use('vue-svg-loader')
+      .loader('vue-svg-loader')
+  }
 }
