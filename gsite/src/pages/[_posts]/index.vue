@@ -1,7 +1,40 @@
+
+<template>
+  <Layout>
+    <main>
+    <header class="page-heading p-12">
+      <div class="wrapper max-w-3xl m-auto">
+        <h1 class="text-5xl font-extrabold">{{postType}} articles</h1>
+        <div class="font-medium text-lg">Here's a list of all my {{postType}} articles</div>
+      </div>
+    </header>
+    <section class="page-section p-4 py-8 m-auto max-w-3xl">
+      <ul class="article-list flex flex-col gap-6">
+            <li v-for="edge in $page.posts.edges" :key="edge.node.id" class="article-item pt-3 border-t border-slate-200">
+              <g-link :to="'/posts/' + edge.node.slug">
+                <div class="wrapper flex items-start gap-4">
+                  <header>
+                    <h1 class="text-2xl font-semibold">{{ edge.node.title }}</h1>
+                    <p class="prose">{{ edge.node.excerpt }}</p>
+                    <ul class="article-tags flex gap-2 py-2">
+                      <li class="tag bg-slate-100 text-slate-700 text-sm p-2 py-1 rounded-md transition-all !py-0.5" v-for="(tag, n) in edge.node.tags" :key="n">{{ tag }}</li>
+                    </ul>
+                  </header>
+                </div>
+              </g-link>
+            </li>
+          </ul>
+    </section>
+  </main>
+  </Layout>
+</template>
+
 <script>
+import { Pager } from "gridsome";
 import PostCard from '@/components/PostCard.vue'
 export default {
   components: {
+    Pager,
     PostCard
   },
   data() {
@@ -14,45 +47,18 @@ export default {
   }
 }
 </script>
-<template>
-  <Layout>
-    <main>
-    <header class="page-heading p-12">
-      <div class="wrapper max-w-3xl m-auto">
-        <h1 class="text-5xl font-extrabold">{{postType}} articles</h1>
-        <div class="font-medium text-lg">Here's a list of all my {{postType}} articles</div>
-      </div>
-    </header>
-    <section class="page-section p-4 py-8 m-auto max-w-3xl">
-      <ul class="article-list flex flex-col gap-6">
-            <li v-for="edge in $page.posts.edges" :key="edge.node.id" class="article-item pt-6 first-of-type: border-none border-t border-slate-200">
-              <g-link :to="edge.node.path">
-                <div class="wrapper flex items-start gap-4">
-                  <header>
-                    <h1 class="text-2xl font-semibold">{{ edge.node.title }}</h1>
-                    <p class="prose">{{ edge.node.excerpt }}</p>
-                    <ul class="article-tags" flex gap-2 py-2>
-                      <li class="tag !py-0.5" v-for="(tag, n) in edge.node.tags" :key="n">{{ tag }}</li>
-                    </ul>
-                  </header>
-                </div>
-              </g-link>
-            </li>
-          </ul>
-    </section>
-  </main>
-  </Layout>
-</template>
 
 <page-query>
   query {
-    posts: allPost {
+    posts: allPost(filter: { draft: { eq: false } }) {
       edges {
         node {
           id
           title
-          path,
+          slug
+          path
           excerpt
+          tags
         }
       }
     }

@@ -45,7 +45,13 @@ module.exports = {
       },
     }
   ],
+  transformers: {
+    remark: {
+      // global remark options
+    }
+  },
   templates: {
+    Post: '/posts/:slug',
   },
   chainWebpack: config => {
     const svgRule = config.module.rule('svg')

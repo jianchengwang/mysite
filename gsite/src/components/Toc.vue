@@ -55,13 +55,16 @@ const flattenLinks = (links) => {
 
 .toc-link._3 {
   @apply pl-3;
+  padding-left: 3px;
 }
 
 .toc-link._4 {
   @apply pl-6;
+  padding-left: 6px;
 }
 
 .toc-link._undefined {
   @apply pl-8;
+  padding-left: 8px;
 }
 </style>
