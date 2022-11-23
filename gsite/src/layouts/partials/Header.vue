@@ -44,7 +44,7 @@ import GithubLogo from '@/assets/images/github-logo.svg'
 import TwitterLogo from '@/assets/images/twitter-logo.svg'
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 header {
   z-index: 20;
   position: relative;

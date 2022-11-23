@@ -8,6 +8,10 @@
       <span class="main-nav__label">Life</span>
     </g-link>
 
+    <g-link to="/store/">
+      <span class="main-nav__label">Store</span>
+    </g-link>
+
     <g-link to="/book/">
       <span class="main-nav__label">Book</span>
     </g-link>

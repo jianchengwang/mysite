@@ -1,19 +1,6 @@
 <template>
   <Layout>
-    <Section container="md" dots="true" >
-
-      <div class="post-header container-md text-center mb-x2">
-        <h1 v-html="$page.posts.title"/>
-      </div>
-
-      <div class="post-content post mb-x2">
-
-        <PostBody :content="$page.posts.content" />
-
-      </div>
-
-      <Newsletter />
-    </Section>
+    <PostBody :data="$page.posts" />
   </Layout>
 </template>
 
@@ -31,7 +18,17 @@ export default {
 query ($id: ID!) {
   posts: post (id: $id) {
     title
-    content
+    content,
+    excerpt,
+    tags,
+    headings (depth: h1) {
+      value
+    }
+    subtitles: headings {
+      depth
+      value
+      anchor
+    }
   }
 }
 </page-query>

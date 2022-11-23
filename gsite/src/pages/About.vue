@@ -1,7 +1,7 @@
 
 <template>
   <Layout>
-      <PostBody :content="$static.content.content" />
+      <PostBody :data="$static.content" />
   </Layout>
 </template>
 

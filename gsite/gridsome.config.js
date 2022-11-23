@@ -33,18 +33,19 @@ module.exports = {
         remark: {
           externalLinksTarget: '_blank',
           externalLinksRel: ['noopener', 'noreferrer'],
+          plugins: [
+            ['@gridsome/remark-prismjs', 
+              { 
+                showLineNumbers: true,
+              }
+            ],
+            '@noxify/gridsome-remark-table-align'
+          ]
         },
-        plugins: ['remark-toc']
-      }
+      },
     }
   ],
   templates: {
-    // Post: [
-    //   {
-    //     path: '/post/:type/:slug',
-    //     component: './src/templates/Post.vue'
-    //   }
-    // ]
   },
   chainWebpack: config => {
     const svgRule = config.module.rule('svg')
