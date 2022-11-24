@@ -16,19 +16,12 @@ export default {
 query ($id: ID!) {
   posts: bookPost (id: $id) {
     title
-    excerpt,
-    resource,
-    douban,
-    tags,
-    slug,
-    headings (depth: h1) {
-      value
-    }
-    subtitles: headings {
-      depth
-      value
-      anchor
-    }
+    excerpt
+    content
+    resource
+    douban
+    tags
+    slug
   }
 }
 </page-query>

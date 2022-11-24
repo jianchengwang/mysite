@@ -4,19 +4,15 @@
     <main>
       <header class="page-heading p-12">
         <div class="wrapper max-w-3xl m-auto">
-          <h1 class="text-5xl font-extrabold">Store Articles</h1>
+          <h1 class="text-5xl font-extrabold">Store</h1>
           <div class="font-medium text-lg">
-            Here's a list of all my store articles
+            Here's a list of all my write store
           </div>
         </div>
       </header>
-      <section class="page-section p-4 py-8 m-auto max-w-3xl">
+      <section class="page-section m-auto max-w-3xl mb-6">
         <ul class="article-list flex flex-col gap-6">
-          <li
-            v-for="edge in $page.posts.edges"
-            :key="edge.node.id"
-            class="article-item pt-3 border-t border-slate-200"
-          >
+          <li v-for="edge in $page.posts.edges" :key="edge.node.id" class="article-item pt-3 border-t border-slate-200">
             <g-link :to="'/store/' + edge.node.slug">
               <div class="wrapper flex items-start gap-4">
                 <header>
@@ -28,6 +24,7 @@
           </li>
         </ul>
       </section>
+      <Pager :info="$page.posts.pageInfo" class="flex m-auto max-w-3xl mt-6 pager-container" linkClass="pager-container__link" />
     </main>
   </Layout>
 </template>
@@ -48,8 +45,12 @@ export default {
 </script>
 
 <page-query>
-  query {
-    posts: allStorePost(filter: { draft: { eq: false } }) {
+  query($page: Int) {
+    posts: allStorePost(perPage: 10, page: $page, filter: { draft: { eq: false } }) @paginate {
+      pageInfo {
+        totalPages
+        currentPage
+      }
       edges {
         node {
           id

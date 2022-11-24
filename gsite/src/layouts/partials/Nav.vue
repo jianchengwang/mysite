@@ -4,9 +4,9 @@
       <span class="main-nav__label">Tech</span>
     </g-link>
 
-    <g-link to="/life/">
+    <!-- <g-link to="/life/">
       <span class="main-nav__label">Life</span>
-    </g-link>
+    </g-link> -->
 
     <g-link to="/store/">
       <span class="main-nav__label">Store</span>

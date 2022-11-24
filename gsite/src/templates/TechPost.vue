@@ -16,9 +16,9 @@ export default {
 query ($id: ID!) {
   posts: techPost (id: $id) {
     title
-    content,
-    excerpt,
-    tags,
+    content
+    excerpt
+    tags
     headings (depth: h1) {
       value
     }

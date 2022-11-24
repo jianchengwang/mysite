@@ -34,7 +34,7 @@ title: About
 - 武侠小说，妈的，来场穿越吧，要求不高，一座城堡，十个老婆，一剑光耀十九州
 - 分享杂谈，读书笔记等
 - **注：有些资源放在github.io上，有时候可能被墙，所以最好代理访问。。。**
-- **源码：[https://github.com/jianchengwang/my-site](https://github.com/jianchengwang/my-site)，持续完善中。。。**
+- **源码：[https://github.com/jianchengwang/mysite](https://github.com/jianchengwang/mysite)，持续完善中。。。**
 
 ## Contact Me
 >
@@ -42,8 +42,6 @@ title: About
 
 - [Gmail](mail:jianchengwang80@gmail.com) 谷歌邮箱，半年看下信箱...
 - [Github](https://github.com/jianchengwang) 菜鸡乱开坑，复制黏贴一条龙...
-- [Weibo](https://https://weibo.com/u/2894870322) 基本没原创，快转小能手...
-- [Kgqq](https://kg.qq.com/node/personal?uid=60959f8c272d308233) 跑调歌曲上百首，耳朵找虐的来...
 - [Instagram](https://www.instagram.com/jiancheng_wang_/) 至今没发过一张图的...
 
 ## Friend Link
