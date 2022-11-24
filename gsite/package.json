@@ -6,10 +6,13 @@
     "develop": "gridsome develop",
     "explore": "gridsome explore",
     "markdown:lint": "markdownlint '**/*.md' --ignore node_modules",
-    "markdown:fix": "markdownlint '**/*.md' --ignore node_modules --fix"
+    "markdown:fix": "markdownlint '**/*.md' --ignore node_modules --fix",
+    "lint": "npx eslint --ext .js,.vue .",
+    "lint:fix": "npx eslint --ext .js,.vue --fix ."
   },
   "dependencies": {
     "clipboard-copy": "^3.0.0",
+    "eslint-plugin-vue": "^9.8.0",
     "gridsome": "^0.7.0"
   },
   "devDependencies": {
@@ -20,12 +23,15 @@
     "@noxify/gridsome-remark-table-align": "^1.0.0",
     "@tailwindcss/typography": "^0.5.8",
     "autoprefixer": "^10.4.13",
+    "eslint": "^8.28.0",
+    "eslint-plugin-gridsome": "^1.6.2",
     "gridsome-plugin-tailwindcss2": "^3.0.1",
-    "postcss": "^8.4.19",
     "markdownlint-cli": "0.23.2",
+    "postcss": "^8.4.19",
     "sass": "^1.38.0",
     "sass-loader": "^10.1.0",
     "tailwindcss": "^3.2.4",
+    "vue-eslint-parser": "^9.1.0",
     "vue-svg-loader": "^0.16.0",
     "webpack-node-externals": "^1.7.2"
   },

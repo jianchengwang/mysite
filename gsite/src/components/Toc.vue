@@ -20,13 +20,27 @@ const flattenLinks = (links) => {
 </script>
 
 <template>
-  <div class="toc p-4 bg-slate-50 border border-slate-200 rounded-lg max-h-[calc(100vh-6rem)] overflow-auto">
+  <div
+    class="
+      toc
+      p-4
+      bg-slate-50
+      border border-slate-200
+      rounded-lg
+      max-h-[calc(100vh-6rem)]
+      overflow-auto
+    "
+  >
     <header v-if="links" class="toc-header pb-2 mb-2 border-b border-slate-200">
       <h3 class="text-xl font-bold">Table of contents</h3>
     </header>
     <ul class="toc-links lex flex-col gap-2 px-2">
       <!-- render each link with depth class -->
-      <li v-for="link of flattenLinks(links)" :key="link.value" :class="`toc-link _${link.depth}`">
+      <li
+        v-for="link of flattenLinks(links)"
+        :key="link.value"
+        :class="`toc-link _${link.depth}`"
+      >
         <a :href="`${link.anchor}`">
           {{ link.value }}
         </a>

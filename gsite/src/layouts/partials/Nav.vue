@@ -24,7 +24,7 @@
   flex-wrap: nowrap;
 }
 @media screen and (max-width: 850px) {
- .main-nav {
+  .main-nav {
     order: 10;
     min-width: 100%;
     a {

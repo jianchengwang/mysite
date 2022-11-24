@@ -1,19 +1,17 @@
 <template>
   <Card class="blog-posts__post" :link="post.path">
-    <h3 v-html="post.title"/>
-    <p v-html="post.excerpt"/>
+    <h3 v-html="post.title" />
+    <p v-html="post.excerpt" />
   </Card>
 </template>
 
 <script>
-
 export default {
-  components: {
-  },
+  components: {},
   props: {
-    post: { type: Object, required: true }
-  }
-}
+    post: { type: Object, required: true },
+  },
+};
 </script>
 
 <style lang="scss">

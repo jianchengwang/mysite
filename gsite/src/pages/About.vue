@@ -1,7 +1,7 @@
 
 <template>
   <Layout>
-      <PostBody :data="$static.content" />
+    <PostBody :data="$static.content" />
   </Layout>
 </template>
 
@@ -15,8 +15,7 @@ query {
 </static-query>
 
 <script setup>
-import PostBody from '@/components/PostBody.vue';
-
+import PostBody from "@/components/PostBody.vue";
 </script>
   
 

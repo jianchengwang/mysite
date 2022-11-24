@@ -28,8 +28,8 @@ module.exports = {
     {
       use: '@gridsome/source-filesystem',
       options: {
-        path: './ob/**/*.md',
-        typeName: 'Post',
+        path: './ob/tech/*.md',
+        typeName: 'TechPost',
         remark: {
           externalLinksTarget: '_blank',
           externalLinksRel: ['noopener', 'noreferrer'],
@@ -43,6 +43,28 @@ module.exports = {
           ]
         },
       },
+    },
+    {
+      use: '@gridsome/source-filesystem',
+      options: {
+        path: './ob/store/*.md',
+        typeName: 'StorePost',
+        remark: {
+          externalLinksTarget: '_blank',
+          externalLinksRel: ['noopener', 'noreferrer'],
+        },
+      },
+    },
+    {
+      use: '@gridsome/source-filesystem',
+      options: {
+        path: './ob/book/*.md',
+        typeName: 'BookPost',
+        remark: {
+          externalLinksTarget: '_blank',
+          externalLinksRel: ['noopener', 'noreferrer'],
+        },
+      },
     }
   ],
   transformers: {
@@ -51,7 +73,9 @@ module.exports = {
     }
   },
   templates: {
-    Post: '/posts/:slug',
+    TechPost: '/tech/:slug',
+    StorePost: '/store/:slug',
+    BookPost: '/book/:slug'
   },
   chainWebpack: config => {
     const svgRule = config.module.rule('svg')

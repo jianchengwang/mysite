@@ -5,18 +5,16 @@
 </template>
 
 <script>
-import PostBody from '@/components/PostBody.vue';
+import PostBody from "@/components/PostBody.vue";
 
 export default {
-  components: [
-    PostBody
-  ]
-}
+  components: [PostBody],
+};
 </script>
 
 <page-query>
 query ($id: ID!) {
-  posts: post (id: $id) {
+  posts: techPost (id: $id) {
     title
     content,
     excerpt,

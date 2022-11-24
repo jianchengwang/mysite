@@ -1,21 +1,12 @@
 module.exports = {
-    "env": {
-        "browser": true,
-        "es2021": true
+    env: {
+      node: true,
+      es6: true
     },
-    "extends": [
-        "eslint:recommended",
-        "plugin:vue/vue3-essential"
-    ],
-    "overrides": [
-    ],
-    "parserOptions": {
-        "ecmaVersion": "latest",
-        "sourceType": "module"
+    plugins: ["gridsome"],
+    rules: {
+      "gridsome/format-query-block": "error"
     },
-    "plugins": [
-        "vue"
-    ],
-    "rules": {
-    }
+    parser: "vue-eslint-parser"
 }
+  
