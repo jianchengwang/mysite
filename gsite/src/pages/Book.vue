@@ -12,19 +12,45 @@
       </header>
       <section class="page-section m-auto max-w-3xl mb-6">
         <ul class="article-list flex flex-col gap-6">
-          <li v-for="edge in $page.posts.edges" :key="edge.node.id" class="article-item pt-3 border-t border-slate-200">
+          <li
+            v-for="edge in $page.posts.edges"
+            :key="edge.node.id"
+            class="article-item pt-3 border-t border-slate-200"
+          >
             <g-link :to="'/book/' + edge.node.slug">
               <div class="wrapper flex items-start gap-4">
                 <header>
                   <h1 class="text-2xl font-semibold">{{ edge.node.title }}</h1>
                   <p class="prose">{{ edge.node.excerpt }}</p>
+                  <ul class="article-tags flex gap-2 py-2">
+                    <li
+                      class="
+                        tag
+                        bg-slate-100
+                        text-slate-700 text-sm
+                        p-2
+                        py-1
+                        rounded-md
+                        transition-all
+                        !py-0.5
+                      "
+                      v-for="(tag, n) in edge.node.tags"
+                      :key="n"
+                    >
+                      {{ tag }}
+                    </li>
+                  </ul>
                 </header>
               </div>
             </g-link>
           </li>
         </ul>
       </section>
-      <Pager :info="$page.posts.pageInfo" class="flex m-auto max-w-3xl mt-6 pager-container" linkClass="pager-container__link" />
+      <Pager
+        :info="$page.posts.pageInfo"
+        class="flex m-auto max-w-3xl mt-6 pager-container"
+        linkClass="pager-container__link"
+      />
     </main>
   </Layout>
 </template>

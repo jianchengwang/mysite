@@ -17,6 +17,7 @@ query ($id: ID!) {
   posts: bookPost (id: $id) {
     title
     excerpt
+    tags
     content
     resource
     douban
