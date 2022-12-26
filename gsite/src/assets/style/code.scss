@@ -37,6 +37,10 @@ h1, h2, h3, h4 {
       overflow: auto;
       margin-bottom: var(--space);
       background-color: var(--code-bg);
+      ::selection {
+        background-color: var(--select-color);
+        color: #fff;
+      }
     }
   
     // Inline code
