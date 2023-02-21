@@ -1,9 +1,19 @@
 <script setup>
-import Toc from "@/components/Toc.vue";
-import PrevNext from "@/components/PrevNext.vue";
+import { ref, onMounted } from 'vue'
+
+import OnThisPage from "@/components/OnThisPage.vue";
+// import PrevNext from "@/components/PrevNext.vue";
+import NextPrevLinks from "@/components/NextPrevLinks.vue";
+
+import initClipboard from "@/plugins/clipboard-use.js"
 
 // define links prop
 const props = defineProps(["data"]);
+
+onMounted(() => {
+  initClipboard()
+})
+  
 </script>
 
 <template>
@@ -33,7 +43,8 @@ const props = defineProps(["data"]);
     <section class="article-section grid grid-cols-8">
       <aside class="aside col-span-full md:col-span-2 row-start-1 w-full pt-14" v-if="data.subtitles">
         <!-- Toc Component -->
-        <Toc :links="data.subtitles" class="sticky top-20" />
+        <!-- <Toc :links="data.subtitles" class="sticky top-20" /> -->
+        <OnThisPage :links="data.subtitles" class="sticky top-20" />
       </aside>
       <div class="
           article
@@ -48,11 +59,12 @@ const props = defineProps(["data"]);
         " v-html="data.content"></div>
     </section>
     <!-- PrevNext Component -->
-    <PrevNext v-if="data.surround" :prev="data.surround[0]" :next="data.surround[1]" />
+    <NextPrevLinks v-if="data.surround" :prev="data.surround[0]" :next="data.surround[1]" />
   </main>
 </template>
 
 <style scoped>
+@import "../plugins/clipboard-use.css";
 .article-main {
   @apply p-4 max-w-5xl m-auto;
 }

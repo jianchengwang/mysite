@@ -6,8 +6,8 @@ a {
   text-decoration-color: var(--border-color);
 
   &:hover {
-    color: var(--body-color);
-    text-decoration-color: var(--body-color);
+    color: var(--glow);
+    text-decoration-color: var(--glow);
   }
   
   svg + & {

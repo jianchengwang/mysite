@@ -11,8 +11,7 @@
     "lint:fix": "npx eslint --ext .js,.vue --fix ."
   },
   "dependencies": {
-    "clipboard-copy": "^3.0.0",
-    "eslint-plugin-vue": "^9.8.0",
+    "@gridsome/plugin-sitemap": "^0.4.0",
     "gridsome": "^0.7.0"
   },
   "devDependencies": {
@@ -25,6 +24,7 @@
     "autoprefixer": "^10.4.13",
     "eslint": "^8.28.0",
     "eslint-plugin-gridsome": "^1.6.2",
+    "eslint-plugin-vue": "^9.8.0",
     "gridsome-plugin-tailwindcss2": "^3.0.1",
     "markdownlint-cli": "0.23.2",
     "postcss": "^8.4.19",

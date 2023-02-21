@@ -6,7 +6,25 @@
 
 module.exports = {
   siteName: 'JianchengwangのSite',
+  siteUrl: 'http://jianchengwang.info',
   plugins: [
+    {
+      use: '@gridsome/plugin-sitemap',
+      options: {
+        config: {
+          '/tech/*': {
+            changefreq: 'weekly',
+            priority: 0.5,
+            lastmod: '2020-02-19',
+          },
+          '/life/*': {
+            changefreq: 'weekly',
+            priority: 0.5,
+            lastmod: '2020-02-19',
+          },
+        }
+      }
+    },
     {
       use: "gridsome-plugin-tailwindcss2",
       options: {
@@ -47,6 +65,17 @@ module.exports = {
     {
       use: '@gridsome/source-filesystem',
       options: {
+        path: './ob/life/*.md',
+        typeName: 'LifePost',
+        remark: {
+          externalLinksTarget: '_blank',
+          externalLinksRel: ['noopener', 'noreferrer']
+        },
+      },
+    },
+    {
+      use: '@gridsome/source-filesystem',
+      options: {
         path: './ob/store/*.md',
         typeName: 'StorePost',
         remark: {
@@ -65,7 +94,7 @@ module.exports = {
           externalLinksRel: ['noopener', 'noreferrer'],
         },
       },
-    }
+    },
   ],
   transformers: {
     remark: {
@@ -74,6 +103,7 @@ module.exports = {
   },
   templates: {
     TechPost: '/tech/:slug',
+    LifePost: '/life/:slug',
     StorePost: '/store/:slug',
     BookPost: '/book/:slug'
   },

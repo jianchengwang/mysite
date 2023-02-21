@@ -14,7 +14,7 @@ export default {
 
 <page-query>
 query ($id: ID!) {
-  posts: techPost (id: $id) {
+  posts: lifePost (id: $id) {
     title
     content
     excerpt
@@ -26,7 +26,7 @@ query ($id: ID!) {
       depth
       value
       anchor
-    },
+    }
   }
 }
 </page-query>
