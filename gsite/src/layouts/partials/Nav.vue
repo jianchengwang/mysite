@@ -15,6 +15,10 @@
     <g-link to="/book/">
       <span class="main-nav__label">Book</span>
     </g-link>
+
+    <g-link to="/column/">
+      <span class="main-nav__label">Column</span>
+    </g-link>
   </nav>
 </template>
 

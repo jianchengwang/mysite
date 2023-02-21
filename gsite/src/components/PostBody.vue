@@ -1,19 +1,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 
-import OnThisPage from "@/components/OnThisPage.vue";
-// import PrevNext from "@/components/PrevNext.vue";
+import MarkdownBody from "@/components/MarkdownBody.vue";
 import NextPrevLinks from "@/components/NextPrevLinks.vue";
-
-import initClipboard from "@/plugins/clipboard-use.js"
 
 // define links prop
 const props = defineProps(["data"]);
-
-onMounted(() => {
-  initClipboard()
-})
-  
+console.log(props.data)  
 </script>
 
 <template>
@@ -40,31 +33,15 @@ onMounted(() => {
       </ul>
     </header>
     <hr class="article-hr" />
-    <section class="article-section grid grid-cols-8">
-      <aside class="aside col-span-full md:col-span-2 row-start-1 w-full pt-14" v-if="data.subtitles">
-        <!-- Toc Component -->
-        <!-- <Toc :links="data.subtitles" class="sticky top-20" /> -->
-        <OnThisPage :links="data.subtitles" class="sticky top-20" />
-      </aside>
-      <div class="
-          article
-          col-span-full
-          md:col-span-6 md:col-start-1 md:row-start-1
-          w-full
-          p-4
-          max-w-3xl
-          m-auto
-          prose
-          dark:prose-invert
-        " v-html="data.content"></div>
-    </section>
+    <div v-if="data.docLinks">docLinks</div>
+    <MarkdownBody :data="data" />
     <!-- PrevNext Component -->
     <NextPrevLinks v-if="data.surround" :prev="data.surround[0]" :next="data.surround[1]" />
+    <hr class="article-hr" />
   </main>
 </template>
 
 <style scoped>
-@import "../plugins/clipboard-use.css";
 .article-main {
   @apply p-4 max-w-5xl m-auto;
 }
@@ -79,21 +56,5 @@ onMounted(() => {
 
 .article-header .supporting {
   @apply font-medium text-lg;
-}
-
-.article-section {
-  @apply grid grid-cols-8;
-}
-
-.aside {
-  @apply col-span-full md:col-span-2 row-start-1 w-full pt-14;
-}
-
-.aside .toc {
-  @apply sticky top-20;
-}
-
-.article {
-  @apply col-span-full md:col-span-6 md:col-start-1 md:row-start-1 w-full p-4 max-w-3xl m-auto prose;
 }
 </style>

@@ -95,6 +95,17 @@ module.exports = {
         },
       },
     },
+    {
+      use: '@gridsome/source-filesystem',
+      options: {
+        path: './ob/column/*.md',
+        typeName: 'ColumnPost',
+        remark: {
+          externalLinksTarget: '_blank',
+          externalLinksRel: ['noopener', 'noreferrer'],
+        },
+      },
+    },
   ],
   transformers: {
     remark: {
@@ -105,7 +116,8 @@ module.exports = {
     TechPost: '/tech/:slug',
     LifePost: '/life/:slug',
     StorePost: '/store/:slug',
-    BookPost: '/book/:slug'
+    BookPost: '/book/:slug',
+    ColumnPost: '/column/:slug',
   },
   chainWebpack: config => {
     const svgRule = config.module.rule('svg')
