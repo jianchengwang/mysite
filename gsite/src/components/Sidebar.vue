@@ -1,16 +1,21 @@
 <script setup>
-import { ref, defineEmits } from "vue";
+import { ref, computed, defineEmits } from "vue";
 
 // define links prop
-defineProps(["docLinks"]);
+const props = defineProps(["docLinks"]);
+
+let selectedLink = computed(()=>{
+  return currentLink.value;
+});
 
 const emit = defineEmits(["navigate"])
 
 const currentLink = ref("")
+currentLink.value = props.docLinks[0].items[0].link;
 
-const sectionItemClick = (link) => {
-  currentLink.value = link
-  emit('navigate', currentLink.value)
+const sectionItemClick = (item) => {
+  currentLink.value = item.link
+  emit('navigate', item)
 }
 </script>
 
@@ -33,21 +38,30 @@ const sectionItemClick = (link) => {
           v-for="item in section.items"
           :id="item.link"
           :key="item.link"
-          @mousedown="sectionItemClick(item.link)"
+          @mousedown="sectionItemClick(item)"
         >
-          <g-link
-            class="flex items-center py-1 font-semibold"
+          <div
+            class="flex items-center py-1 font-semibold cursor-pointer"
+            :class="{
+              'selcted': selectedLink == item.link
+            }"
           >
            <span
               class="absolute w-2 h-2 -ml-3 rounded-full opacity-0 bg-ui-primary transition transform scale-0 origin-center"
               :class="{
-                'opacity-100 scale-100': currentLink.value === item.link
+                'opacity-100 scale-100': selectedLink == item.link
               }"
             ></span>
             {{ item.title }}
-          </g-link>
+            </div>
         </li>
       </ul>
     </div>
   </div>
 </template>
+
+<style lang="scss">
+.selcted {
+  color: var(--primary-color) !important
+}
+</style>

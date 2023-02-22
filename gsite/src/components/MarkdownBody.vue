@@ -19,7 +19,7 @@ onMounted(() => {
     <aside class="aside col-span-full md:col-span-2 row-start-1 w-full pt-14" v-if="data.subtitles">
       <OnThisPage :links="data.subtitles" class="sticky top-20" />
     </aside>
-    <div class="
+    <div id="lightgallery" class="
         article
         col-span-full
         md:col-span-6 md:col-start-1 md:row-start-1
