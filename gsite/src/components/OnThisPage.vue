@@ -1,3 +1,28 @@
+<script setup>
+import { ref } from "vue";
+
+// define links prop
+defineProps(["links"]);
+
+const activeAnchor = ref("");
+
+// flatten TOC links nested arrays to one array
+const flattenLinks = (links) => {
+  let _links = links
+    .map((link) => {
+      let _link = [link];
+      if (link.children) {
+        let flattened = flattenLinks(link.children);
+        _link = [link, ...flattened];
+      }
+      return _link;
+    })
+    .flat(1);
+
+  return _links;
+};
+</script>
+
 <template>
   <div v-if="links" class="mt-8 sm:pl-4 md:pl-6 md:pt-12 lg:pl-8 sm:pb-16 sm:border-l border-ui-border md:mt-0       
       p-4
@@ -42,28 +67,3 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref } from "vue";
-
-// define links prop
-defineProps(["links"]);
-
-const activeAnchor = ref("");
-
-// flatten TOC links nested arrays to one array
-const flattenLinks = (links) => {
-  let _links = links
-    .map((link) => {
-      let _link = [link];
-      if (link.children) {
-        let flattened = flattenLinks(link.children);
-        _link = [link, ...flattened];
-      }
-      return _link;
-    })
-    .flat(1);
-
-  return _links;
-};
-</script>

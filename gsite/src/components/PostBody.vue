@@ -1,12 +1,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 
+import axios from 'axios'
 import MarkdownBody from "@/components/MarkdownBody.vue";
 import NextPrevLinks from "@/components/NextPrevLinks.vue";
 
 // define links prop
 const props = defineProps(["data"]);
-console.log(props.data)  
 </script>
 
 <template>
@@ -31,9 +31,8 @@ console.log(props.data)
           {{ tag }}
         </li>
       </ul>
+      <hr class="article-hr" />
     </header>
-    <hr class="article-hr" />
-    <div v-if="data.docLinks">docLinks</div>
     <MarkdownBody :data="data" />
     <!-- PrevNext Component -->
     <NextPrevLinks v-if="data.surround" :prev="data.surround[0]" :next="data.surround[1]" />
