@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 
-import axios from 'axios'
 import MarkdownBody from "@/components/MarkdownBody.vue";
 import NextPrevLinks from "@/components/NextPrevLinks.vue";
 

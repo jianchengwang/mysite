@@ -3,12 +3,17 @@ import Sidebar from "@/components/Sidebar.vue";
 import MarkdownBody from "@/components/MarkdownBody.vue";
 import NextPrevLinks from "@/components/NextPrevLinks.vue";
 
+import { markdownToHtml } from "@/plugins/markdown-utils.js"
+
 export default {
   components: {Sidebar, MarkdownBody, NextPrevLinks},
   data: function() {
     return {
       headerHeight: 0,
-      postData: {}
+      postData: {
+        subTitles: [],
+        content: ""
+      },
     }
   },
   computed: {
@@ -18,6 +23,17 @@ export default {
         height: `calc(100vh - ${this.headerHeight}px)`
       }
     },
+  },
+  methods: {
+    fetchMarkdown(link) {
+      fetch(link)
+      .then(response => response.text())
+      .then(data => {
+        this.postData.content = markdownToHtml(link, data)
+      });
+    }
+  },
+  mounted: function () {
   }
 };
 </script>
@@ -49,7 +65,7 @@ query ($id: ID!) {
       :style="sidebarStyle"
     >
       <div class="bg-ui-background">
-        <Sidebar :docLinks="$page.posts.docLinks" />
+        <Sidebar :docLinks="$page.posts.docLinks" @navigate="fetchMarkdown" />
       </div>
     </aside>
     <main class="article-main p-4 max-w-5xl m-auto">
