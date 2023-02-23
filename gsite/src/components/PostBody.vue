@@ -31,8 +31,8 @@ console.log(props.data)
           {{ tag }}
         </li>
       </ul>
+      <hr class="article-hr" />
     </header>
-    <hr class="article-hr" />
     <div v-if="data.docLinks">docLinks</div>
     <MarkdownBody :data="data" />
     <!-- PrevNext Component -->

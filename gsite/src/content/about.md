@@ -11,18 +11,12 @@ title: About
 >
 > 宅狗一枚，周末一般躺尸不出门 
 
-顺便展望下2022吧，虽然2021的目标基本没实现
+顺便展望下2023吧，虽然2022的目标基本没实现
 
-- k8s学起来
-- flutter开发app
-- ~~女票虽然都是浮云，但是还是追求一下吧，追过若干女同学，均以失败告终，现在发现班上女同学大部分结婚了。。~~ 已捕获萌萌的媳妇，周同学，不，是周大人，永远的大佬，矢志不移
-- ~~养只中华田园猫吧，据说不容易掉毛爱干净~~ 养了只小美短，取名虾哥。。还有他儿子，小黑。。
-- ~~Dota2上1000分吧~~掉到300分了，打了2500小时，还停留在青铜段位有点不耻呀，虽然严重怀疑此号已废，不过懒得换号，玩着开心就行，emm，顺风靠队友，逆风送成狗，万年打酱油，你喷我就送。。
-- 保持学习，保持阅读，
-- 读书笔记跟小说，好几年没笔耕，
-- 尝试vlog拍摄，记录自己的生活，
-- 跑步1000公里，emm，平均一周两次，一次10公里吧，去年suunto都没同步到云端，本地只能保留10条记录，今年记录下，年末总结一波，
-- ~~周末福州周边骑行或者爬山，不要死宅了，注孤身。。~~ 小周同学带我飞
+- marry with zhou
+- cloudnative
+- go rust flutter
+- learn read write run enjoy life
 
 ## About Site
 >
@@ -31,7 +25,7 @@ title: About
 - 编码
 - 生活牢骚，不喷不快
 - 自己会发光的东西
-- 武侠小说，妈的，来场穿越吧，要求不高，一座城堡，十个老婆，一剑光耀十九州
+- 武侠小说，主呀，来场穿越吧，要求不高，一座城堡，十个老婆，一剑光耀十九州
 - 分享杂谈，读书笔记等
 - **注：有些资源放在github.io上，有时候可能被墙，所以最好代理访问。。。**
 - **源码：[https://github.com/jianchengwang/mysite](https://github.com/jianchengwang/mysite)，持续完善中。。。**
@@ -64,7 +58,10 @@ title: About
 - [Sendya](https://sendya.me/) 言肆，前端相关
 - [Sarah](https://sarah.dev/) Sarah，VUE开发成员，SVG大佬，
 - [MornigSpace](https://morningspace.github.io/) 晴耕小筑，运维大佬
-- [ZJH](http://www.1uvu.com/)，go，blockchain相关博客
+- [ZJH](http://www.1uvu.com/) go，blockchain相关博客
+- [LiangLiangLee](https://learn.lianglianglee.com/) 技术文章妙抄
+- [CoolShell](https://coolshell.cn/) 酷壳，左耳朵耗子
+- [ICloudNative](https://icloudnative.io/) 云原生实验室
 
 ## Thanks to
 ### JetBrains

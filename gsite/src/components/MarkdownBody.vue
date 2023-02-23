@@ -1,7 +1,6 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUpdated, nextTick } from 'vue'
 
-import Sidebar from "@/components/Sidebar.vue";
 import OnThisPage from "@/components/OnThisPage.vue";
 import initClipboard from "@/plugins/clipboard-use.js"
 
@@ -11,6 +10,18 @@ const props = defineProps(["data"]);
 onMounted(() => {
   initClipboard()
 })
+
+onUpdated(() => {
+  if (window.location.href.indexOf("/column/") != -1) {
+    prismCode()
+  }
+})
+
+const prismCode = async () => {
+  await nextTick()
+  Prism.highlightAll()
+  initClipboard()
+}
   
 </script>
 
