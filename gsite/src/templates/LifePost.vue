@@ -27,6 +27,7 @@ query ($id: ID!) {
       value
       anchor
     }
+    link
   }
 }
 </page-query>

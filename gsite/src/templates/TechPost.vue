@@ -26,7 +26,8 @@ query ($id: ID!) {
       depth
       value
       anchor
-    },
+    }
+    link
   }
 }
 </page-query>

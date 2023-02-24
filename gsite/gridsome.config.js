@@ -17,11 +17,6 @@ module.exports = {
             priority: 0.5,
             lastmod: '2020-02-19',
           },
-          '/life/*': {
-            changefreq: 'weekly',
-            priority: 0.5,
-            lastmod: '2020-02-19',
-          },
         }
       }
     },
@@ -46,7 +41,7 @@ module.exports = {
     {
       use: '@gridsome/source-filesystem',
       options: {
-        path: './ob/tech/*.md',
+        path: './data/tech/*.md',
         typeName: 'TechPost',
         remark: {
           externalLinksTarget: '_blank',
@@ -65,7 +60,7 @@ module.exports = {
     {
       use: '@gridsome/source-filesystem',
       options: {
-        path: './ob/life/*.md',
+        path: './data/life/*.md',
         typeName: 'LifePost',
         remark: {
           externalLinksTarget: '_blank',
@@ -76,7 +71,7 @@ module.exports = {
     {
       use: '@gridsome/source-filesystem',
       options: {
-        path: './ob/store/*.md',
+        path: './data/store/*.md',
         typeName: 'StorePost',
         remark: {
           externalLinksTarget: '_blank',
@@ -87,7 +82,7 @@ module.exports = {
     {
       use: '@gridsome/source-filesystem',
       options: {
-        path: './ob/book/*.md',
+        path: './data/book/*.md',
         typeName: 'BookPost',
         remark: {
           externalLinksTarget: '_blank',
@@ -98,7 +93,7 @@ module.exports = {
     {
       use: '@gridsome/source-filesystem',
       options: {
-        path: './ob/column/*.md',
+        path: './data/column/*.md',
         typeName: 'ColumnPost',
         remark: {
           externalLinksTarget: '_blank',

@@ -1,12 +1,34 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 
 import MarkdownBody from "@/components/MarkdownBody.vue";
 import NextPrevLinks from "@/components/NextPrevLinks.vue";
 
+import { markdownToHtml } from "@/plugins/markdown-utils.js"
+
 // define links prop
 const props = defineProps(["data"]);
-console.log(props.data)  
+
+const postData = reactive({
+  subtitles: [],
+  content: ""
+})
+
+onMounted(() => {
+  let link = props.data.link
+  if(props.data.link) {
+    fetch(link)
+    .then(response => response.text())
+      .then(data => {
+        let result = markdownToHtml(link, data)
+        postData.subtitles = result.subtitles
+        postData.content = result.content
+    });
+  } else {
+    postData.subtitles = props.data.subtitles
+    postData.content = props.data.content
+  }
+})
 </script>
 
 <template>
@@ -34,7 +56,7 @@ console.log(props.data)
       <hr class="article-hr" />
     </header>
     <div v-if="data.docLinks">docLinks</div>
-    <MarkdownBody :data="data" />
+    <MarkdownBody :data="postData" />
     <!-- PrevNext Component -->
     <NextPrevLinks v-if="data.surround" :prev="data.surround[0]" :next="data.surround[1]" />
     <hr class="article-hr" />

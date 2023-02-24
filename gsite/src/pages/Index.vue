@@ -19,9 +19,9 @@
           <div class="relative p-8 md:p-8">
             <img
               class="
+                avatar
                 h-32
                 w-32
-                ring ring-blue-500 ring-offset-4
                 rounded-full
                 transition
                 ease-in-out
@@ -30,7 +30,7 @@
                 duration-300
               "
               src="https://blog.res.jianchengwang.info/avatar.jpg"
-              alt="jiancheng_wang"
+              alt="jianchengwang"
             />
             <span
               class="
@@ -89,4 +89,13 @@
 </template>
 
 <script setup>
+
 </script>
+
+<style scoped>
+.avatar {
+  border-style: solid;
+  border-width: 3px;
+  border-color: rgb(59 130 246) !important;
+}
+</style>

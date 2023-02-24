@@ -23,6 +23,7 @@ query ($id: ID!) {
     douban
     tags
     slug
+    link
   }
 }
 </page-query>

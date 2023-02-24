@@ -39,8 +39,6 @@ export default {
           path
           excerpt
           tags
-          resource
-          douban
         }
       }
     }
