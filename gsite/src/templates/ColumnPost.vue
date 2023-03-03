@@ -26,6 +26,7 @@ export default {
   },
   methods: {
     fetchMarkdown(item) {
+      this.postData = {}
       fetch(item.link)
       .then(response => response.text())
         .then(data => {

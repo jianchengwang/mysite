@@ -2,7 +2,7 @@
 title: live2d-web
 slug: live2d-web
 author: [jianchengwang]
-date: 2020-10-25
+date: 2021-07-25
 excerpt: "为自己的博客网站，添加一个萌萌哒的看板娘。。。"
 draft: false
 tags: [frontend]

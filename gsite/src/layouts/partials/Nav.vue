@@ -19,6 +19,10 @@
     <g-link to="/column/">
       <span class="main-nav__label">Column</span>
     </g-link>
+
+    <a href="https://jianchengwang.github.io/running_page"  target="_blank">
+      <span class="main-nav__label">Running</span>
+    </a>
   </nav>
 </template>
 

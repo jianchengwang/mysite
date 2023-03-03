@@ -75,8 +75,9 @@
 export default {
   data() {
     return {
-      themes: ["light", "dark", "sepia"],
-      current: "sepia",
+      // themes: ["light", "sepia", "dark"],
+      themes: ["light", "sepia"],
+      current: "light",
     };
   },
   computed: {
