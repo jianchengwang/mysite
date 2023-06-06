@@ -62,6 +62,11 @@ title: About
 - [LiangLiangLee](https://learn.lianglianglee.com/) 技术文章妙抄
 - [CoolShell](https://coolshell.cn/) 酷壳，左耳朵耗子
 - [ICloudNative](https://icloudnative.io/) 云原生实验室
+- [Bryanpendleton](http://bryanpendleton.blogspot.com/) Journal of a Programmer
+- [OpenJDK-Wiki](https://wiki.openjdk.org/display/loom/Main)
+- [Tech-Meituan](https://tech.meituan.com/) 美团技术团队
+- [Taobao-Mysql](http://mysql.taobao.org/monthly/) PolarDB 数据库内核月报
+- [Jetbras](https://jetbra.in/s) JETBRA.IN CHECKER IPFS
 
 ## Thanks to
 ### JetBrains
