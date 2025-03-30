@@ -1,0 +1,10 @@
+{
+  "columns": [
+    {
+      "id": "cloudnative",
+      "title": "Cloud Native",
+      "description": "Cloud native technologies and practices, including Docker, Kubernetes, and microservices architecture.",
+      "path": "/column/cloudnative/1-setup"
+    }
+  ]
+}

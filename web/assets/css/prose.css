@@ -1,0 +1,264 @@
+/* Base prose styles with zinc theme */
+.prose {
+  --tw-prose-body: theme('colors.zinc.700');
+  --tw-prose-headings: theme('colors.zinc.800');
+  --tw-prose-lead: theme('colors.zinc.600');
+  --tw-prose-links: theme('colors.zinc.800');
+  --tw-prose-bold: theme('colors.zinc.900');
+  --tw-prose-counters: theme('colors.zinc.500');
+  --tw-prose-bullets: theme('colors.zinc.300');
+  --tw-prose-hr: theme('colors.zinc.200');
+  --tw-prose-quotes: theme('colors.zinc.600');
+  --tw-prose-quote-borders: theme('colors.zinc.200');
+  --tw-prose-captions: theme('colors.zinc.500');
+  --tw-prose-kbd: theme('colors.zinc.900');
+  --tw-prose-kbd-shadows: theme('colors.zinc.300');
+  --tw-prose-th-borders: theme('colors.zinc.300');
+  --tw-prose-td-borders: theme('colors.zinc.200');
+
+  /* Keep original code highlighting colors */
+  --tw-prose-pre-code: theme('colors.gray.200');
+  --tw-prose-pre-bg: theme('colors.gray.800');
+  --tw-prose-pre-border: theme('colors.gray.700');
+
+  /* Base text styles */
+  font-family: -apple-system, "Noto Sans", "Helvetica Neue", "Nimbus Sans L", Arial, "Liberation Sans", "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Source Han Sans SC", "Source Han Sans CN", "Microsoft YaHei", "Wenquanyi Micro Hei", "WenQuanYi Zen Hei", "ST Heiti", SimHei, "WenQuanYi Zen Hei Sharp", sans-serif;
+  line-height: 2;
+  letter-spacing: 0.02em;
+  font-size: 1.05rem;
+  text-align: justify;
+  hyphens: auto;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 65ch;
+  margin: 0 auto;
+}
+
+/* Links */
+.prose a {
+  text-decoration: none;
+  border-bottom: 1px solid theme('colors.zinc.300');
+  transition: all 0.2s ease;
+  padding-bottom: 0.1em;
+}
+
+.prose a:hover {
+  border-bottom-color: theme('colors.zinc.600');
+  color: theme('colors.zinc.600');
+}
+
+/* Headings */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  color: theme('colors.zinc.800');
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  font-family: "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Source Han Sans SC", "Source Han Sans CN", "Microsoft YaHei", sans-serif;
+  line-height: 1.5;
+  margin-left: 0;
+  width: 100%;
+}
+
+.prose h1 {
+  font-size: 2rem;
+  margin: 3rem auto 2rem;
+  letter-spacing: -0.03em;
+  text-align: center;
+}
+
+.prose h2 {
+  font-size: 1.75rem;
+  margin: 2.5rem 0 1.5rem;
+}
+
+.prose h3 {
+  font-size: 1.5rem;
+  margin: 2rem 0 1.25rem;
+}
+
+.prose h4 {
+  font-size: 1.25rem;
+  margin: 1.75rem 0 1rem;
+}
+
+/* Paragraphs */
+.prose p {
+  margin: 1.5em 0;
+  line-height: 2;
+}
+
+/* Only indent paragraphs that are direct children of the prose container */
+.prose>p {
+  text-indent: 2em;
+}
+
+/* Inline code */
+.prose :not(pre)>code {
+  background-color: theme('colors.zinc.100');
+  padding: 0.2em 0.4em;
+  border-radius: 0.25em;
+  font-size: 0.875em;
+  color: theme('colors.zinc.800');
+  border: 1px solid theme('colors.zinc.200');
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+
+/* Code blocks */
+.prose pre {
+  background-color: theme('colors.gray.800');
+  border: 1px solid theme('colors.gray.700');
+  color: theme('colors.gray.200');
+  overflow-x: auto;
+  font-size: 0.875em;
+  line-height: 1.7142857;
+  padding: 1.25rem;
+  margin: 2rem 0;
+  border-radius: 0.5rem;
+}
+
+.prose pre code {
+  background-color: transparent;
+  border-width: 0;
+  border-radius: 0;
+  padding: 0;
+  font-weight: 400;
+  color: inherit;
+  font-size: inherit;
+  font-family: inherit;
+  line-height: inherit;
+}
+
+/* Blockquotes */
+.prose blockquote {
+  font-style: normal;
+  border-left: none;
+  margin: 2em 0;
+  padding: 1.5em 2em;
+  background-color: theme('colors.zinc.50');
+  color: theme('colors.zinc.600');
+  border-radius: 0.25rem;
+  position: relative;
+}
+
+.prose blockquote::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: theme('colors.zinc.200');
+  border-radius: 4px 0 0 4px;
+}
+
+.prose blockquote p {
+  margin: 0.75em 0;
+  text-indent: 0;
+}
+
+/* Lists */
+.prose ul,
+.prose ol {
+  margin: 1.5em 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.prose ul li,
+.prose ol li {
+  margin: 0.75em 0;
+  padding-left: 2em;
+  position: relative;
+  line-height: 1.75;
+}
+
+.prose ul li::before {
+  content: "";
+  position: absolute;
+  background-color: theme('colors.zinc.400');
+  border-radius: 50%;
+  width: 4px;
+  height: 4px;
+  top: 0.85em;
+  left: 0.75em;
+}
+
+.prose ol {
+  counter-reset: list-counter;
+}
+
+.prose ol>li {
+  counter-increment: list-counter;
+}
+
+.prose ol>li::before {
+  content: counter(list-counter) ".";
+  position: absolute;
+  left: 0.5em;
+  color: theme('colors.zinc.500');
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+.prose ul li p,
+.prose ol li p {
+  margin: 0;
+  text-indent: 0;
+}
+
+/* Remove text-indent for all special containers */
+.prose blockquote p,
+.prose li p,
+.prose figcaption p,
+.prose h1+p,
+.prose h2+p,
+.prose h3+p,
+.prose h4+p {
+  text-indent: 0;
+  text-align: justify;
+}
+
+/* Tables */
+.prose table {
+  width: 100%;
+  margin: 2em 0;
+  border-collapse: collapse;
+  font-size: 0.95em;
+  line-height: 1.5;
+}
+
+.prose thead {
+  border-bottom: 2px solid theme('colors.zinc.200');
+}
+
+.prose thead th {
+  font-weight: 600;
+  padding: 0.75em 1em;
+  text-align: left;
+  color: theme('colors.zinc.900');
+}
+
+.prose tbody tr {
+  border-bottom: 1px solid theme('colors.zinc.200');
+}
+
+.prose tbody td {
+  padding: 0.75em 1em;
+  vertical-align: top;
+}
+
+/* Images */
+.prose img {
+  margin: 2em auto;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Horizontal rule */
+.prose hr {
+  margin: 3em 0;
+  border: none;
+  border-top: 1px solid theme('colors.zinc.200');
+}
