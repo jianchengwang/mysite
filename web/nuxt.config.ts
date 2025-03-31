@@ -56,7 +56,7 @@ export default defineNuxtConfig({
         { name: 'description', content: 'My personal website and blog' }
       ],
       script: [
-        { src: 'https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/live2dv3.init.js' }
+        // { src: 'https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/live2dv3.init.js' }
       ],
       link: [
         {
@@ -64,6 +64,13 @@ export default defineNuxtConfig({
           href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
         }
       ]
+    }
+  },
+
+  // Add runtime config
+  runtimeConfig: {
+    public: {
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000'
     }
   },
 

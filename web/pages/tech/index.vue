@@ -2,8 +2,8 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <!-- Page Header -->
     <div class="mb-12">
-      <h1 class="text-4xl font-bold text-zinc-900 mb-4">Store</h1>
-      <p class="text-lg text-zinc-600">Browse through my written collection of stores.</p>
+      <h1 class="text-4xl font-bold text-zinc-900 mb-4">Tech</h1>
+      <p class="text-lg text-zinc-600">Tech makes the world go round.</p>
     </div>
 
     <!-- Store Grid -->
