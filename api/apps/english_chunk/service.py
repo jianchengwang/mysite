@@ -2,6 +2,8 @@ import google.generativeai as genai
 from core.config import get_settings
 from core.logger import logger
 from typing import List, Dict
+import json
+import random
 
 settings = get_settings()
 
@@ -77,18 +79,23 @@ def generate_prompt(topic: str, num_chunks: int) -> str:
     
     logger.debug(f"Generating prompt for topic: {topic_info['name']}, num_chunks: {num_chunks}")
     
-    return f"""As a language learning expert, please help generate {num_chunks} useful English chunks related to the topic of {topic_info['name']} ({topic_info['description']}).
+    # Add variety by selecting a random scenario
+    scenario = random.choice(topic_info["scenarios"])
+    
+    return f"""As a language learning expert, please help generate {num_chunks} useful English chunks related to the topic of {topic_info['name']} ({topic_info['description']}), specifically focusing on the scenario of {scenario}.
 
 For each chunk:
-1. Provide a common and practical phrase or expression
-2. Give 2 example sentences showing natural usage
+1. Provide a common and practical phrase or expression that is DIFFERENT from common textbook phrases
+2. Give 2 example sentences showing natural usage in the context of {scenario}
 3. Ensure the examples are connected to create a coherent scenario
+4. Use contemporary, everyday language that native speakers actually use
+5. Make sure the chunks are unique and not commonly found in textbooks
 
 Then, create a natural conversation between Sarah and Mark that uses all the chunks. The conversation should:
 1. Be natural and casual
 2. Alternate between Sarah and Mark (Sarah speaks first)
 3. Use each chunk at least once
-4. Be about {topic_info['name']}
+4. Be about {scenario} in the context of {topic_info['name']}
 5. Not use any speech tags (like "said", "replied", etc.)
 6. Each line should be a complete thought ending with a period, question mark, or exclamation mark
 
@@ -120,13 +127,14 @@ Make sure most of the chunks are practical, commonly used in everyday English co
 async def generate_chunks(topic: str, num_chunks: int) -> Dict:
     try:
         logger.info(f"Generating chunks for topic: {topic}, num_chunks: {num_chunks}")
+        
         prompt = generate_prompt(topic, num_chunks)
         logger.debug(f"Generated prompt: {prompt}")
         
         generation_config = {
-            "temperature": 0.7,
-            "top_p": 0.8,
-            "top_k": 40,
+            "temperature": 0.9,  # Increased for more variety
+            "top_p": 0.95,
+            "top_k": 60,
             "max_output_tokens": 2048,
         }
         
@@ -138,7 +146,6 @@ async def generate_chunks(topic: str, num_chunks: int) -> Dict:
         logger.debug(f"Raw response from Gemini: {response.text}")
         
         # Parse the response text as JSON
-        import json
         try:
             # 清理响应文本
             text = response.text.strip()

@@ -32,22 +32,70 @@
         </div>
       </NuxtLink>
 
-      <!-- Live2D 聊天 -->
+      <!-- Live2D Talk -->
       <NuxtLink to="/tools/live2d" 
         class="group bg-white rounded-lg border border-zinc-200 hover:border-zinc-300 transition-all duration-200 overflow-hidden">
         <div class="p-6">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-xl font-bold text-zinc-800 group-hover:text-zinc-600">
-              Live2D 聊天
+              Live2D Talk
             </h2>
             <i class="pi pi-arrow-right text-zinc-400 group-hover:text-zinc-600 transition-colors"></i>
           </div>
           <p class="text-zinc-600 mb-4">
-            与可爱的二次元角色互动聊天
+            Chat with a cute anime character.
           </p>
           <div class="flex gap-2">
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
               Feature Tag
+            </span>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              Free
+            </span>
+          </div>
+        </div>
+      </NuxtLink>
+
+      <!-- Prompt Collection -->
+      <NuxtLink to="/tools/prompt-collection" 
+        class="group bg-white rounded-lg border border-zinc-200 hover:border-zinc-300 transition-all duration-200 overflow-hidden">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-zinc-800 group-hover:text-zinc-600">
+              Prompt Collection
+            </h2>
+            <i class="pi pi-arrow-right text-zinc-400 group-hover:text-zinc-600 transition-colors"></i>
+          </div>
+          <p class="text-zinc-600 mb-4">
+            A collection of useful prompts for writing, coding, learning, and business.
+          </p>
+          <div class="flex gap-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+              Templates
+            </span>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              Free
+            </span>
+          </div>
+        </div>
+      </NuxtLink>
+
+      <!-- Markdown to WeChat -->
+      <NuxtLink to="/tools/md-to-wechat" 
+        class="group bg-white rounded-lg border border-zinc-200 hover:border-zinc-300 transition-all duration-200 overflow-hidden">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-zinc-800 group-hover:text-zinc-600">
+              Markdown To WeChat
+            </h2>
+            <i class="pi pi-arrow-right text-zinc-400 group-hover:text-zinc-600 transition-colors"></i>
+          </div>
+          <p class="text-zinc-600 mb-4">
+            Convert Markdown documents to beautiful WeChat articles, with code highlighting, tables, and customizable themes.
+          </p>
+          <div class="flex gap-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+              Format Conversion
             </span>
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
               Free

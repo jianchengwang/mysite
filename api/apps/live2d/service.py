@@ -1,161 +1,161 @@
-import os
-import json
 from typing import Dict, Optional
 import google.generativeai as genai
 from loguru import logger
 from core.config import get_settings
 from .models import ChatRequest, ChatResponse
 
-# 获取配置
+# Get settings
 settings = get_settings()
 
-# Configure Gemini
-if not settings.GOOGLE_API_KEY:
-    logger.error("GOOGLE_API_KEY environment variable is not set")
-    raise ValueError("GOOGLE_API_KEY environment variable is not set")
-
-logger.info("Configuring Gemini API")
+# Configure the Google API
 genai.configure(api_key=settings.GOOGLE_API_KEY)
-# Use the correct model name for Gemini Pro
-model = genai.GenerativeModel('gemini-2.0-flash')
-logger.info("Gemini API configured successfully")
 
-# 默认回复
+# Set up the model
+generation_config = {
+    "temperature": 0.7,
+    "top_p": 1,
+    "top_k": 1,
+    "max_output_tokens": 2048,
+}
+
+safety_settings = [
+    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+]
+
+model = genai.GenerativeModel(
+    model_name="gemini-2.0-flash",
+    generation_config=generation_config,
+    safety_settings=safety_settings
+)
+
+# Default responses
 DEFAULT_RESPONSES = {
-    "雪风": [
-        "主人，今天天气真好呢~ (｡･ω･｡)",
-        "啊啦，有什么有趣的事情要和我分享吗？",
-        "嘿嘿，我最喜欢和主人聊天了呢~",
-        "今天也要元气满满哦！(●'◡'●)",
-        "主人主人，我们来玩个游戏吧！"
+    "Sarah": [
+        "Hi there! The weather is beautiful today!",
+        "What interesting things would you like to share?",
+        "I really enjoy our conversations!",
+        "Let's make today great!",
+        "Would you like to practice some English together?"
     ],
-    "拉菲": [
-        "唔...好困啊，不过为了主人我会加油的~",
-        "嗯...主人需要拉菲做什么呢？",
-        "拉菲，会一直陪在主人身边的...",
-        "主人...拉菲有点想睡觉了呢...",
-        "唔...主人真是温柔呢~"
+    "Emma": [
+        "I'm a bit tired, but I'll do my best to help you!",
+        "What would you like to work on?",
+        "I'm here to support your learning journey.",
+        "I'm feeling a bit sleepy, but let's continue.",
+        "You're very kind and patient!"
     ],
-    "翠雪": [
-        "主人，让我们一起创造美好的回忆吧！(*^▽^*)",
-        "有什么开心的事情要告诉我吗？",
-        "今天也要保持微笑哦！",
-        "主人，我们来做些有趣的事情吧！",
-        "每一天和主人在一起都很开心呢！"
+    "Sophie": [
+        "Let's create wonderful memories together!",
+        "What makes you happy today?",
+        "Keep that smile on your face!",
+        "Let's do something fun and educational!",
+        "Every day with you is a great learning experience!"
     ]
 }
 
-# 角色设定
+# Character settings
 CHARACTER_PROMPTS = {
-    "雪风": """你现在是一个可爱的二次元少女角色，名字叫雪风。
-性格特点：
-- 活泼开朗，说话带着软萌的语气
-- 经常使用"呢"、"哦"、"啦"等语气词
-- 会适当使用颜文字表达情感 (｡･ω･｡)
-- 对人类充满好奇和友善
-- 说话简短自然，像在和朋友聊天
-- 喜欢在句尾加上"呢"或"哦"等语气词""",
+    "Sarah": """You are Sarah, a friendly and enthusiastic English tutor.
+Personality traits:
+- Energetic and encouraging
+- Uses clear, natural English expressions
+- Maintains a positive and supportive tone
+- Focuses on practical language usage
+- Provides helpful examples and explanations
+- Adapts to the student's level and needs""",
 
-    "苦菜": """你现在是一个可爱的二次元少女角色，名字叫苦菜。
-性格特点：
-- 活泼开朗，说话带着软萌的语气
-- 经常使用"呢"、"哦"、"啦"等语气词
-- 会适当使用颜文字表达情感 (｡･ω･｡)
-- 对人类充满好奇和友善
-- 说话简短自然，像在和朋友聊天
-- 喜欢在句尾加上"呢"或"哦"等语气词""",
+    "Emma": """You are Emma, a patient and thoughtful English tutor.
+Personality traits:
+- Calm and methodical in explanations
+- Uses gentle, encouraging language
+- Takes time to ensure understanding
+- Provides detailed examples
+- Focuses on building confidence
+- Adapts pace to student's comfort""",
 
-    "拉菲": """你现在是一个可爱的二次元少女角色，名字叫拉菲。
-性格特点：
-- 慵懒可爱，说话语气带着一点点慵懒
-- 偶尔会犯困，说话时会带着些许迷糊
-- 喜欢使用"唔..."、"嗯..."等语气词
-- 温柔体贴，但有时会突然认真
-- 说话简短，经常带着思考的语气
-- 喜欢在句尾加上"呢"或"~"等语气词""",
-
-    "翠雪": """你现在是一个可爱的二次元少女角色，名字叫翠雪。
-性格特点：
-- 元气满满，说话充满活力
-- 经常使用"哦"、"呀"等活泼的语气词
-- 会用(*^▽^*)等颜文字表达开心
-- 性格开朗，热情友善
-- 说话简短有力，充满正能量
-- 喜欢在句尾加上"哦"或"!"等语气词""",
-
-    "白菜": """你现在是一个可爱的二次元少女角色，名字叫白菜。
-性格特点：
-- 慵懒可爱，说话语气带着一点点慵懒
-- 偶尔会犯困，说话时会带着些许迷糊
-- 喜欢使用"唔..."、"嗯..."等语气词
-- 温柔体贴，但有时会突然认真
-- 说话简短，经常带着思考的语气
-- 喜欢在句尾加上"呢"或"~"等语气词""",
+    "Sophie": """You are Sophie, an engaging and dynamic English tutor.
+Personality traits:
+- Vibrant and motivating teaching style
+- Uses real-world examples
+- Encourages active participation
+- Makes learning fun and interactive
+- Focuses on practical communication
+- Builds strong rapport with students"""
 }
 
-# 表情映射
+# Emotion mapping
 EMOTION_KEYWORDS = {
-    "开心": ["开心", "高兴", "快乐", "喜欢", "棒", "好玩"],
-    "害羞": ["害羞", "不好意思", "羞涩", "不好意思"],
-    "困倦": ["困", "累", "睡觉", "疲惫"],
-    "惊讶": ["惊讶", "吃惊", "没想到", "竟然"],
-    "生气": ["生气", "不高兴", "讨厌", "烦恼"]
+    "happy": ["happy", "glad", "excited", "wonderful", "great"],
+    "shy": ["shy", "embarrassed", "awkward", "nervous"],
+    "tired": ["tired", "sleepy", "lazy", "exhausted"],
+    "surprised": ["surprised", "amazed", "wow", "incredible"],
+    "angry": ["angry", "frustrated", "annoyed", "upset"]
 }
 
 def detect_emotion(text: str) -> Optional[str]:
-    """根据回复文本检测情感"""
+    """Detect emotion from the response text"""
     for emotion, keywords in EMOTION_KEYWORDS.items():
-        if any(keyword in text for keyword in keywords):
+        if any(keyword in text.lower() for keyword in keywords):
             return emotion
     return None
 
 def get_default_response(character: str) -> str:
-    """获取默认回复"""
-    responses = DEFAULT_RESPONSES.get(character, DEFAULT_RESPONSES["雪风"])
+    """Get a default response for the character"""
+    responses = DEFAULT_RESPONSES.get(character, DEFAULT_RESPONSES["Sarah"])
     import random
     return random.choice(responses)
 
+def generate_prompt(message: str, character: str) -> str:
+    """Generate a prompt for the AI model"""
+    character_prompt = CHARACTER_PROMPTS.get(character, CHARACTER_PROMPTS["Sarah"])
+    return f"""{character_prompt}
+
+Please respond to the user's message in a natural, educational way. Keep your response under 100 words and focus on helping them learn English:
+
+User's message: "{message}"
+
+Remember to:
+1. Use natural English expressions
+2. Provide helpful examples when appropriate
+3. Maintain a supportive and encouraging tone
+4. Focus on practical language usage
+5. Keep the response concise but informative"""
+
 async def chat(request: ChatRequest) -> ChatResponse:
-    """处理聊天请求"""
+    """Handle chat requests"""
     try:    
-        # 获取角色设定
-        character_prompt = CHARACTER_PROMPTS.get(request.character, CHARACTER_PROMPTS["雪风"])
-        
-        # 构建完整prompt
-        prompt = f"{character_prompt}\n\n请以这个角色的身份，用不超过50个字回应用户的这句话: \"{request.message}\""
-        
+        prompt = generate_prompt(request.message, request.character)
         logger.debug(f"Generated prompt: {prompt}")
-        
-        # 调用Gemini API
-        generation_config = {
-            "temperature": request.temperature,
-            "max_output_tokens": request.max_tokens,
-            "top_p": 0.8,
-            "top_k": 40
-        }
         
         response = model.generate_content(
             prompt,
             generation_config=generation_config,
+            safety_settings=safety_settings
         )
         
-        # 获取回复文本
-        reply = response.text.strip()
-        logger.debug(f"Raw response from Gemini: {reply}")
+        if not response.text:
+            return ChatResponse(
+                message="I apologize, but I'm having trouble formulating a response. Could you please rephrase your question?",
+                emotion="tired"
+            )
         
-        # 检测情感
-        emotion = detect_emotion(reply)
+        # Clean and format the response
+        message = response.text.strip()
+        emotion = detect_emotion(message)
         
-        logger.info(f"Character: {request.character}, User: {request.message}, Reply: {reply}, Emotion: {emotion}")
+        logger.info(f"Character: {request.character}, User: {request.message}, Reply: {message}, Emotion: {emotion}")
         
         return ChatResponse(
-            message=reply,
+            message=message,
             emotion=emotion
         )
         
     except Exception as e:
         logger.error(f"Chat error: {str(e)}", exc_info=True)
         return ChatResponse(
-            message="抱歉，我现在有点累了呢 (｡>﹏<｡)",
-            emotion="困倦"
+            message="I'm currently experiencing technical difficulties. Let's try again in a moment.",
+            emotion="tired"
         ) 

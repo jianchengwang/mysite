@@ -14,7 +14,7 @@
         <div class="control-panel">
           <!-- 角色选择 -->
           <div class="character-selector">
-            <label for="character-select">选择角色：</label>
+            <label for="character-select">Select Character:</label>
             <select 
               id="character-select" 
               v-model="currentModel" 
@@ -33,23 +33,23 @@
               {{ characterResponse }}
             </div>
             <div class="empty-response" v-else>
-              和{{ currentCharacterName }}聊天吧~
+              Start a conversation...
+            </div>
+          </div>
+
+          <!-- 聊天输入框 -->
+          <div class="input-wrapper">
+            <div class="input-container">
+              <input 
+                v-model="userInput" 
+                @keyup.enter="sendMessage"
+                placeholder="Type your message..."
+                class="chat-input"
+              >
+              <button @click="sendMessage" class="send-button">Send</button>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- 聊天输入框固定在页面底部 -->
-    <div class="global-input-wrapper">
-      <div class="input-container">
-        <input 
-          v-model="userInput" 
-          @keyup.enter="sendMessage"
-          placeholder="输入消息..."
-          class="chat-input"
-        >
-        <button @click="sendMessage" class="send-button">发送</button>
       </div>
     </div>
   </div>
@@ -83,17 +83,17 @@ const chatMessages = ref<HTMLDivElement>()
 
 // Available models (二次元风格的模型)
 const availableModels = ref([
-  { id: 'xuefeng_3', name: '雪风' },
-  { id: 'xuefeng', name: '苦菜' },
-  { id: 'lafei_4', name: '拉菲' },
-  { id: 'lafei', name: '白菜' },
-  { id: 'chuixue_3', name: '翠雪' }
+  { id: 'xuefeng_3', name: 'Sarah' },
+  { id: 'xuefeng', name: 'Emma' },
+  { id: 'lafei_4', name: 'Sophie' },
+  { id: 'lafei', name: 'Lafei' },
+  { id: 'chuixue_3', name: 'Chuixue' }
 ])
 
 // Calculate current character name
 const currentCharacterName = computed(() => {
   const model = availableModels.value.find(m => m.id === currentModel.value)
-  return model ? model.name : '雪风'
+  return model ? model.name : 'Sarah'
 })
 
 // Live2D instance and speech synthesis reference
@@ -200,13 +200,13 @@ const handleModelChange = async () => {
 // Show welcome message
 const showWelcomeMessage = () => {
   const messages: Record<string, string> = {
-    '雪风': '你好呀~ 有什么想和我聊的吗？(｡･ω･｡)',
-    '拉菲': '唔...主人好呀，有什么需要拉菲做的吗？',
-    '翠雪': '主人，今天也要元气满满哦！(*^▽^*)'
+    'Sarah': 'Hi there! What would you like to chat about?',
+    'Emma': 'Hey! How can I help you today?',
+    'Sophie': 'Hello! Ready for a great conversation?'
   };
   
   const name = currentCharacterName.value;
-  characterResponse.value = messages[name] || messages['雪风'];
+  characterResponse.value = messages[name] || messages['Sarah'];
   
   // Play welcome voice
   if (characterResponse.value) {
@@ -223,7 +223,6 @@ const sendMessage = async () => {
   isLoading.value = true
   
   try {
-    // Use relative path to ensure correct API endpoint is found
     const response = await fetch(`${config.public.apiBase}/api/live2d/chat`, {
       method: 'POST',
       headers: {
@@ -233,7 +232,8 @@ const sendMessage = async () => {
         message: message,
         character: currentCharacterName.value,
         temperature: 0.7,
-        max_tokens: 100
+        max_tokens: 150, // Increased for more natural responses
+        language: 'en' // Specify English responses
       })
     })
 
@@ -242,60 +242,50 @@ const sendMessage = async () => {
     }
 
     const data = await response.json()
-    
-    // Update character response
     characterResponse.value = data.message
     
-    // If emotion is returned, trigger corresponding action
     if (data.emotion) {
       triggerEmotion(data.emotion)
     }
     
-    // Play voice
     playVoice(data.message)
 
   } catch (error) {
     console.error('Chat API Error:', error)
-    characterResponse.value = '抱歉，我现在有点累了呢 (｡>﹏<｡)'
-    triggerEmotion('困倦')
+    characterResponse.value = "Sorry, I'm having trouble connecting right now. Let's try again in a moment."
+    triggerEmotion('tired')
   } finally {
     isLoading.value = false
   }
 }
 
-// Play voice
+// Play voice with English settings
 const playVoice = (text: string) => {
   if (!speechSynthesis) return
   
   try {
-    // Cancel previous speech
     speechSynthesis.cancel()
     
-    // Create new speech
     const utterance = new SpeechSynthesisUtterance(text)
     
-    // Set to female voice
-    utterance.lang = 'zh-CN'
-    utterance.pitch = 1.2 // Higher pitch for cuter voice
-    utterance.rate = 1.1  // Slightly faster
+    // Set English voice settings
+    utterance.lang = 'en-US'
+    utterance.pitch = 1.0  // Normal pitch
+    utterance.rate = 0.9   // Slightly slower for clarity
     
-    // Try to select female voice
+    // Try to select a natural English voice
     const voices = speechSynthesis.getVoices()
-    const femaleVoice = voices.find(voice => 
-      voice.lang.includes('zh') && voice.name.includes('female')
+    const englishVoice = voices.find(voice => 
+      voice.lang.includes('en') && 
+      (voice.name.includes('Samantha') || // Priority for natural voices
+       voice.name.includes('Karen') ||
+       voice.name.includes('Alex'))
     )
     
-    if (femaleVoice) {
-      utterance.voice = femaleVoice
-    } else {
-      // If no specific female voice found, try to find Chinese voice
-      const chineseVoice = voices.find(voice => voice.lang.includes('zh'))
-      if (chineseVoice) {
-        utterance.voice = chineseVoice
-      }
+    if (englishVoice) {
+      utterance.voice = englishVoice
     }
     
-    // Play voice
     speechSynthesis.speak(utterance)
   } catch (error) {
     console.error('Failed to play voice:', error)
@@ -309,19 +299,19 @@ const triggerEmotion = (emotion: string) => {
   try {
     // Trigger different actions based on emotion
     switch (emotion) {
-      case '开心':
+      case 'happy':
         l2dv.startMotion('tap_body')
         break
-      case '害羞':
+      case 'shy':
         l2dv.startMotion('shake')
         break
-      case '困倦':
+      case 'tired':
         l2dv.startMotion('idle')
         break
-      case '惊讶':
+      case 'surprised':
         l2dv.startMotion('tap_face')
         break
-      case '生气':
+      case 'angry':
         l2dv.startMotion('pinch')
         break
     }
@@ -362,15 +352,11 @@ onUnmounted(() => {
   min-height: 100vh;
   width: 100%;
   background: #f5f5f5;
-  display: flex;
-  flex-direction: column;
-  padding-bottom: 120px; /* 为底部输入框预留空间 */
+  padding: 40px;
 }
 
 .main-content {
-  flex: 1;
-  padding: 40px;
-  padding-bottom: 40px; /* 减小底部padding */
+  height: 100%;
 }
 
 .content-wrapper {
@@ -442,18 +428,17 @@ onUnmounted(() => {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
-  margin-bottom: 0;
 }
 
 .response-bubble {
-  background: #fff;
-  border: 1px solid #eee;
-  padding: 12px 16px;
+  background: #f8f9fa;
+  padding: 16px 20px;
   border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.6;
+  color: #2c3e50;
   animation: fadeIn 0.3s ease;
+  white-space: pre-wrap;
 }
 
 .empty-response {
@@ -463,21 +448,13 @@ onUnmounted(() => {
   font-style: italic;
 }
 
-.global-input-wrapper {
-  position: fixed;
-  bottom: 180px; /* 从底部抬高 */
-  left: 50%;
-  transform: translateX(-50%);
-  background: white;
+.input-wrapper {
   padding: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  width: 800px;
-  border-radius: 12px;
+  background: white;
+  border-top: 1px solid #eee;
 }
 
 .input-container {
-  width: 100%;
   display: flex;
   gap: 10px;
 }
@@ -519,7 +496,6 @@ onUnmounted(() => {
   .content-wrapper {
     flex-direction: column-reverse;
     align-items: center;
-    padding-bottom: 40px;
   }
   
   .control-panel, .character-container {
@@ -529,12 +505,6 @@ onUnmounted(() => {
   
   .character-container {
     margin-bottom: 20px;
-  }
-
-  .global-input-wrapper {
-    width: calc(100% - 40px);
-    bottom: 20px;
-    padding: 15px;
   }
 }
 </style> 

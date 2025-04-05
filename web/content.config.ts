@@ -16,6 +16,10 @@ export default defineContentConfig({
       source: 'column/**',
       type: 'page'
     }),
+    tools: defineCollection({
+      source: 'tools/**',
+      type: 'page'
+    }),
     about: defineCollection({
       source: 'about.md',
       type: 'page'
