@@ -15,6 +15,9 @@
         <NuxtLink to="/column" class="font-medium text-zinc-600 hover:text-zinc-800 transition-colors">
           Column
         </NuxtLink>
+        <NuxtLink to="/english" class="font-medium text-zinc-600 hover:text-zinc-800 transition-colors">
+          English
+        </NuxtLink>
         <NuxtLink to="/tools" class="font-medium text-zinc-600 hover:text-zinc-800 transition-colors">
           Tools
         </NuxtLink>
