@@ -7,8 +7,6 @@ title: Links
 >
 > 小伙伴 OR 技术大佬的博客站点，开往下一个世界 [Travellings](https://travellings.now.sh/)
 
-- [Alone95](https://alone95.cn/) alone
-- [Chenxin](https://www.xinchilde.top) xinchilde
 - [Tangshuang](https://www.tangshuang.net/) 唐霜，腾讯前端大佬
 - [Zhangxinxu](https://www.zhangxinxu.com/) 张鑫旭，阅文集团前端大佬，专注于原生前端
 - [Mrbird](https://mrbird.cc/) Mrbird，java相关，Spring Cloud 微服务权限系统作者

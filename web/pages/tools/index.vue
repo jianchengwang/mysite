@@ -104,6 +104,29 @@
         </div>
       </NuxtLink>
 
+      <NuxtLink to="/tools/typing-practice" 
+        class="group bg-white rounded-lg border border-zinc-200 hover:border-zinc-300 transition-all duration-200 overflow-hidden">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-zinc-800 group-hover:text-zinc-600">
+              Typing Practice
+            </h2>
+            <i class="pi pi-arrow-right text-zinc-400 group-hover:text-zinc-600 transition-colors"></i>
+          </div>
+          <p class="text-zinc-600 mb-4">
+            Practice your typing skills with English chunks.
+          </p>
+          <div class="flex gap-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+              Typing Practice
+            </span>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              Free
+            </span>
+          </div>
+        </div>
+      </NuxtLink>
+
       <!-- Add more tools here as they are created -->
       <!-- Example template for future tools:
       <NuxtLink to="/tools/other-tool" 

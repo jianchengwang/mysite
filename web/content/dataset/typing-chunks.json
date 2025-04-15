@@ -1,0 +1,56 @@
+{
+  "title": "English Typing Chunks",
+  "description": "A collection of English chunks for typing practice",
+  "items": [
+    {
+      "id": "1",
+      "text": "The quick brown fox jumps over the lazy dog",
+      "difficulty": "easy"
+    },
+    {
+      "id": "2",
+      "text": "In the beginning was the Word, and the Word was with God, and the Word was God",
+      "difficulty": "medium"
+    },
+    {
+      "id": "3",
+      "text": "To be or not to be, that is the question",
+      "difficulty": "easy"
+    },
+    {
+      "id": "4",
+      "text": "All that glitters is not gold",
+      "difficulty": "easy"
+    },
+    {
+      "id": "5",
+      "text": "A journey of a thousand miles begins with a single step",
+      "difficulty": "medium"
+    },
+    {
+      "id": "6",
+      "text": "The only way to do great work is to love what you do",
+      "difficulty": "medium"
+    },
+    {
+      "id": "7",
+      "text": "Life is what happens when you're busy making other plans",
+      "difficulty": "medium"
+    },
+    {
+      "id": "8",
+      "text": "Success is not final, failure is not fatal: it is the courage to continue that counts",
+      "difficulty": "hard"
+    },
+    {
+      "id": "9",
+      "text": "The best way to predict the future is to create it",
+      "difficulty": "medium"
+    },
+    {
+      "id": "10",
+      "text": "It does not matter how slowly you go as long as you do not stop",
+      "difficulty": "medium"
+    }
+  ]
+} 
