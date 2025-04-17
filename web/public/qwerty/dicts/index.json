@@ -1,1 +1,10 @@
-["cet4.json", "cet6.json", "gre.json", "duolingguo_b1.json", "duolingguo_b2.json", "duolingguo_c1.json"]
+[
+    "ngsl.json",
+    "chunks_3000.json",
+    "cet4.json", 
+    "cet6.json", 
+    "gre.json", 
+    "duolingguo_b1.json", 
+    "duolingguo_b2.json", 
+    "duolingguo_c1.json"
+]
