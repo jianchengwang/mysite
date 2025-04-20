@@ -42,7 +42,7 @@ logger.remove()  # 移除默认的处理器
 logger.add(
     sys.stdout,
     format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {message}",
-    level="INFO",
+    level="DEBUG",
     enqueue=True,
     diagnose=True,
 )
@@ -50,14 +50,12 @@ logger.add(
 # 添加文件输出
 logger.add(
     LOG_DIR / "api_{time}.log",
-    format=formatter,
-    level="DEBUG",
-    rotation="1 day",  # 每天轮换一次日志文件
-    retention="30 days",  # 保留30天的日志
-    enqueue=True,
-    diagnose=True,
-    encoding="utf-8",
-    serialize=False  # 禁用序列化，因为我们使用自定义formatter
+    format="{time} | {level} | {message}",
+    level="INFO",
+    rotation="1 day",
+    retention="30 days",
+    enqueue=False,  # 先用同步写入
+    encoding="utf-8"
 )
 
 # 创建一个拦截器来捕获FastAPI的日志

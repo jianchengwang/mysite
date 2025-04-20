@@ -58,3 +58,10 @@ title: Links
 - [Excalidraw](https://excalidraw.com/) 简单好用手绘画图工具
 - [Trancy](https://www.trancy.org/) Trancy 视频网站英文字幕浏览器插件
 - [Jetbras](https://jetbra.in/s) JETBRA.IN CHECKER IPFS
+- [Giggle Creator](https://creator.giggleacademy.com/) 创建K12图文
+
+## LLM
+>
+> 大模型相关
+
+-[frame_pack](https://lllyasviel.github.io/frame_pack_gitpage/) 下一帧图生视频技术

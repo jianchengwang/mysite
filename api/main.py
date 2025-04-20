@@ -4,6 +4,8 @@ from core.config import get_settings
 from core.logger import setup_logging, logger
 from apps.english_chunk.routes import router as english_chunk_router
 from apps.live2d.routes import router as live2d_router
+from apps.paper_split.routes import router as paper_split_router
+from apps.xai.routes import router as xai_router
 from loguru import logger as loguru_logger
 import sys
 
@@ -45,8 +47,20 @@ app.include_router(
 
 app.include_router(
     live2d_router, 
-    prefix=settings.API_V1_STR,
+    prefix=f"{settings.API_V1_STR}/live2d",
     tags=["live2d"]
+)
+
+app.include_router(
+    paper_split_router,
+    prefix=f"{settings.API_V1_STR}/paper-split",
+    tags=["paper-split"]
+)
+
+app.include_router(
+    xai_router,
+    prefix=f"{settings.API_V1_STR}/xai",
+    tags=["xai"]
 )
 
 @app.on_event("startup")
@@ -54,7 +68,7 @@ async def startup_event():
     loguru_logger.info("Starting up application")
     loguru_logger.info(f"Debug mode: {settings.DEBUG}")
     loguru_logger.info(f"API Version: {settings.API_V1_STR}")
-    loguru_logger.info(f"Available routers: english_chunk, live2d")
+    loguru_logger.info(f"Available routers: english_chunk, live2d, paper_split, xai")
 
 @app.on_event("shutdown")
 async def shutdown_event():

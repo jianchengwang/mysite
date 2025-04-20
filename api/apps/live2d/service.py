@@ -1,35 +1,21 @@
 from typing import Dict, Optional
-import google.generativeai as genai
+from agents.google_agent import genai_generate
 from loguru import logger
-from core.config import get_settings
 from .models import ChatRequest, ChatResponse
 
-# Get settings
-settings = get_settings()
-
-# Configure the Google API
-genai.configure(api_key=settings.GOOGLE_API_KEY)
-
-# Set up the model
+# Local generation config and safety settings
 generation_config = {
     "temperature": 0.7,
     "top_p": 1,
     "top_k": 1,
     "max_output_tokens": 2048,
 }
-
 safety_settings = [
     {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
     {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
     {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
     {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
 ]
-
-model = genai.GenerativeModel(
-    model_name="gemini-2.0-flash",
-    generation_config=generation_config,
-    safety_settings=safety_settings
-)
 
 # Default responses
 DEFAULT_RESPONSES = {
@@ -122,7 +108,9 @@ Remember to:
 2. Provide helpful examples when appropriate
 3. Maintain a supportive and encouraging tone
 4. Focus on practical language usage
-5. Keep the response concise but informative"""
+5. Keep the response concise but informative
+6. At the end of your response, talk to the user to keep the conversation going
+"""
 
 async def chat(request: ChatRequest) -> ChatResponse:
     """Handle chat requests"""
@@ -130,20 +118,20 @@ async def chat(request: ChatRequest) -> ChatResponse:
         prompt = generate_prompt(request.message, request.character)
         logger.debug(f"Generated prompt: {prompt}")
         
-        response = model.generate_content(
-            prompt,
+        # Delegate to shared Google agent
+        text = genai_generate(
+            prompt=prompt,
             generation_config=generation_config,
             safety_settings=safety_settings
         )
-        
-        if not response.text:
+        if not text:
             return ChatResponse(
                 message="I apologize, but I'm having trouble formulating a response. Could you please rephrase your question?",
                 emotion="tired"
             )
         
         # Clean and format the response
-        message = response.text.strip()
+        message = text.strip()
         emotion = detect_emotion(message)
         
         logger.info(f"Character: {request.character}, User: {request.message}, Reply: {message}, Emotion: {emotion}")

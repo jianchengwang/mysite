@@ -1,0 +1,50 @@
+.prose.prose-notion {
+  font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  color: #37352f;
+  background: none;
+}
+
+.prose.prose-notion h1,
+.prose.prose-notion h2,
+.prose.prose-notion h3,
+.prose.prose-notion h4 {
+  font-weight: 700;
+  color: #222;
+  margin-top: 2em;
+  margin-bottom: 1em;
+  letter-spacing: -0.01em;
+}
+
+.prose.prose-notion p {
+  margin: 0.5em 0;
+  line-height: 1.8;
+}
+
+.prose.prose-notion ul,
+.prose.prose-notion ol {
+  margin: 0.5em 0 0.5em 1.7em;
+  padding: 0;
+}
+
+.prose.prose-notion li {
+  margin: 0.15em 0;
+}
+
+.prose.prose-notion blockquote {
+  color: #6d6d6d;
+  border-left: 3px solid #c1c1c1;
+  background: #fafaf8;
+  padding: 0.5em 1em;
+  margin: 1em 0;
+  font-style: italic;
+}
+
+.prose.prose-notion a {
+  color: #0b6e99;
+}
+
+.prose.prose-notion hr {
+  border: none;
+  border-top: 1px solid #ececec;
+  margin: 2em 0;
+}

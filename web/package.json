@@ -11,16 +11,18 @@
   },
   "dependencies": {
     "@nuxt/content": "^3.4.0",
+    "@primeuix/themes": "^1.0.3",
+    "@primevue/forms": "^4.3.3",
     "highlight.js": "^11.11.1",
     "marked": "^15.0.7",
     "nuxt": "^3.10.1",
-    "primeicons": "^6.0.1",
-    "primevue": "^3.50.0"
+    "primevue": "^4.3.3",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@nuxtjs/tailwindcss": "^6.11.3",
+    "@primevue/nuxt-module": "^4.3.3",
     "@types/node": "^20.11.16",
-    "nuxt-primevue": "^0.3.0",
     "typescript": "^5.3.3"
   }
 }

@@ -2,8 +2,7 @@ from fastapi import APIRouter, HTTPException
 from .models import ChatRequest, ChatResponse
 from .service import chat
 
-router = APIRouter(prefix="/live2d", tags=["live2d"])
-
+router = APIRouter()
 @router.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
     """Live2D 聊天接口"""

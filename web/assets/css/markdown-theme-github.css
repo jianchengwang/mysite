@@ -1,0 +1,48 @@
+.prose.prose-github {
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, 'Liberation Sans', sans-serif;
+  color: #24292f;
+  background: none;
+}
+
+.prose.prose-github h1,
+.prose.prose-github h2,
+.prose.prose-github h3,
+.prose.prose-github h4 {
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-top: 2em;
+  margin-bottom: 1em;
+}
+
+.prose.prose-github p {
+  margin: 0.7em 0;
+  line-height: 1.7;
+}
+
+.prose.prose-github ul,
+.prose.prose-github ol {
+  margin: 0.7em 0 0.7em 2em;
+  padding: 0;
+}
+
+.prose.prose-github li {
+  margin: 0.2em 0;
+}
+
+.prose.prose-github blockquote {
+  color: #6a737d;
+  border-left: 4px solid #dfe2e5;
+  padding: 0.5em 1em;
+  background: #f6f8fa;
+  margin: 1em 0;
+}
+
+.prose.prose-github a {
+  color: #0969da;
+}
+
+.prose.prose-github hr {
+  border: none;
+  border-top: 1px solid #eaecef;
+  margin: 2em 0;
+}

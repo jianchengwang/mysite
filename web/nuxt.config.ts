@@ -5,31 +5,17 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/tailwindcss',
     '@nuxt/content',
-    'nuxt-primevue'
+    '@primevue/nuxt-module'
   ],
 
-  css: ['~/assets/css/prose.css'],
+  css: ['~/assets/css/prose.css', '~/assets/css/markdown-theme-github.css', '~/assets/css/markdown-theme-notion.css', '~/assets/css/markdown-theme-jianshu.css'],
 
   primevue: {
-    components: {
-      include: [
-        'Button',
-        'Card',
-        'DataTable',
-        'InputText',
-        'Toast',
-        'Dialog',
-        'Menu',
-        'Menubar',
-        'Sidebar',
-        'Divider'
-      ]
-    },
     options: {
-      ripple: true,
-      inputStyle: 'filled'
-    },
-    cssLayerOrder: 'tailwind-base, primevue, tailwind-utilities'
+      theme: {
+        preset: 'Aura'
+      }
+    }
   },
 
   content: {

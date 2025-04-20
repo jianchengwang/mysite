@@ -1,0 +1,52 @@
+.prose.prose-jianshu {
+  font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+  color: #333;
+  background: none;
+}
+
+.prose.prose-jianshu h1,
+.prose.prose-jianshu h2,
+.prose.prose-jianshu h3,
+.prose.prose-jianshu h4 {
+  font-weight: 700;
+  color: #2d2d2d;
+  margin-top: 2em;
+  margin-bottom: 1em;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.2em;
+}
+
+.prose.prose-jianshu p {
+  margin: 0.6em 0;
+  line-height: 2;
+  font-size: 1.08em;
+}
+
+.prose.prose-jianshu ul,
+.prose.prose-jianshu ol {
+  margin: 0.6em 0 0.6em 2em;
+  padding: 0;
+}
+
+.prose.prose-jianshu li {
+  margin: 0.2em 0;
+}
+
+.prose.prose-jianshu blockquote {
+  color: #969696;
+  border-left: 4px solid #b4b4b4;
+  background: #f9f9f9;
+  padding: 0.5em 1em;
+  margin: 1em 0;
+  font-style: italic;
+}
+
+.prose.prose-jianshu a {
+  color: #3194d0;
+}
+
+.prose.prose-jianshu hr {
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 2em 0;
+}

@@ -446,6 +446,10 @@ const handleKeydown = (e: KeyboardEvent) => {
     startTime.value = Date.now()
     isPracticing.value = true
   }
+  // 空格键阻止页面滚动
+  if (e.key === ' ' || e.code === 'Space') {
+    e.preventDefault()
+  }
   if (e.key === 'Backspace') {
     if (typedChars.value.length > 0) {
       typedChars.value.pop()
@@ -496,7 +500,14 @@ const handleKeydown = (e: KeyboardEvent) => {
         // 非默写模式：延迟操作，保证最后一个字符高亮可见
         setTimeout(() => {
           if (customParagraphMode.value) {
-            customPracticeStarted.value = false
+            if (currentGroupIndex.value < currentGroup.value.length - 1) {
+              currentGroupIndex.value++
+              typedChars.value = []
+              startTime.value = 0
+              nextTick(() => focusTypingArea())
+            } else {
+              customPracticeStarted.value = false
+            }
           } else if (currentGroupIndex.value < currentGroup.value.length - 1) {
             currentGroupIndex.value++
             typedChars.value = []

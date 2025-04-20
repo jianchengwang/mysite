@@ -2,7 +2,7 @@
   <div class="min-h-screen flex items-center justify-center px-4 bg-gray-50">
     <div class="max-w-xl w-full text-center">
       <!-- 404 Illustration -->
-      <img src="/images/404.svg" alt="404 Not Found" class="w-full max-w-md mx-auto mb-8" />
+      <img src="https://public.mysite.jianchengwang.info/images/404.svg" alt="404 Not Found" class="w-full max-w-md mx-auto mb-8" />
 
       <!-- Back to Home Button -->
       <NuxtLink to="/"

@@ -1,22 +1,8 @@
-import google.generativeai as genai
-from core.config import get_settings
-from core.logger import logger
+from agents.google_agent import genai_generate
 from typing import List, Dict
 import json
 import random
-
-settings = get_settings()
-
-# Configure Gemini
-if not settings.GOOGLE_API_KEY:
-    logger.error("GOOGLE_API_KEY environment variable is not set")
-    raise ValueError("GOOGLE_API_KEY environment variable is not set")
-
-logger.info("Configuring Gemini API")
-genai.configure(api_key=settings.GOOGLE_API_KEY)
-# Use the correct model name for Gemini Pro
-model = genai.GenerativeModel('gemini-2.0-flash')
-logger.info("Gemini API configured successfully")
+from core.logger import logger
 
 def get_topic_details(topic: str) -> Dict:
     """获取主题详细信息，包括场景描述和示例情境"""
@@ -127,34 +113,29 @@ Make sure most of the chunks are practical, commonly used in everyday English co
 async def generate_chunks(topic: str, num_chunks: int) -> Dict:
     try:
         logger.info(f"Generating chunks for topic: {topic}, num_chunks: {num_chunks}")
-        
         prompt = generate_prompt(topic, num_chunks)
         logger.debug(f"Generated prompt: {prompt}")
-        
+
         generation_config = {
-            "temperature": 0.9,  # Increased for more variety
+            "temperature": 0.9,
             "top_p": 0.95,
             "top_k": 60,
             "max_output_tokens": 2048,
         }
-        
-        response = model.generate_content(
-            prompt,
-            generation_config=generation_config,
-        )
-        
-        logger.debug(f"Raw response from Gemini: {response.text}")
-        
-        # Parse the response text as JSON
+        # Call the shared Google agent
+        text = genai_generate(
+            prompt=prompt,
+            generation_config=generation_config
+        ).strip()
+        logger.debug(f"Raw response from Google agent: {text}")
         try:
-            # 清理响应文本
-            text = response.text.strip()
+            # Clean markdown code fences
             if text.startswith('```json'):
                 text = text[7:]
             if text.endswith('```'):
                 text = text[:-3]
             text = text.strip()
-            
+
             result = json.loads(text)
             
             # 处理对话内容
@@ -169,7 +150,7 @@ async def generate_chunks(topic: str, num_chunks: int) -> Dict:
                         cleaned_lines.append(content)
                 result['scenario']['content'] = ' '.join(cleaned_lines)
             
-            logger.info(f"Successfully generated {len(result['chunks'])} chunks with scenario")
+            logger.info(f"Successfully generated {len(result.get('chunks', []))} chunks with scenario")
             return result
             
         except json.JSONDecodeError as e:

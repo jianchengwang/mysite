@@ -24,7 +24,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       if (pre.querySelector('.code-copy-btn')) return
       const btn = document.createElement('button')
       btn.className = 'code-copy-btn'
-      btn.innerText = '复制'
+      btn.innerText = 'Copy'
       btn.style.position = 'absolute'
       btn.style.top = '8px'
       btn.style.right = '8px'
@@ -35,25 +35,31 @@ export default defineNuxtPlugin((nuxtApp) => {
       btn.style.border = '1px solid #d1d5db'
       btn.style.borderRadius = '4px'
       btn.style.cursor = 'pointer'
-      btn.style.opacity = '0.7'
-      btn.style.transition = 'opacity 0.2s'
+      btn.style.display = 'none'
       btn.onmouseenter = () => btn.style.opacity = '1'
-      btn.onmouseleave = () => btn.style.opacity = '0.7'
+      btn.onmouseleave = () => btn.style.opacity = '1'
       btn.onclick = async (e) => {
         e.stopPropagation()
         const code = pre.querySelector('code')
         if (!code) return
         try {
           await navigator.clipboard.writeText(code.innerText)
-          btn.innerText = '已复制!'
-          setTimeout(() => { btn.innerText = '复制' }, 1200)
+          btn.innerText = 'Copied!'
+          setTimeout(() => { btn.innerText = 'Copy' }, 1200)
         } catch {
-          btn.innerText = '失败!'
-          setTimeout(() => { btn.innerText = '复制' }, 1200)
+          btn.innerText = 'Failed!'
+          setTimeout(() => { btn.innerText = 'Copy' }, 1200)
         }
       }
       pre.style.position = 'relative'
       pre.appendChild(btn)
+      // 只在 hover pre 时显示按钮
+      pre.addEventListener('mouseenter', () => {
+        btn.style.display = 'block'
+      })
+      pre.addEventListener('mouseleave', () => {
+        btn.style.display = 'none'
+      })
     })
   })
 }) 
