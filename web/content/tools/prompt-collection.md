@@ -494,3 +494,18 @@ Generate a <替换为你要画的东西> with the following JSON profile:
   }
 }</pre>
 ```
+
+### 3D Emoj
+```
+Create a highly detailed 3D rendering of the emoji [😂] sculpted from colorful modeling clay. The emoji should show visible fingerprints, uneven textures, and slight imperfections like real hand-molded clay. Use bright pastel colors and soft natural lighting on a neutral background. The modeling clay must look slightly matte and squishy, with an organic, childlike charm. Center the emoji in the frame.
+```
+
+### Branded pills
+```
+A tall, realistic cheerful capsule floats horizontally. The left side is soft neutral beige, labeled “UNIQLO – ESSENTIAL FIT” with the classic red UNIQLO logo. The right half is transparent, filled with floating fabric swatches, puffer coat folds, thermal fiber textures, and line icons of wardrobe basics.
+```
+
+### QT KIMONO RIDER
+```
+red and sumi ink painting. A front-facing low-angle shot of a girl wearing a traditional kimono and hakama, riding a motorcycle and leaning deeply into a sharp turn, replicating the exact pose and composition of a dramatic manga racing scene. The cloth is fluffy. The motorcycle is tilted nearly sideways, one knee close to the ground, handlebars turned, front wheel facing directly toward the viewer. Her hakama flows dramatically with the wind, hair streaming back, and a ribbon or obi fluttering behind her. Intense, focused expression. White or minimal background, strong motion blur and foreshortening, cel-shaded manga style, high-detail mechanical parts, dynamic shadows.performing an extreme hang-on maneuver. The rider is fully leaned over with their knee nearly touching the ground.
+```
