@@ -9,37 +9,37 @@
     <div class="relative mx-auto w-full h-96 md:h-[60vh]">
       <!-- Top icons -->
       <div class="absolute top-8 left-1/2 transform -translate-x-1/2 flex space-x-8">
-        <img src="https://public.mysite.jianchengwang.info/images/typing.svg" alt="typing" class="w-32 h-32 object-contain" />
-        <img src="https://public.mysite.jianchengwang.info/images/cycling.svg" alt="cycling" class="w-32 h-32 object-contain" />
-        <img src="https://public.mysite.jianchengwang.info/images/watching.svg" alt="watching" class="w-32 h-32 object-contain" />
-        <img src="https://public.mysite.jianchengwang.info/images/sketching.svg" alt="sketching" class="w-32 h-32 object-contain" />
+        <img src="/images/typing.svg" alt="typing" class="w-32 h-32 object-contain" />
+        <img src="/images/cycling.svg" alt="cycling" class="w-32 h-32 object-contain" />
+        <img src="/images/watching.svg" alt="watching" class="w-32 h-32 object-contain" />
+        <img src="/images/sketching.svg" alt="sketching" class="w-32 h-32 object-contain" />
       </div>
       <!-- Bottom icons -->
       <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-8">
-        <img src="https://public.mysite.jianchengwang.info/images/reading.svg" alt="reading" class="w-32 h-32 object-contain" />
-        <img src="https://public.mysite.jianchengwang.info/images/yoga.svg" alt="yoga" class="w-32 h-32 object-contain" />
-        <img src="https://public.mysite.jianchengwang.info/images/listening.svg" alt="listening" class="w-32 h-32 object-contain" />
-        <img src="https://public.mysite.jianchengwang.info/images/walking.svg" alt="walking" class="w-32 h-32 object-contain" />
+        <img src="/images/reading.svg" alt="reading" class="w-32 h-32 object-contain" />
+        <img src="/images/yoga.svg" alt="yoga" class="w-32 h-32 object-contain" />
+        <img src="/images/listening.svg" alt="listening" class="w-32 h-32 object-contain" />
+        <img src="/images/walking.svg" alt="walking" class="w-32 h-32 object-contain" />
       </div>
       <!-- Left icons -->
       <div class="absolute left-8 top-1/2 transform -translate-y-1/2 flex flex-col space-y-8">
-        <img src="https://public.mysite.jianchengwang.info/cat_hei.png" alt="cat_hei" class="w-64 h-64 object-contain"
-        @click="showLightbox = true; boxImage = 'https://public.mysite.jianchengwang.info/cat_hei.png';"
+        <img src="/cat_hei.png" alt="cat_hei" class="w-64 h-64 object-contain"
+        @click="showLightbox = true; boxImage = '/cat_hei.png';"
         />
       
       </div>
       <!-- Right icons -->
       <div class="absolute right-8 top-1/2 transform -translate-y-1/2 flex flex-col space-y-8">
-        <img src="https://public.mysite.jianchengwang.info/cat_xia.png" alt="cat_xia" class="w-64 h-64 object-contain"
-        @click="showLightbox = true; boxImage = 'https://public.mysite.jianchengwang.info/cat_xia.png';"
+        <img src="/cat_xia.png" alt="cat_xia" class="w-64 h-64 object-contain"
+        @click="showLightbox = true; boxImage = '/cat_xia.png';"
         />
       </div>
       <!-- Center avatar -->
       <img
-        src="https://public.mysite.jianchengwang.info/we.png"
+        src="/we.png"
         alt="we"
         class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full object-cover shadow-xl cursor-pointer z-10"
-        @click="showLightbox = true; boxImage = 'https://public.mysite.jianchengwang.info/we.png';"
+        @click="showLightbox = true; boxImage = '/we.png';"
       />
     </div>
   </div>
@@ -57,7 +57,7 @@ definePageMeta({
 
 // Lightbox state
 import { ref } from 'vue'
-const boxImage = ref('https://public.mysite.jianchengwang.info/we.png')
+const boxImage = ref('/we.png')
 const showLightbox = ref(false)
 </script>
 

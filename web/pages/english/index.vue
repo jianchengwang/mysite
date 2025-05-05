@@ -1,7 +1,7 @@
 <template>
   <CollectionList
-    title="Store"
-    subtitle="Browse through my written collection of stores."
+    title="English"
+    subtitle="Browse through my written collection of English."
     :list="list"
   />
 </template>

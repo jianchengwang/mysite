@@ -35,10 +35,10 @@ title: Links
 >
 > 我最近翻阅的文章
 
-- [Bryanpendleton](http://bryanpendleton.blogspot.com/) Journal of a Programmer
-- [OpenJDK-Wiki](https://wiki.openjdk.org/display/loom/Main) OpenJDK-Wiki
-- [Tech-Meituan](https://tech.meituan.com/) 美团技术团队
-- [Taobao-Mysql](http://mysql.taobao.org/monthly/) PolarDB 数据库内核月报
+- [Bryanpendleton](http://bryanpendleton.blogspot.com/)
+- [OpenJDK-Wiki](https://wiki.openjdk.org/display/loom/Main)
+- [Tech-Meituan](https://tech.meituan.com/)
+- [Taobao-Mysql](http://mysql.taobao.org/monthly/)
 
 ## Podcast
 >
@@ -53,15 +53,24 @@ title: Links
 >
 > 我常用的工具软件
 
-- [Obsidian](https://obsidian.md/) 我每天都使用的知识管理工具，也是这个博客的写作工具
-- [Visual Studio Code](https://code.visualstudio.com/) 主力代码编辑器
-- [Excalidraw](https://excalidraw.com/) 简单好用手绘画图工具
-- [Trancy](https://www.trancy.org/) Trancy 视频网站英文字幕浏览器插件
-- [Jetbras](https://jetbra.in/s) JETBRA.IN CHECKER IPFS
-- [Giggle Creator](https://creator.giggleacademy.com/) 创建K12图文
+- [Google Aistudio](https://aistudio.google.com/)
+- [Google NotbookLM](https://notebooklm.google.com/)
+- [Obsidian](https://obsidian.md/)
+- [Visual Studio Code](https://code.visualstudio.com/)
+- [Excalidraw](https://excalidraw.com/)
+- [Trancy](https://www.trancy.org/)
+- [Jetbras](https://jetbra.in/s)
+- [Giggle Creator](https://creator.giggleacademy.com/)
+- [Rabbitpro](https://shop.rabbit06.pro/auth/register?code=cYCL)
+- [Frp](https://github.com/fatedier/frp)
+- [Cursor](https://www.cursor.com/)
+- [Vimeo Downloader](https://en.loader.to/1/vimeo-downloader.html)
+- [Slides](https://slides.com/)
+- [Filomora](https://filmora.wondershare.com/fission/invite?share_code=25SoJ7V0ETO&referral_id=435&lang=zh-tw)
 
 ## LLM
 >
 > 大模型相关
 
--[frame_pack](https://lllyasviel.github.io/frame_pack_gitpage/) 下一帧图生视频技术
+- [frame_pack](https://lllyasviel.github.io/frame_pack_gitpage/)
+- [Huggingface Learn](https://huggingface.co/learn)

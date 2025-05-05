@@ -114,15 +114,6 @@ const tools = [
       { label: 'Free', color: 'green' }
     ]
   },
-  {
-    to: '/tools/matrix-multi',
-    title: 'Matrix Multiplication',
-    description: 'Calculate the multiplication of two matrices.',
-    tags: [
-      { label: 'Matrix Multiplication', color: 'indigo' },
-      { label: 'Free', color: 'green' }
-    ]
-  }
 ]
 </script>
 

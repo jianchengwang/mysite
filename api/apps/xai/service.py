@@ -17,7 +17,7 @@ def chat_service(
     else:
         return xai_chat(
             prompt=prompt,
-            model='grok-3-mini-beta'
+            model='grok-3-mini-fast-beta'
         )
 
 

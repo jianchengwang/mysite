@@ -20,6 +20,12 @@ class Settings(BaseSettings):
     OPENROUTER_API_KEY: Optional[str] = None
     XAI_API_KEY: Optional[str] = None
     
+    # MP API Settings
+    MP_APPID: Optional[str] = None
+    MP_APPSECRET: Optional[str] = None
+    MP_TOKEN: Optional[str] = None
+    MP_ENCODING_AES_KEY: Optional[str] = None
+    
     class Config:
         env_file = ".env"
         case_sensitive = True
