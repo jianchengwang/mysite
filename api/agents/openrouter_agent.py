@@ -69,4 +69,58 @@ async def openrouter_generate(
     except Exception as e:
         logger.error(f"OpenRouter call failed: {e}", exc_info=True)
         raise 
+
+
+async def openrouter_image_generate(
+    prompt: str,
+    model: str = "black-forest-labs/flux-schnell",
+    n: int = 1,
+    size: str = "1024x1024",
+    response_format: str = "url",
+    user: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    """
+    Generate images using OpenRouter chat completion endpoint (as recommended for image models).
+    """
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    # Most image models on OpenRouter use the chat completions endpoint
+    body: Dict[str, Any] = {
+        "model": model,
+        "messages": [
+            {"role": "user", "content": prompt}
+        ]
+    }
+    # Some models might need specific parameters for size, but let's keep it simple first
+    # and extract the URL from the response.
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(API_URL, headers=headers, json=body, timeout=120.0)
+            response.raise_for_status()
+            data = response.json()
+            choices = data.get("choices", [])
+            if not choices:
+                return []
+            
+            content = choices[0].get("message", {}).get("content", "")
+            # Extract URL from content (often in markdown ![image](url) or just url)
+            import re
+            urls = re.findall(r'https?://\S+', content)
+            if urls:
+                # Remove trailing ) from markdown
+                clean_url = urls[0].split(')')[0].split('\"')[0].split('\'')[0]
+                return [{"url": clean_url}]
+            
+            # If no URL found in content, check if there's a 'data' field (some providers might use it)
+            if "data" in data:
+                return data["data"]
+                
+            return []
+    except Exception as e:
+        logger.error(f"OpenRouter image generation failed: {e}", exc_info=True)
+        raise
  

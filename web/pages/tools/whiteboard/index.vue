@@ -53,6 +53,27 @@
           </div>
         </div>
         
+        <div class="sketch-card p-4 space-y-4">
+          <h3 class="font-bold border-b border-zinc-200 pb-2 mb-2">OpenRouter AI</h3>
+          <div class="space-y-2">
+            <select v-model="aiModel" class="w-full text-xs p-2 sketch-border bg-white">
+              <option v-for="m in aiModels" :key="m.id" :value="m.id">{{ m.name }}</option>
+            </select>
+            <textarea 
+              v-model="aiPrompt" 
+              placeholder="Enter prompt..." 
+              class="w-full text-xs p-2 sketch-border bg-white h-20 resize-none font-hand"
+            ></textarea>
+            <button 
+              @click="generateAIImage" 
+              :disabled="isGenerating || !aiPrompt"
+              class="w-full sketch-button py-2 text-sm bg-zinc-900 text-white disabled:opacity-50"
+            >
+              {{ isGenerating ? 'Generating...' : '✨ Generate' }}
+            </button>
+          </div>
+        </div>
+
         <div class="mt-auto sketch-card p-4 text-xs italic text-zinc-500">
           Tip: Drag to draw. <br>
           Use shapes for clean sketches.
@@ -87,12 +108,14 @@ type Point = { x: number; y: number }
 type WbObject = 
   | { type: 'path'; points: Point[]; color: string; size: number }
   | { type: 'rect' | 'circle' | 'diamond'; start: Point; end: Point; color: string; size: number }
+  | { type: 'image'; pos: Point; img: HTMLImageElement; width: number; height: number; id: string; prompt?: string; sourceId?: string }
+  | { type: 'link'; start: Point; end: Point; fromId: string; toId: string }
 
 const canvas = ref<HTMLCanvasElement | null>(null)
 const canvasWrapper = ref<HTMLElement | null>(null)
 const ctx = ref<CanvasRenderingContext2D | null>(null)
 
-const currentTool = ref<'pencil' | 'rect' | 'circle' | 'diamond' | 'eraser'>('pencil')
+const currentTool = ref<'pencil' | 'rect' | 'circle' | 'diamond' | 'eraser' | 'image' | 'select'>('pencil')
 const currentColor = ref('#000000')
 const currentSize = ref(3)
 
@@ -101,10 +124,36 @@ const tools = [
   { id: 'rect', name: 'Rectangle', icon: '▭' },
   { id: 'circle', name: 'Circle', icon: '◯' },
   { id: 'diamond', name: 'Diamond', icon: '♢' },
+  { id: 'image', name: 'Add Image', icon: '🖼' },
   { id: 'eraser', name: 'Eraser', icon: '⌫' },
+  { id: 'select', name: 'Select', icon: '🖱' },
 ]
 
 const colors = ['#000000', '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b']
+
+// AI State
+const aiModel = ref('black-forest-labs/flux-schnell')
+const aiPrompt = ref('')
+const isGenerating = ref(false)
+const aiModels = [
+  { id: 'black-forest-labs/flux-schnell', name: 'Flux Schnell' },
+  { id: 'black-forest-labs/flux-1.1-pro', name: 'Flux 1.1 Pro' },
+  { id: 'openai/dall-e-3', name: 'DALL-E 3' },
+  { id: 'stabilityai/stable-diffusion-xl', name: 'SDXL' },
+  { id: 'midjourney/midjourney', name: 'Midjourney' },
+]
+
+// Selection state
+const selectedObjectId = ref<string | null>(null)
+
+watch(selectedObjectId, (newId) => {
+  if (newId) {
+    const obj = objects.value.find(o => (o as any).id === newId) as any
+    if (obj && obj.prompt) {
+      aiPrompt.value = obj.prompt
+    }
+  }
+})
 
 // History state
 const objects = ref<WbObject[]>([])
@@ -116,6 +165,8 @@ const canRedo = computed(() => historyIndex.value < history.value.length - 1)
 
 // Drawing state
 const isDrawing = ref(false)
+const isDragging = ref(false)
+const dragOffset = ref<Point>({ x: 0, y: 0 })
 const currentPoints = ref<Point[]>([])
 const startPoint = ref<Point | null>(null)
 
@@ -137,7 +188,6 @@ onUnmounted(() => {
 
 const handleResize = () => {
   if (canvas.value && canvasWrapper.value) {
-    // Save current content
     const tempCanvas = document.createElement('canvas')
     tempCanvas.width = canvas.value.width
     tempCanvas.height = canvas.value.height
@@ -146,8 +196,6 @@ const handleResize = () => {
     const rect = canvasWrapper.value.getBoundingClientRect()
     canvas.value.width = rect.width
     canvas.value.height = rect.height
-    
-    // Restore or re-render
     render()
   }
 }
@@ -162,8 +210,61 @@ const getMousePos = (e: MouseEvent | Touch): Point => {
 }
 
 const handleMouseDown = (e: MouseEvent) => {
-  isDrawing.value = true
   const pos = getMousePos(e)
+  
+  if (currentTool.value === 'select') {
+    // Check if clicked on an image
+    const clickedImage = [...objects.value].reverse().find(obj => 
+      obj.type === 'image' && 
+      pos.x >= obj.pos.x && pos.x <= obj.pos.x + obj.width &&
+      pos.y >= obj.pos.y && pos.y <= obj.pos.y + obj.height
+    ) as any
+    
+    if (clickedImage) {
+      selectedObjectId.value = clickedImage.id
+      isDragging.value = true
+      dragOffset.value = { x: pos.x - clickedImage.pos.x, y: pos.y - clickedImage.pos.y }
+    } else {
+      selectedObjectId.value = null
+    }
+    render()
+    return
+  }
+
+  if (currentTool.value === 'image') {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+    input.onchange = (e: any) => {
+      const file = e.target.files[0]
+      if (file) {
+        const reader = new FileReader()
+        reader.onload = (event: any) => {
+          const img = new Image()
+          img.src = event.target.result
+          img.onload = () => {
+            const id = Math.random().toString(36).substr(2, 9)
+            objects.value.push({
+              type: 'image',
+              id,
+              pos: { x: pos.x - 100, y: pos.y - 100 },
+              img,
+              width: 200,
+              height: (200 / img.width) * img.height
+            })
+            commitToHistory()
+            render()
+          }
+        }
+        reader.readAsDataURL(file)
+      }
+    }
+    input.click()
+    currentTool.value = 'select'
+    return
+  }
+
+  isDrawing.value = true
   startPoint.value = pos
   if (currentTool.value === 'pencil' || currentTool.value === 'eraser') {
     currentPoints.value = [pos]
@@ -171,13 +272,23 @@ const handleMouseDown = (e: MouseEvent) => {
 }
 
 const handleMouseMove = (e: MouseEvent) => {
-  if (!isDrawing.value || !ctx.value) return
   const pos = getMousePos(e)
+
+  if (isDragging.value && selectedObjectId.value) {
+    const obj = objects.value.find(o => (o as any).id === selectedObjectId.value) as any
+    if (obj) {
+      obj.pos.x = pos.x - dragOffset.value.x
+      obj.pos.y = pos.y - dragOffset.value.y
+      render()
+    }
+    return
+  }
+
+  if (!isDrawing.value || !ctx.value) return
   
   if (currentTool.value === 'pencil' || currentTool.value === 'eraser') {
     currentPoints.value.push(pos)
     render()
-    // Preview current path
     drawPath(ctx.value, { 
       type: 'path', 
       points: currentPoints.value, 
@@ -186,7 +297,6 @@ const handleMouseMove = (e: MouseEvent) => {
     })
   } else {
     render()
-    // Preview current shape
     if (startPoint.value) {
       drawShape(ctx.value, {
         type: currentTool.value as any,
@@ -200,6 +310,7 @@ const handleMouseMove = (e: MouseEvent) => {
 }
 
 const handleMouseUp = (e: MouseEvent) => {
+  isDragging.value = false
   if (!isDrawing.value) return
   isDrawing.value = false
   const pos = getMousePos(e)
@@ -214,7 +325,7 @@ const handleMouseUp = (e: MouseEvent) => {
       })
       commitToHistory()
     }
-  } else if (startPoint.value) {
+  } else if (startPoint.value && ['rect', 'circle', 'diamond'].includes(currentTool.value)) {
     objects.value.push({
       type: currentTool.value as any,
       start: startPoint.value,
@@ -235,14 +346,120 @@ const handleTouchStart = (e: TouchEvent) => handleMouseDown(e.touches[0] as any)
 const handleTouchMove = (e: TouchEvent) => handleMouseMove(e.touches[0] as any)
 const handleTouchEnd = () => handleMouseUp({} as any)
 
+const generateAIImage = async () => {
+  if (!aiPrompt.value || isGenerating.value) return
+  isGenerating.value = true
+  
+  try {
+    const response = await $fetch('/api/v1/openrouter/images/generations', {
+      method: 'POST',
+      body: {
+        prompt: aiPrompt.value,
+        model: aiModel.value
+      }
+    }) as any[]
+
+    if (response && response[0]?.url) {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.src = response[0].url
+      img.onload = () => {
+        const id = Math.random().toString(36).substr(2, 9)
+        const pos = { x: Math.random() * (canvas.value?.width || 800) * 0.5, y: Math.random() * (canvas.value?.height || 600) * 0.5 }
+        
+        const newImgObj: any = {
+          type: 'image',
+          id,
+          pos,
+          img,
+          width: 300,
+          height: (300 / img.width) * img.height,
+          prompt: aiPrompt.value
+        }
+
+        // If something was selected, link it
+        if (selectedObjectId.value) {
+          const sourceObj = objects.value.find(o => (o as any).id === selectedObjectId.value) as any
+          if (sourceObj && sourceObj.pos) {
+            newImgObj.sourceId = selectedObjectId.value
+            objects.value.push({
+              type: 'link',
+              fromId: selectedObjectId.value,
+              toId: id,
+              start: { x: sourceObj.pos.x + sourceObj.width/2, y: sourceObj.pos.y + sourceObj.height/2 },
+              end: { x: pos.x + 150, y: pos.y + (150 / img.width) * img.height / 2 }
+            })
+          }
+        }
+
+        objects.value.push(newImgObj)
+        commitToHistory()
+        render()
+      }
+    }
+  } catch (error) {
+    console.error('Failed to generate image:', error)
+    alert('AI generation failed')
+  } finally {
+    isGenerating.value = false
+  }
+}
+
 const render = () => {
   if (!ctx.value || !canvas.value) return
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
   
+  // First draw links (so they go under images)
+  objects.value.forEach(obj => {
+    if (obj.type === 'link') drawLink(ctx.value!, obj)
+  })
+
+  // Then draw other objects
   objects.value.forEach(obj => {
     if (obj.type === 'path') drawPath(ctx.value!, obj)
-    else drawShape(ctx.value!, obj)
+    else if (obj.type === 'image') drawImage(ctx.value!, obj)
+    else if (obj.type !== 'link') drawShape(ctx.value!, obj)
   })
+}
+
+const drawLink = (ctx: CanvasRenderingContext2D, obj: any) => {
+  // Find objects by ID to update positions if they moved
+  const fromObj = objects.value.find(o => (o as any).id === obj.fromId) as any
+  const toObj = objects.value.find(o => (o as any).id === obj.toId) as any
+  
+  if (fromObj && toObj) {
+    const start = { x: fromObj.pos.x + fromObj.width/2, y: fromObj.pos.y + fromObj.height/2 }
+    const end = { x: toObj.pos.x + toObj.width/2, y: toObj.pos.y + toObj.height/2 }
+    
+    ctx.beginPath()
+    ctx.setLineDash([5, 5])
+    ctx.strokeStyle = '#94a3b8'
+    ctx.lineWidth = 2
+    ctx.moveTo(start.x, start.y)
+    ctx.lineTo(end.x, end.y)
+    ctx.stroke()
+    ctx.setLineDash([])
+  }
+}
+
+const drawImage = (ctx: CanvasRenderingContext2D, obj: any) => {
+  const { pos, img, width, height, id } = obj
+  
+  // Draw sketchy frame
+  ctx.strokeStyle = '#e2e8f0'
+  ctx.lineWidth = 1
+  drawRoughLine(ctx, pos.x - 2, pos.y - 2, pos.x + width + 2, pos.y - 2)
+  drawRoughLine(ctx, pos.x + width + 2, pos.y - 2, pos.x + width + 2, pos.y + height + 2)
+  drawRoughLine(ctx, pos.x + width + 2, pos.y + height + 2, pos.x - 2, pos.y + height + 2)
+  drawRoughLine(ctx, pos.x - 2, pos.y + height + 2, pos.x - 2, pos.y - 2)
+  
+  ctx.drawImage(img, pos.x, pos.y, width, height)
+  
+  if (selectedObjectId.value === id) {
+    ctx.strokeStyle = '#3b82f6'
+    ctx.lineWidth = 2
+    ctx.strokeRect(pos.x - 4, pos.y - 4, width + 8, height + 8)
+  }
 }
 
 const drawPath = (ctx: CanvasRenderingContext2D, obj: any) => {

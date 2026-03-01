@@ -7,6 +7,7 @@ from apps.english_chunk.routes import router as english_chunk_router
 from apps.live2d.routes import router as live2d_router
 from apps.paper_split.routes import router as paper_split_router
 from apps.xai.routes import router as xai_router
+from apps.openrouter.routes import router as openrouter_router
 from apps.mp.routes import router as mp_router
 from loguru import logger as loguru_logger
 import sys
@@ -79,6 +80,12 @@ app.include_router(
     xai_router,
     prefix=f"{settings.API_V1_STR}/xai",
     tags=["xai"]
+)
+
+app.include_router(
+    openrouter_router,
+    prefix=f"{settings.API_V1_STR}/openrouter",
+    tags=["openrouter"]
 )
 
 app.include_router(
