@@ -1,22 +1,36 @@
 <template>
   <div class="min-h-screen bg-[#fcfcfc] font-hand py-4 px-4 md:px-8">
     <!-- Header -->
-    <div class="max-w-7xl mx-auto mb-6 flex justify-between items-center">
+    <div class="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
         <h1 class="text-4xl font-bold text-zinc-900 mb-1">Yuki AI</h1>
         <p class="text-zinc-600 italic">A minimalist hand-drawn AI companion</p>
       </div>
-      <div class="flex gap-4 items-center">
-        <!-- Model Selector -->
-        <select 
-          v-model="currentModel" 
-          class="sketch-border px-3 py-1 bg-white outline-none focus:sketch-shadow-sm text-sm"
-        >
-          <option v-for="m in availableModels" :key="m.id" :value="m.id">
-            {{ m.name }}
-          </option>
-        </select>
-        <button @click="resetApiKey" class="text-xs text-zinc-400 hover:text-zinc-600 underline">Reset Key</button>
+      <div class="flex gap-4 items-center w-full md:w-auto">
+        <!-- Model Selector with Search -->
+        <div class="model-selector-container relative group flex-1 md:flex-none">
+          <input 
+            v-model="modelSearch"
+            @focus="showModelDropdown = true"
+            placeholder="Search AI model..."
+            class="sketch-border px-3 py-1 bg-white outline-none focus:sketch-shadow-sm text-sm w-full md:w-64"
+          />
+          <div v-if="showModelDropdown" class="absolute top-full right-0 mt-2 w-full md:w-80 max-h-80 overflow-y-auto bg-white sketch-border z-50 shadow-xl">
+            <div 
+              v-for="m in filteredModels" 
+              :key="m.id" 
+              class="px-3 py-2 hover:bg-zinc-100 cursor-pointer text-sm border-b border-zinc-100 last:border-0"
+              @click="selectModel(m)"
+            >
+              <div class="font-bold">{{ m.name || m.id }}</div>
+              <div class="text-[10px] text-zinc-400 truncate">{{ m.id }}</div>
+            </div>
+            <div v-if="filteredModels.length === 0" class="px-3 py-2 text-sm text-zinc-500 italic">
+              No models found
+            </div>
+          </div>
+        </div>
+        <button @click="resetApiKey" class="text-xs text-zinc-400 hover:text-zinc-600 underline shrink-0">Reset Key</button>
       </div>
     </div>
 
@@ -42,7 +56,7 @@
       <div class="lg:col-span-5 relative flex flex-col items-center">
         <div class="character-container w-full aspect-square max-w-[500px] sketch-card p-0 overflow-hidden bg-white relative">
           <ClientOnly>
-            <div id="L2dCanvas" class="w-full h-full"></div>
+            <div id="L2dCanvas" class="w-full h-full relative"></div>
             <div v-if="!isModelLoaded" class="absolute inset-0 flex items-center justify-center bg-white/80">
               <span class="animate-pulse italic">Summoning Yuki...</span>
             </div>
@@ -131,7 +145,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue'
 import { marked } from 'marked'
 
 definePageMeta({ layout: 'default' })
@@ -149,21 +163,38 @@ const chatContainer = ref<HTMLElement | null>(null)
 const selectedImage = ref<string | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 
+// Model search and selection
+const availableModels = ref<any[]>([
+  { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash (Fast)' },
+  { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini (Smart)' },
+  { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet' },
+  { id: 'deepseek/deepseek-chat', name: 'DeepSeek Chat' }
+])
+const modelSearch = ref('')
+const showModelDropdown = ref(false)
+
+const filteredModels = computed(() => {
+  if (!modelSearch.value) return availableModels.value.slice(0, 50)
+  const search = modelSearch.value.toLowerCase()
+  return availableModels.value.filter(m => 
+    (m.name?.toLowerCase().includes(search)) || 
+    (m.id?.toLowerCase().includes(search))
+  )
+})
+
+const selectModel = (m: any) => {
+  currentModel.value = m.id
+  modelSearch.value = m.name || m.id
+  showModelDropdown.value = false
+  localStorage.setItem('yuki_current_model', m.id)
+}
+
 // Live2D State
 const isModelLoaded = ref(false)
 const characterResponse = ref("Hi there! I'm Yuki, your hand-drawn AI companion. How can I help you today?")
 let l2dv: any = null
 
-const availableModels = [
-  { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash (Fast)' },
-  { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini (Smart)' },
-  { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet' },
-  { id: 'deepseek/deepseek-chat', name: 'DeepSeek Chat' },
-  { id: 'openai/dall-e-3', name: 'DALL-E 3 (Image Gen)' },
-  { id: 'black-forest-labs/flux-1.1-pro', name: 'FLUX 1.1 Pro (Image Gen)' }
-]
-
-onMounted(() => {
+onMounted(async () => {
   const storedKey = localStorage.getItem('yuki_api_key')
   if (storedKey) {
     apiKey.value = storedKey
@@ -185,17 +216,61 @@ onMounted(() => {
   
   scrollToBottom()
   
-  // Initialize Live2D
-  if (apiKey.value) {
-    initLive2D()
+  // Fetch models from OpenRouter
+  await fetchModels()
+  
+  // Set initial model search text
+  const initialModel = availableModels.value.find(m => m.id === currentModel.value)
+  if (initialModel) {
+    modelSearch.value = initialModel.name || initialModel.id
+  } else {
+    modelSearch.value = currentModel.value
   }
+
+  // Initialize Live2D
+  initLive2D()
+
+  // Click outside to close dropdown
+  window.addEventListener('click', handleOutsideClick)
 })
 
 onUnmounted(() => {
   if (l2dv) {
     l2dv = null
   }
+  window.removeEventListener('click', handleOutsideClick)
 })
+
+const handleOutsideClick = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  if (!target.closest('.model-selector-container')) {
+    showModelDropdown.value = false
+  }
+}
+
+const fetchModels = async () => {
+  // Load from cache first
+  const cached = localStorage.getItem('yuki_available_models')
+  if (cached) {
+    try {
+      availableModels.value = JSON.parse(cached)
+    } catch (e) {}
+  }
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/models')
+    const data = await response.json()
+    if (data.data) {
+      availableModels.value = data.data.map((m: any) => ({
+        id: m.id,
+        name: m.name
+      }))
+      localStorage.setItem('yuki_available_models', JSON.stringify(availableModels.value))
+    }
+  } catch (error) {
+    console.error('Failed to fetch models:', error)
+  }
+}
 
 // Handlers
 const saveApiKey = () => {
@@ -203,7 +278,9 @@ const saveApiKey = () => {
     apiKey.value = tempApiKey.value.trim()
     localStorage.setItem('yuki_api_key', apiKey.value)
     tempApiKey.value = ''
-    initLive2D()
+    nextTick(() => {
+      initLive2D()
+    })
   }
 }
 
@@ -333,50 +410,33 @@ const initLive2D = async () => {
     const canvas = document.getElementById('L2dCanvas')
     if (!canvas) return
     
+    // Clear canvas
+    canvas.innerHTML = ''
+    
     // Load SDK scripts if not already loaded
-    if (!window.L2dViewer) {
-      await loadScript('https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/lib/live2dcubismcore.min.js')
-      await loadScript('https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/live2dv3.js')
-    }
+    await Promise.all([
+      loadScript('https://unpkg.com/core-js-bundle@3.6.1/minified.js'),
+      loadScript('https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/lib/live2dcubismcore.min.js'),
+      loadScript('https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/live2dv3.js'),
+      loadScript('https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/charData.js'),
+    ])
 
-    // Initialize Viewer
-    // Using 'yuki' model from common moc3 collections
-    window.l2dv = new window.L2dViewer({
-      el: canvas,
-      modelHomePath: 'https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/model/moc3/',
-      model: 'yuki',
-      width: canvas.clientWidth,
-      height: canvas.clientHeight,
-      autoMotion: true
-    })
-    
-    l2dv = window.l2dv
-    isModelLoaded.value = true
-    
-    window.addEventListener('resize', () => {
-      if (l2dv && canvas) {
-        // Handle resize if needed
-      }
-    })
+    if (window.L2dViewer) {
+      // Initialize Viewer
+      window.l2dv = new window.L2dViewer({
+        el: canvas,
+        modelHomePath: 'https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/model/moc3/',
+        model: 'xuefeng_3',
+        width: canvas.clientWidth || 500,
+        height: canvas.clientHeight || 500,
+        autoMotion: true
+      })
+      
+      l2dv = window.l2dv
+      isModelLoaded.value = true
+    }
   } catch (error) {
     console.error('Failed to initialize Live2D:', error)
-    // Fallback to Sarah if yuki not found
-    try {
-      if (window.L2dViewer) {
-        window.l2dv = new window.L2dViewer({
-          el: document.getElementById('L2dCanvas'),
-          modelHomePath: 'https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/model/moc3/',
-          model: 'xuefeng_3',
-          width: 500,
-          height: 500,
-          autoMotion: true
-        })
-        l2dv = window.l2dv
-        isModelLoaded.value = true
-      }
-    } catch (e) {
-      console.error('Failed to initialize fallback Live2D:', e)
-    }
   }
 }
 
@@ -423,7 +483,7 @@ h1, h2 {
   border-radius: 40px 10px 45px 15px / 15px 45px 15px 40px;
 }
 
-/* Custom Scrollbar for Chat */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -445,5 +505,10 @@ h1, h2 {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+/* Style for the model dropdown search */
+.model-selector-container .sketch-border {
+  border-radius: 12px 4px 14px 5px / 5px 14px 5px 12px;
 }
 </style>
