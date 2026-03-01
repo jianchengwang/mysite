@@ -119,7 +119,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         logger.debug(f"Generated prompt: {prompt}")
         
         # Delegate to shared Google agent
-        text = genai_generate(
+        text = await genai_generate(
             prompt=prompt,
             generation_config=generation_config,
             safety_settings=safety_settings

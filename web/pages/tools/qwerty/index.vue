@@ -1,156 +1,154 @@
 <template>
   <div class="min-h-screen bg-zinc-50 flex flex-col justify-center items-center">
-    <!-- 顶部统计 -->
-    <div class="flex space-x-8 mb-12 text-center">
-      <div>
-        <div class="text-zinc-500 text-sm">WPM</div>
-        <div class="text-2xl font-bold text-zinc-900">{{ stats.wpm }}</div>
+    <ClientOnly>
+      <!-- 顶部统计 -->
+      <div class="flex space-x-8 mb-12 text-center">
+        <div>
+          <div class="text-zinc-500 text-sm">WPM</div>
+          <div class="text-2xl font-bold text-zinc-900">{{ stats.wpm }}</div>
+        </div>
+        <div>
+          <div class="text-zinc-500 text-sm">Accuracy</div>
+          <div class="text-2xl font-bold text-zinc-900">{{ stats.accuracy }}%</div>
+        </div>
+        <div>
+          <div class="text-zinc-500 text-sm">Time</div>
+          <div class="text-2xl font-bold text-zinc-900">{{ stats.time }}s</div>
+        </div>
       </div>
-      <div>
-        <div class="text-zinc-500 text-sm">Accuracy</div>
-        <div class="text-2xl font-bold text-zinc-900">{{ stats.accuracy }}%</div>
+
+      <!-- 缓存统计 -->
+      <div v-if="!customParagraphMode" class="mb-2 text-sm text-zinc-500 flex items-center space-x-4">
+        <span>已掌握：<span class="font-bold text-green-600">{{ correctCount }}</span> / <span class="font-bold">{{ totalWords }}</span></span>
+        <span>待练习：<span class="font-bold text-blue-600">{{ remainCount }}</span></span>
       </div>
-      <div>
-        <div class="text-zinc-500 text-sm">Time</div>
-        <div class="text-2xl font-bold text-zinc-900">{{ stats.time }}s</div>
+
+      <!-- 字典选择 -->
+      <div v-if="!customParagraphMode" class="mb-6 flex items-center space-x-2">
+        <label for="dict" class="text-sm text-zinc-600">Dictionary:</label>
+        <select id="dict" v-model="selectedDict" class="text-sm border border-zinc-300 rounded-md px-2 py-1">
+          <option v-for="dict in dictFiles" :key="dict" :value="dict">{{ dict }}</option>
+        </select>
+        <label for="difficulty" class="text-sm text-zinc-600 ml-4">Difficulty:</label>
+        <select id="difficulty" v-model="selectedDifficulty" class="text-sm border border-zinc-300 rounded-md px-2 py-1">
+          <option value="all">All</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+        <button @click="playClick(); nextGroup()" class="ml-4 px-3 py-1 bg-zinc-100 text-zinc-800 rounded hover:bg-zinc-200">Next</button>
+        <label class="ml-4 flex items-center cursor-pointer select-none">
+          <input type="checkbox" v-model="autoSpeak" class="mr-1 align-middle" />
+          <span class="text-sm text-zinc-600">自动发音</span>
+        </label>
+        <label class="ml-4 flex items-center cursor-pointer select-none">
+          <input type="checkbox" v-model="isRandom" class="mr-1 align-middle" />
+          <span class="text-sm text-zinc-600">随机抽取</span>
+        </label>
+        <label class="ml-4 flex items-center cursor-pointer select-none">
+          <input type="checkbox" v-model="showTrans" class="mr-1 align-middle" />
+          <span class="text-sm text-zinc-600">显示翻译</span>
+        </label>
+        <button @click="clearCorrectIndexes(selectedDict); correctIndexes = []; nextGroup();" class="ml-4 px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 border border-red-200">清除缓存</button>
       </div>
-    </div>
 
-    <!-- 缓存统计 -->
-    <div v-if="!customParagraphMode" class="mb-2 text-sm text-zinc-500 flex items-center space-x-4">
-      <span>已掌握：<span class="font-bold text-green-600">{{ correctCount }}</span> / <span class="font-bold">{{ totalWords }}</span></span>
-      <span>待练习：<span class="font-bold text-blue-600">{{ remainCount }}</span></span>
-    </div>
-
-    <!-- 字典选择 -->
-    <div v-if="!customParagraphMode" class="mb-6 flex items-center space-x-2">
-      <label for="dict" class="text-sm text-zinc-600">Dictionary:</label>
-      <select id="dict" v-model="selectedDict" class="text-sm border border-zinc-300 rounded-md px-2 py-1">
-        <option v-for="dict in dictFiles" :key="dict" :value="dict">{{ dict }}</option>
-      </select>
-      <label for="difficulty" class="text-sm text-zinc-600 ml-4">Difficulty:</label>
-      <select id="difficulty" v-model="selectedDifficulty" class="text-sm border border-zinc-300 rounded-md px-2 py-1">
-        <option value="all">All</option>
-        <option value="easy">Easy</option>
-        <option value="medium">Medium</option>
-        <option value="hard">Hard</option>
-      </select>
-      <button @click="playClick(); nextGroup()" class="ml-4 px-3 py-1 bg-zinc-100 text-zinc-800 rounded hover:bg-zinc-200">Next</button>
-      <label class="ml-4 flex items-center cursor-pointer select-none">
-        <input type="checkbox" v-model="autoSpeak" class="mr-1 align-middle" />
-        <span class="text-sm text-zinc-600">自动发音</span>
-      </label>
-      <label class="ml-4 flex items-center cursor-pointer select-none">
-        <input type="checkbox" v-model="isRandom" class="mr-1 align-middle" />
-        <span class="text-sm text-zinc-600">随机抽取</span>
-      </label>
-      <label class="ml-4 flex items-center cursor-pointer select-none">
-        <input type="checkbox" v-model="showTrans" class="mr-1 align-middle" />
-        <span class="text-sm text-zinc-600">显示翻译</span>
-      </label>
-      <button @click="clearCorrectIndexes(selectedDict); correctIndexes = []; nextGroup();" class="ml-4 px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 border border-red-200">清除缓存</button>
-    </div>
-
-    <!-- 自定义段落模式 -->
-    <div class="mb-6 flex items-center space-x-6">
-      <label class="flex items-center cursor-pointer select-none">
-        <input type="checkbox" v-model="customParagraphMode" class="mr-1 align-middle" />
-        <span class="text-sm text-zinc-600">自定义段落</span>
-      </label>
-      <label class="flex items-center cursor-pointer select-none">
-        <input type="checkbox" v-model="dictationMode" class="mr-1 align-middle" />
-        <span class="text-sm text-zinc-600">默写模式</span>
-      </label>
-      <template v-if="!customParagraphMode">
-        <!-- 原有字典选择、难度、缓存、自动发音、随机抽取等 -->
-        <!-- ...原有内容... -->
+      <!-- 自定义段落模式 -->
+      <div class="mb-6 flex items-center space-x-6">
+        <label class="flex items-center cursor-pointer select-none">
+          <input type="checkbox" v-model="customParagraphMode" class="mr-1 align-middle" />
+          <span class="text-sm text-zinc-600">自定义段落</span>
+        </label>
+        <label class="flex items-center cursor-pointer select-none">
+          <input type="checkbox" v-model="dictationMode" class="mr-1 align-middle" />
+          <span class="text-sm text-zinc-600">默写模式</span>
+        </label>
+      </div>
+      <template v-if="customParagraphMode">
+        <div class="mb-4 w-full flex flex-col items-center">
+          <textarea v-model="customParagraph" rows="6" class="w-[600px] border border-zinc-300 rounded p-2 text-base" placeholder="粘贴英文段落，每行或每句为一题"></textarea>
+          <button @click="startCustomPractice" class="mt-2 px-4 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">开始练习</button>
+        </div>
       </template>
-    </div>
-    <template v-if="customParagraphMode">
-      <div class="mb-4 w-full flex flex-col items-center">
-        <textarea v-model="customParagraph" rows="6" class="w-[600px] border border-zinc-300 rounded p-2 text-base" placeholder="粘贴英文段落，每行或每句为一题"></textarea>
-        <button @click="startCustomPractice" class="mt-2 px-4 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">开始练习</button>
-      </div>
-    </template>
 
-    <!-- 打字区 -->
-    <div v-if="(!customParagraphMode) || (customParagraphMode && customPracticeStarted)" class="relative bg-white px-8 py-12 rounded-lg shadow-md border border-zinc-200 min-w-[800px] min-h-[180px] flex flex-col items-center justify-center mb-8 select-none text-4xl font-mono tracking-wide outline-none focus:outline-none" tabindex="0" @click="focusTypingArea" ref="typingArea" @focus="handleFocus" @blur="handleBlur">
-      <!-- 打字区：根据默写模式切换显示 -->
-      <template v-if="!dictationMode">
-        <div class="flex items-center space-x-3">
-          <!-- 原有字符显示 -->
-          <span>
-            <span v-for="(char, idx) in currentChunk.text.split('')" :key="idx">
-              <span v-if="idx < typedChars.length"
-                :class="typedChars[idx].correct ? 'text-green-600' : 'text-red-500 underline'">
-                {{ char }}
+      <!-- 打字区 -->
+      <div v-if="(!customParagraphMode) || (customParagraphMode && customPracticeStarted)" class="relative bg-white px-8 py-12 rounded-lg shadow-md border border-zinc-200 min-w-[800px] min-h-[180px] flex flex-col items-center justify-center mb-8 select-none text-4xl font-mono tracking-wide outline-none focus:outline-none" tabindex="0" @click="focusTypingArea" ref="typingArea" @focus="handleFocus" @blur="handleBlur">
+        <!-- 打字区：根据默写模式切换显示 -->
+        <template v-if="!dictationMode">
+          <div class="flex items-center space-x-3">
+            <!-- 原有字符显示 -->
+            <span>
+              <span v-for="(char, idx) in currentChunk.text.split('')" :key="idx">
+                <span v-if="idx < typedChars.length"
+                  :class="typedChars[idx].correct ? 'text-green-600' : 'text-red-500 underline'">
+                  {{ char }}
+                </span>
+                <span v-else-if="idx === typedChars.length"
+                  class="text-blue-600 underline font-bold animate-pulse">
+                  {{ char }}
+                </span>
+                <span v-else class="text-zinc-400">{{ char }}</span>
               </span>
-              <span v-else-if="idx === typedChars.length"
-                class="text-blue-600 underline font-bold animate-pulse">
-                {{ char }}
-              </span>
-              <span v-else class="text-zinc-400">{{ char }}</span>
             </span>
-          </span>
-          <button @click="speakWord(currentChunk.text)" 
-            class="ml-4 w-10 h-10 flex items-center justify-center rounded-full bg-zinc-200 hover:bg-blue-200 text-xl shadow-sm focus:outline-none border border-zinc-100"
-            title="播放发音">
-            <span role="img" aria-label="sound">🔊</span>
-          </button>
-        </div>
-      </template>
-      <template v-else>
-        <!-- 默写模式内容：始终显示下划线，用户输入覆盖，下方显示答案 -->
-        <div class="flex items-center space-x-6">
-          <!-- 下划线和用户输入 -->
-          <span>
-            <span v-for="(_, idx) in currentChunk.text.split('')" :key="idx" class="dictation-char">
-              <span v-if="idx < typedChars.length">{{ typedChars[idx].char }}</span>
-              <span v-else class="dictation-underline">_</span>
-            </span>
-          </span>
-          <!-- 发音按钮 -->
-          <button @click="speakWord(currentChunk.text)"
-            class="ml-4 w-10 h-10 flex items-center justify-center rounded-full bg-zinc-200 hover:bg-blue-200 text-xl shadow-sm focus:outline-none border border-zinc-100"
-            title="播放发音">
-            <span role="img" aria-label="sound">🔊</span>
-          </button>
-        </div>
-        <!-- 显示答案 -->
-        <div v-if="showAnswer" :class="['mt-4','font-mono','text-2xl', lastCorrect ? 'text-green-600' : 'text-red-500']">
-          {{ currentChunk.text }}
-        </div>
-      </template>
-      <div v-if="!customParagraphMode">
-        <div v-if="currentChunk.usphone || currentChunk.ukphone" class="mt-1 text-xs text-zinc-400 text-center">
-          <span v-if="currentChunk.usphone">美: [{{ currentChunk.usphone }}]</span>
-          <span v-if="currentChunk.ukphone" class="ml-2">英: [{{ currentChunk.ukphone }}]</span>
-        </div>
-        <div v-if="showTrans && currentChunk.trans && currentChunk.trans.length" class="mt-2 text-base text-zinc-500 text-center">
-          <span v-for="(tran, i) in currentChunk.trans" :key="i">{{ tran }}</span>
-        </div>
-        <div v-if="currentChunk.example" class="mt-2 text-base text-zinc-400 italic text-center">
-          <div v-if="Array.isArray(currentChunk.example)">
-            <div v-for="(ex, i) in currentChunk.example" :key="i">{{ ex }}</div>
+            <button @click="speakWord(currentChunk.text)" 
+              class="ml-4 w-10 h-10 flex items-center justify-center rounded-full bg-zinc-200 hover:bg-blue-200 text-xl shadow-sm focus:outline-none border border-zinc-100"
+              title="播放发音">
+              <span role="img" aria-label="sound">🔊</span>
+            </button>
           </div>
-          <div v-else>{{ currentChunk.example }}</div>
+        </template>
+        <template v-else>
+          <!-- 默写模式内容：始终显示下划线，用户输入覆盖，下方显示答案 -->
+          <div class="flex items-center space-x-6">
+            <!-- 下划线和用户输入 -->
+            <span>
+              <span v-for="(_, idx) in currentChunk.text.split('')" :key="idx" class="dictation-char">
+                <span v-if="idx < typedChars.length">{{ typedChars[idx].char }}</span>
+                <span v-else class="dictation-underline">_</span>
+              </span>
+            </span>
+            <!-- 发音按钮 -->
+            <button @click="speakWord(currentChunk.text)"
+              class="ml-4 w-10 h-10 flex items-center justify-center rounded-full bg-zinc-200 hover:bg-blue-200 text-xl shadow-sm focus:outline-none border border-zinc-100"
+              title="播放发音">
+              <span role="img" aria-label="sound">🔊</span>
+            </button>
+          </div>
+          <!-- 显示答案 -->
+          <div v-if="showAnswer" :class="['mt-4','font-mono','text-2xl', lastCorrect ? 'text-green-600' : 'text-red-500']">
+            {{ currentChunk.text }}
+          </div>
+        </template>
+        <div v-if="!customParagraphMode">
+          <div v-if="currentChunk.usphone || currentChunk.ukphone" class="mt-1 text-xs text-zinc-400 text-center">
+            <span v-if="currentChunk.usphone">美: [{{ currentChunk.usphone }}]</span>
+            <span v-if="currentChunk.ukphone" class="ml-2">英: [{{ currentChunk.ukphone }}]</span>
+          </div>
+          <div v-if="showTrans && currentChunk.trans && currentChunk.trans.length" class="mt-2 text-base text-zinc-500 text-center">
+            <span v-for="(tran, i) in currentChunk.trans" :key="i">{{ tran }}</span>
+          </div>
+          <div v-if="currentChunk.example" class="mt-2 text-base text-zinc-400 italic text-center">
+            <div v-if="Array.isArray(currentChunk.example)">
+              <div v-for="(ex, i) in currentChunk.example" :key="i">{{ ex }}</div>
+            </div>
+            <div v-else>{{ currentChunk.example }}</div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- 进度 -->
-    <div v-if="(!customParagraphMode) || (customParagraphMode && customPracticeStarted)" class="text-sm text-zinc-500 mb-8">{{ completedChunks }} / {{ totalChunks }} completed</div>
+      <!-- 进度 -->
+      <div v-if="(!customParagraphMode) || (customParagraphMode && customPracticeStarted)" class="text-sm text-zinc-500 mb-8">{{ completedChunks }} / {{ totalChunks }} completed</div>
 
-    <!-- 结束弹窗 -->
-    <div v-if="showResults" class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-lg p-8 min-w-[320px] text-center">
-        <h2 class="text-xl font-bold mb-4 text-zinc-900">Practice Results</h2>
-        <div class="mb-2">WPM: <span class="font-bold">{{ stats.wpm }}</span></div>
-        <div class="mb-2">Accuracy: <span class="font-bold">{{ stats.accuracy }}%</span></div>
-        <div class="mb-4">Time: <span class="font-bold">{{ stats.time }}s</span></div>
-        <button @click="resetPractice" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Start New Practice</button>
+      <!-- 结束弹窗 -->
+      <div v-if="showResults" class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-lg p-8 min-w-[320px] text-center">
+          <h2 class="text-xl font-bold mb-4 text-zinc-900">Practice Results</h2>
+          <div class="mb-2">WPM: <span class="font-bold">{{ stats.wpm }}</span></div>
+          <div class="mb-2">Accuracy: <span class="font-bold">{{ stats.accuracy }}%</span></div>
+          <div class="mb-4">Time: <span class="font-bold">{{ stats.time }}s</span></div>
+          <button @click="resetPractice" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Start New Practice</button>
+        </div>
       </div>
-    </div>
+    </ClientOnly>
   </div>
 </template>
 

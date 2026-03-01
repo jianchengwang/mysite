@@ -123,7 +123,7 @@ async def generate_chunks(topic: str, num_chunks: int) -> Dict:
             "max_output_tokens": 2048,
         }
         # Call the shared Google agent
-        text = genai_generate(
+        text = await genai_generate(
             prompt=prompt,
             generation_config=generation_config
         ).strip()

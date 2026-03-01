@@ -1,5 +1,5 @@
 import os
-from openai import OpenAI, BadRequestError
+from openai import AsyncOpenAI, BadRequestError
 from core.config import get_settings
 from core.logger import logger
 from typing import List, Dict, Any, Optional
@@ -14,14 +14,14 @@ if not XAI_API_KEY:
     logger.error("XAI_API_KEY environment variable is not set")
     raise ValueError("XAI_API_KEY environment variable is not set")
 
-# Create OpenAI client for grok
-client = OpenAI(
+# Create AsyncOpenAI client for grok
+client = AsyncOpenAI(
     api_key=XAI_API_KEY,
     base_url=XAI_BASE_URL
 )
 
 
-def xai_chat(
+async def xai_chat(
     messages: Optional[List[Dict[str, Any]]] = None,
     prompt: Optional[str] = None,
     image_urls: Optional[List[str]] = None,
@@ -29,7 +29,7 @@ def xai_chat(
     model: str = 'grok-3-mini-beta',
 ) -> str:
     """
-    Send chat messages to the Grok model via XAI API, supporting optional image and text.
+    Send chat messages to the Grok model via XAI API asynchronously.
 
     Args:
         messages: Existing list of message dicts (optional).
@@ -71,7 +71,7 @@ def xai_chat(
             content.append({'type': 'text', 'text': prompt})
         messages = [{'role': 'user', 'content': content}]
     try:
-        completion = client.chat.completions.create(
+        completion = await client.chat.completions.create(
             model=model,
             messages=messages
         )
@@ -107,7 +107,7 @@ def xai_chat(
         logger.error(f"An unexpected error occurred during XAI chat request: {e}", exc_info=True)
         raise
 
-def xai_image_generate(
+async def xai_image_generate(
     prompt: str,
     model: str = 'grok-2-image',
     n: int = 1,
@@ -115,7 +115,7 @@ def xai_image_generate(
     user: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
-    Generate images using XAI API's image generation endpoint.
+    Generate images using XAI API's image generation endpoint asynchronously.
 
     Args:
         prompt: The text prompt describing the desired image.
@@ -137,7 +137,7 @@ def xai_image_generate(
         }
         if user:
             params['user'] = user
-        response = client.images.generate(**params)
+        response = await client.images.generate(**params)
         # Extract data entries: url and revised_prompt
         results: List[Dict[str, Any]] = []
         for item in getattr(response, 'data', []):

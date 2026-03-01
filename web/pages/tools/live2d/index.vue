@@ -1,57 +1,59 @@
 <!-- Live2D Viewer -->
 <template>
   <div class="page-container">
-    <div class="main-content">
-      <div class="content-wrapper">
-        <!-- 左侧：Live2D 模型显示区域 -->
-        <div class="character-container">
-          <div id="L2dCanvas" class="live2d-canvas">
-            <!-- Tips will appear here -->
-          </div>
-        </div>
-
-        <!-- 右侧：聊天控制区域 -->
-        <div class="control-panel">
-          <!-- 角色选择 -->
-          <div class="character-selector">
-            <label for="character-select">Select Character:</label>
-            <select 
-              id="character-select" 
-              v-model="currentModel" 
-              class="character-select"
-              @change="handleModelChange"
-            >
-              <option v-for="model in availableModels" :key="model.id" :value="model.id">
-                {{ model.name }}
-              </option>
-            </select>
-          </div>
-
-          <!-- 回复内容显示 -->
-          <div class="response-container">
-            <div class="response-bubble" v-if="characterResponse">
-              {{ characterResponse }}
-            </div>
-            <div class="empty-response" v-else>
-              Start a conversation...
+    <ClientOnly>
+      <div class="main-content">
+        <div class="content-wrapper">
+          <!-- 左侧：Live2D 模型显示区域 -->
+          <div class="character-container">
+            <div id="L2dCanvas" class="live2d-canvas">
+              <!-- Tips will appear here -->
             </div>
           </div>
 
-          <!-- 聊天输入框 -->
-          <div class="input-wrapper">
-            <div class="input-container">
-              <input 
-                v-model="userInput" 
-                @keyup.enter="sendMessage"
-                placeholder="Type your message..."
-                class="chat-input"
+          <!-- 右侧：聊天控制区域 -->
+          <div class="control-panel">
+            <!-- 角色选择 -->
+            <div class="character-selector">
+              <label for="character-select">Select Character:</label>
+              <select 
+                id="character-select" 
+                v-model="currentModel" 
+                class="character-select"
+                @change="handleModelChange"
               >
-              <button @click="sendMessage" class="send-button">Send</button>
+                <option v-for="model in availableModels" :key="model.id" :value="model.id">
+                  {{ model.name }}
+                </option>
+              </select>
+            </div>
+
+            <!-- 回复内容显示 -->
+            <div class="response-container">
+              <div class="response-bubble" v-if="characterResponse">
+                {{ characterResponse }}
+              </div>
+              <div class="empty-response" v-else>
+                Start a conversation...
+              </div>
+            </div>
+
+            <!-- 聊天输入框 -->
+            <div class="input-wrapper">
+              <div class="input-container">
+                <input 
+                  v-model="userInput" 
+                  @keyup.enter="sendMessage"
+                  placeholder="Type your message..."
+                  class="chat-input"
+                >
+                <button @click="sendMessage" class="send-button">Send</button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </ClientOnly>
   </div>
 </template>
 

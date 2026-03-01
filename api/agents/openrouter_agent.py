@@ -1,4 +1,4 @@
-import requests
+import httpx
 from core.config import get_settings
 from core.logger import logger
 from typing import Optional, List, Dict, Any
@@ -13,13 +13,13 @@ OPENROUTER_API_KEY = settings.OPENROUTER_API_KEY
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 
-def openrouter_generate(
+async def openrouter_generate(
     prompt: str,
     image_urls: Optional[List[str]] = None,
     model_name: str = "google/gemini-2.0-flash-exp:free",
 ) -> str:
     """
-    Generate a chat completion via OpenRouter, optionally including an image.
+    Generate a chat completion via OpenRouter asynchronously, optionally including an image.
 
     Args:
         prompt: The text prompt.
@@ -56,15 +56,17 @@ def openrouter_generate(
         ]
     }
     try:
-        response = requests.post(API_URL, headers=headers, json=body)
-        response.raise_for_status()
-        data = response.json()
-        choices = data.get("choices", [])
-        if not choices:
-            logger.warning("OpenRouter returned no choices")
-            return ""
-        message = choices[0].get("message", {})
-        return message.get("content", "") or ""
+        async with httpx.AsyncClient() as client:
+            response = await client.post(API_URL, headers=headers, json=body, timeout=60.0)
+            response.raise_for_status()
+            data = response.json()
+            choices = data.get("choices", [])
+            if not choices:
+                logger.warning("OpenRouter returned no choices")
+                return ""
+            message = choices[0].get("message", {})
+            return message.get("content", "") or ""
     except Exception as e:
         logger.error(f"OpenRouter call failed: {e}", exc_info=True)
         raise 
+ 

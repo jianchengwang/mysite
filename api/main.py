@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import get_settings
 from core.logger import setup_logging, logger
@@ -9,6 +10,7 @@ from apps.xai.routes import router as xai_router
 from apps.mp.routes import router as mp_router
 from loguru import logger as loguru_logger
 import sys
+import traceback
 
 # Configure logging
 loguru_logger.remove()  # Remove default handler
@@ -29,6 +31,21 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     debug=settings.DEBUG
 )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    loguru_logger.error(f"Unhandled exception: {str(exc)}\n{traceback.format_exc()}")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal Server Error", "message": str(exc) if settings.DEBUG else None},
+    )
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+    )
 
 # Configure CORS
 app.add_middleware(

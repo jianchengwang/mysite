@@ -9,7 +9,7 @@ OPENROUTER_API_KEY = settings.OPENROUTER_API_KEY
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 
-def openrouter_gemini_evaluate(image_urls: list[str], prompt: str) -> str:
+async def openrouter_gemini_evaluate(image_urls: list[str], prompt: str) -> str:
     """
     调用OpenRouter AI的Gemini模型进行图片+文本批改，支持多张图片输入，返回AI回复的markdown内容。
 
@@ -21,8 +21,8 @@ def openrouter_gemini_evaluate(image_urls: list[str], prompt: str) -> str:
         str: AI回复的内容（markdown格式）
     """
     # Delegate to the shared OpenRouter agent
-    # return openrouter_generate(prompt=prompt, image_urls=image_urls)
-    return xai_chat(model="grok-2-vision-latest", prompt=prompt, image_urls=image_urls)
+    # return await openrouter_generate(prompt=prompt, image_urls=image_urls)
+    return await xai_chat(model="grok-2-vision-latest", prompt=prompt, image_urls=image_urls)
 # 示例用法
 # if __name__ == "__main__":
 #     base64_str = "..."

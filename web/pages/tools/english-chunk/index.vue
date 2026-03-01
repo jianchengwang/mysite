@@ -63,30 +63,30 @@
               <p class="text-zinc-600 italic mt-2">{{ scenario.context }}</p>
             </div>
             <div class="flex items-center space-x-4">
-              <button 
-                v-if="isBrowserEnv"
-                @click="toggleTextToSpeech"
-                class="text-zinc-500 hover:text-zinc-700 flex items-center space-x-1 text-sm"
-                :class="{ 'text-blue-500': isPlaying }"
-              >
-                <i class="pi" :class="isPlaying ? 'pi-pause' : 'pi-play'"></i>
-                <span>{{ isPlaying ? 'Stop' : 'Read' }}</span>
-              </button>
-              <button 
-                v-if="isBrowserEnv"
-                @click="copyScenario"
-                class="text-zinc-500 hover:text-zinc-700 flex items-center space-x-1 text-sm"
-                :class="{ 'text-green-500': copied }"
-              >
-                <i class="pi" :class="copied ? 'pi-check' : 'pi-copy'"></i>
-                <span>{{ copied ? 'Copied!' : 'Copy' }}</span>
-              </button>
+              <ClientOnly>
+                <button 
+                  @click="toggleTextToSpeech"
+                  class="text-zinc-500 hover:text-zinc-700 flex items-center space-x-1 text-sm"
+                  :class="{ 'text-blue-500': isPlaying }"
+                >
+                  <i class="pi" :class="isPlaying ? 'pi-pause' : 'pi-play'"></i>
+                  <span>{{ isPlaying ? 'Stop' : 'Read' }}</span>
+                </button>
+                <button 
+                  @click="copyScenario"
+                  class="text-zinc-500 hover:text-zinc-700 flex items-center space-x-1 text-sm"
+                  :class="{ 'text-green-500': copied }"
+                >
+                  <i class="pi" :class="copied ? 'pi-check' : 'pi-copy'"></i>
+                  <span>{{ copied ? 'Copied!' : 'Copy' }}</span>
+                </button>
+              </ClientOnly>
             </div>
           </div>
           <div class="prose prose-zinc max-w-none mt-4">
             <div class="bg-zinc-50 rounded-lg p-6">
               <div class="space-y-4">
-                <div v-for="(message, index) in formatDialogue(scenario.content)" 
+                <div v-for="(message, index) in formattedDialogue" 
                    :key="index" 
                    class="dialogue-line"
                 >
@@ -95,7 +95,7 @@
                           :class="index % 2 === 0 ? 'text-pink-600' : 'text-blue-600'">
                       {{ index % 2 === 0 ? 'Sarah' : 'Mark' }}:
                     </span>
-                    <div v-html="highlightChunks(message)" 
+                    <div v-html="highlightChunks(message, chunks)" 
                          class="dialogue-content flex-grow"></div>
                   </div>
                 </div>
@@ -121,6 +121,8 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useTTS } from '~/composables/useTTS'
+import { useDialogue } from '~/composables/useDialogue'
 
 const config = useRuntimeConfig()
 const numChunks = ref(5)
@@ -130,56 +132,13 @@ const scenario = ref<{ title: string; context: string; content: string } | null>
 const loading = ref(false)
 const error = ref('')
 const copied = ref(false)
-const isPlaying = ref(false)
 
-// 检查是否在浏览器环境
-const isBrowserEnv = computed(() => process.client)
+const { isPlaying, speak, stop } = useTTS()
+const { formatDialogue, highlightChunks } = useDialogue()
 
-// 仅在浏览器环境中初始化语音合成
-let speechSynthesis: SpeechSynthesis | undefined
-let utterance: SpeechSynthesisUtterance | null = null
-
-if (isBrowserEnv.value) {
-  speechSynthesis = window.speechSynthesis
-}
-
-// 判断内容是否为对话形式
-const isDialogue = (content: string): boolean => {
-  if (!content) return false
-  // 检查是否包含引号和说话者标识
-  return content.includes('"') && 
-         (content.includes('said') || 
-          content.includes('replied') || 
-          content.includes('asked') ||
-          content.includes('exclaimed') ||
-          content.includes('added') ||
-          content.includes('continued') ||
-          content.includes('responded') ||
-          content.includes('chuckled') ||
-          content.includes('laughed') ||
-          content.includes('sighed'))
-}
-
-// 格式化对话内容
-const formatDialogue = (content: string): string[] => {
-  if (!content) return []
-  
-  // 移除说话者标识词（said, replied等）
-  let cleanContent = content
-    .replace(/"([^"]+)"/g, '$1') // 移除引号
-    .replace(/\s*(said|replied|asked|chuckled|sighed|added|continued|responded|laughed|exclaimed)[^.]*/g, '')
-    .replace(/Sarah:|Mark:/g, '') // 移除说话者标识
-    .replace(/\s+/g, ' ') // 规范化空格
-    .trim()
-  
-  // 按句子分割
-  let sentences = cleanContent.split(/[.!?]+\s*/)
-  
-  // 过滤空句子并整理格式
-  return sentences
-    .map(s => s.trim())
-    .filter(s => s.length > 0)
-}
+const formattedDialogue = computed(() => {
+  return scenario.value ? formatDialogue(scenario.value.content) : []
+})
 
 const generateChunks = async () => {
   loading.value = true
@@ -230,50 +189,11 @@ const copyScenario = async () => {
 
 // 文本转语音功能
 const toggleTextToSpeech = () => {
-  if (!speechSynthesis) return
-  
   if (isPlaying.value) {
-    speechSynthesis.cancel()
-    isPlaying.value = false
-  } else if (scenario.value) {
-    const lines = formatDialogue(scenario.value.content)
-    lines.forEach((line, index) => {
-      const utterance = new SpeechSynthesisUtterance(line)
-      // 设置不同的声音
-      const voices = window.speechSynthesis.getVoices()
-      const femaleVoice = voices.find(voice => voice.name.toLowerCase().includes('female'))
-      const maleVoice = voices.find(voice => voice.name.toLowerCase().includes('male'))
-      
-      if (index % 2 === 0 && femaleVoice) {
-        utterance.voice = femaleVoice
-        utterance.pitch = 1.1
-      } else if (maleVoice) {
-        utterance.voice = maleVoice
-        utterance.pitch = 0.9
-      }
-      
-      if (index === lines.length - 1) {
-        utterance.onend = () => {
-          isPlaying.value = false
-        }
-      }
-      speechSynthesis.speak(utterance)
-    })
-    isPlaying.value = true
+    stop()
+  } else {
+    speak(formattedDialogue.value)
   }
-}
-
-// 高亮显示chunks
-const highlightChunks = (text: string): string => {
-  if (!text || !chunks.value) return text
-  let highlightedText = text
-  chunks.value.forEach(chunk => {
-    if (chunk.phrase) {
-      const regex = new RegExp(`(${chunk.phrase})`, 'gi')
-      highlightedText = highlightedText.replace(regex, '<span class="chunk-highlight">$1</span>')
-    }
-  })
-  return highlightedText
 }
 </script>
 

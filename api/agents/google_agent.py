@@ -1,5 +1,5 @@
 import google.generativeai as genai
-import time
+import asyncio
 from core.config import get_settings
 from core.logger import logger
 from typing import Optional, List, Dict, Any
@@ -14,14 +14,14 @@ genai.configure(api_key=settings.GOOGLE_API_KEY)
 # Removed import-time logging to avoid handler initialization issues
 
 
-def genai_generate(
+async def genai_generate(
     prompt: str,
     model_name: str = 'gemini-2.0-flash',
     generation_config: Optional[Dict[str, Any]] = None,
     safety_settings: Optional[List[Dict[str, Any]]] = None,
 ) -> str:
     """
-    Generate content using Google Gemini models.
+    Generate content using Google Gemini models asynchronously.
 
     Args:
         prompt: The input prompt string.
@@ -41,7 +41,8 @@ def genai_generate(
                 generation_config=generation_config or {},
                 safety_settings=safety_settings or []
             )
-            response = model.generate_content(
+            # Use generate_content_async for asynchronous generation
+            response = await model.generate_content_async(
                 prompt,
                 generation_config=generation_config or {},
                 safety_settings=safety_settings or []
@@ -53,7 +54,8 @@ def genai_generate(
             if any(keyword in msg for keyword in ["Deadline Exceeded", "503", "504", "overloaded"]):
                 logger.warning(f"GenAI call attempt {attempt}/{max_retries} failed: {msg}, retrying...")
                 if attempt < max_retries:
-                    time.sleep(2 ** attempt)
+                    await asyncio.sleep(2 ** attempt)
                     continue
             logger.error(f"GenAI call failed: {msg}", exc_info=True)
             raise 
+ 
