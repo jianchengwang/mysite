@@ -375,18 +375,37 @@ const sendMessage = async () => {
     }
     
     const data = await response.json()
-    const aiText = data.choices[0].message.content
-    
-    // Extract image URLs from the response content
+    const message = data.choices[0].message
+    let aiText = ''
     const imageUrls: string[] = []
-    const urlRegex = /https?:\/\/\S+\.(?:png|jpg|jpeg|gif|webp)(?:\?\S+)?/gi
-    const matches = aiText.match(urlRegex)
-    if (matches) {
-      matches.forEach((url: string) => {
-        // Clean up URL (remove trailing markdown parens or quotes)
-        const cleanUrl = url.split(')')[0].split('"')[0].split("'")[0]
-        imageUrls.push(cleanUrl)
+
+    if (Array.isArray(message.content)) {
+      message.content.forEach((c: any) => {
+        if (c.type === 'text') aiText += c.text
+        if (c.type === 'image_url') imageUrls.push(c.image_url.url)
       })
+    } else {
+      aiText = message.content || ''
+    }
+
+    // Check for images array in message object (OpenRouter specific)
+    if (message.images && Array.isArray(message.images)) {
+      message.images.forEach((url: string) => {
+        if (!imageUrls.includes(url)) imageUrls.push(url)
+      })
+    }
+
+    // Fallback: extract image URLs from the response content text if no images found yet
+    if (imageUrls.length === 0) {
+      const urlRegex = /https?:\/\/\S+\.(?:png|jpg|jpeg|gif|webp)(?:\?\S+)?/gi
+      const matches = aiText.match(urlRegex)
+      if (matches) {
+        matches.forEach((url: string) => {
+          // Clean up URL (remove trailing markdown parens or quotes)
+          const cleanUrl = url.split(')')[0].split('"')[0].split("'")[0]
+          if (!imageUrls.includes(cleanUrl)) imageUrls.push(cleanUrl)
+        })
+      }
     }
 
     messages.value.push({ 

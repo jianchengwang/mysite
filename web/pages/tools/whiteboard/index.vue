@@ -56,6 +56,12 @@
         <div class="sketch-card p-4 space-y-4">
           <h3 class="font-bold border-b border-zinc-200 pb-2 mb-2">OpenRouter AI</h3>
           <div class="space-y-2">
+            <input 
+              v-model="apiKey" 
+              type="password" 
+              placeholder="API Key (sk-or-...)" 
+              class="w-full p-2 text-xs sketch-border bg-white outline-none"
+            />
             <button 
               @click="showGenerateModal = true" 
               :disabled="isGenerating"
@@ -169,6 +175,7 @@ const tools = [
 const colors = ['#000000', '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b']
 
 // AI State
+const apiKey = ref('')
 const aiModel = ref('black-forest-labs/flux-schnell')
 const aiPrompt = ref('')
 const isGenerating = ref(false)
@@ -222,6 +229,11 @@ watch(selectedObjectId, (newId) => {
   }
 })
 
+// Watch apiKey to persist it
+watch(apiKey, (newKey) => {
+  localStorage.setItem('whiteboard_api_key', newKey)
+})
+
 // History state
 const objects = ref<WbObject[]>([])
 const history = ref<WbObject[][]>([[]])
@@ -243,6 +255,8 @@ onMounted(() => {
     canvas.value.width = rect.width
     canvas.value.height = rect.height
     ctx.value = canvas.value.getContext('2d')
+    
+    apiKey.value = localStorage.getItem('whiteboard_api_key') || ''
     
     window.addEventListener('resize', handleResize)
     canvas.value.addEventListener('wheel', handleWheel, { passive: false })
@@ -297,8 +311,8 @@ const getMousePos = (e: MouseEvent | Touch): Point => {
   if (!canvas.value) return { x: 0, y: 0 }
   const rect = canvas.value.getBoundingClientRect()
   return {
-    x: (e.clientX - rect.left),
-    y: (e.clientY - rect.top)
+    x: (e.clientX - rect.left) * (canvas.value.width / rect.width),
+    y: (e.clientY - rect.top) * (canvas.value.height / rect.height)
   }
 }
 
@@ -441,22 +455,55 @@ const handleTouchEnd = () => handleMouseUp({} as any)
 
 const generateAIImage = async () => {
   if (!aiPrompt.value || isGenerating.value) return
+  if (!apiKey.value) {
+    alert('Please set your OpenRouter API key first.')
+    return
+  }
   isGenerating.value = true
   showGenerateModal.value = false
   
   try {
-    const response = await $fetch('/api/v1/openrouter/images/generations', {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
-      body: {
-        prompt: aiPrompt.value,
-        model: aiModel.value
-      }
-    }) as any[]
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey.value}`,
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'Gemini Whiteboard'
+      },
+      body: JSON.stringify({
+        model: aiModel.value,
+        messages: [{ role: 'user', content: `Please generate an image based on this description: ${aiPrompt.value}` }],
+        modalities: ["image"]
+      })
+    })
 
-    if (response && response[0]?.url) {
+    if (!response.ok) {
+      const err = await response.json()
+      throw new Error(err.error?.message || 'Failed to fetch response')
+    }
+    
+    const data = await response.json()
+    const message = data.choices[0].message
+    let imageUrl = ''
+
+    if (Array.isArray(message.content)) {
+      const imgObj = message.content.find((c: any) => c.type === 'image_url')
+      if (imgObj) imageUrl = imgObj.image_url.url
+    } else if (typeof message.content === 'string') {
+      const urlRegex = /https?:\/\/\S+\.(?:png|jpg|jpeg|gif|webp)(?:\?\S+)?/gi
+      const matches = message.content.match(urlRegex)
+      if (matches) imageUrl = matches[0]
+    }
+
+    if (!imageUrl && message.images && message.images.length > 0) {
+      imageUrl = message.images[0]
+    }
+
+    if (imageUrl) {
       const img = new Image()
       img.crossOrigin = 'anonymous'
-      img.src = response[0].url
+      img.src = imageUrl
       img.onload = () => {
         const id = Math.random().toString(36).substr(2, 9)
         const pos = { x: Math.random() * (canvas.value?.width || 800) * 0.5, y: Math.random() * (canvas.value?.height || 600) * 0.5 }
@@ -490,10 +537,12 @@ const generateAIImage = async () => {
         commitToHistory()
         render()
       }
+    } else {
+      throw new Error('No image URL found in response')
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to generate image:', error)
-    alert('AI generation failed')
+    alert('AI generation failed: ' + error.message)
   } finally {
     isGenerating.value = false
   }
