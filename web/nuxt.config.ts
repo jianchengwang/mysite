@@ -8,7 +8,13 @@ export default defineNuxtConfig({
     '@primevue/nuxt-module'
   ],
 
-  css: ['~/assets/css/prose.css', '~/assets/css/markdown-theme-github.css', '~/assets/css/markdown-theme-notion.css', '~/assets/css/markdown-theme-jianshu.css'],
+  css: [
+    '~/assets/css/sketch.css',
+    '~/assets/css/prose.css',
+    '~/assets/css/markdown-theme-github.css',
+    '~/assets/css/markdown-theme-notion.css',
+    '~/assets/css/markdown-theme-jianshu.css'
+  ],
 
   primevue: {
     options: {
@@ -47,7 +53,7 @@ export default defineNuxtConfig({
       link: [
         {
           rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
+          href: 'https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Indie+Flower&family=Architects+Daughter&display=swap'
         }
       ]
     }
@@ -65,7 +71,9 @@ export default defineNuxtConfig({
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
+            sans: ['Patrick Hand', 'sans-serif'],
+            hand: ['Indie Flower', 'cursive'],
+            sketch: ['Architects Daughter', 'cursive'],
           },
           colors: {
             primary: {

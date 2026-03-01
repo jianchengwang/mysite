@@ -1,24 +1,24 @@
 <template>
-  <div class="flex gap-8 max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <article class="flex-1 min-w-0 max-w-4xl w-full bg-zinc-50 rounded-lg border border-zinc-200 overflow-hidden relative">
-      <div class="p-8">
-        <div class="p-8 border-b border-zinc-200 text-center relative">
-          <h1 class="text-3xl font-bold text-zinc-900 mb-4">{{ (doc as any).title }}</h1>
-          <button class="markdown-theme-btn" @click="showThemePanel = !showThemePanel" aria-label="Markdown theme settings">
-            <span class="icon-dots">···</span>
+  <div class="flex flex-col lg:flex-row gap-8 max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <article class="flex-1 min-w-0 max-w-4xl w-full sketch-card bg-white relative">
+      <div class="p-4 md:p-8">
+        <div class="pb-8 mb-8 border-b-2 border-zinc-900 text-center relative">
+          <h1 class="text-4xl md:text-5xl font-bold text-zinc-900 mb-4 font-hand transform -rotate-1">{{ (doc as any).title }}</h1>
+          <button class="markdown-theme-btn sketch-border-3 w-10 h-10 flex items-center justify-center hover:bg-zinc-100" @click="showThemePanel = !showThemePanel" aria-label="Markdown theme settings">
+            <span class="icon-dots leading-none -mt-2 text-zinc-800">...</span>
           </button>
-          <div v-if="showThemePanel" class="markdown-theme-panel">
+          <div v-if="showThemePanel" class="markdown-theme-panel sketch-border-2">
             <div v-for="theme in themes" :key="theme.value" @click="setTheme(theme.value)" :class="{active: theme.value === currentTheme}">
               {{ theme.label }}
             </div>
           </div>
         </div>
-        <div :class="['prose', currentTheme]">
+        <div :class="['prose max-w-none', currentTheme, 'font-sans text-xl leading-relaxed']">
           <ContentRenderer :value="doc" />
         </div>
-        <div class="mt-8 flex gap-4 justify-center">
+        <div class="mt-12 flex flex-wrap gap-6 justify-center">
           <a v-if="(doc as any).link" :href="(doc as any).link" target="_blank" rel="noopener noreferrer"
-            class="inline-flex items-center px-6 py-3 border border-zinc-300 text-base font-medium rounded-md text-zinc-800 bg-zinc-100 hover:bg-zinc-200 transition-colors">
+            class="sketch-button bg-yellow-50 flex items-center">
             Visit Website
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
               <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
@@ -26,16 +26,18 @@
             </svg>
           </a>
           <NuxtLink v-if="!hideBack && backTo && backLabel" :to="backTo"
-            class="inline-flex items-center px-6 py-3 border border-zinc-300 text-base font-medium rounded-md text-zinc-600 bg-white hover:bg-zinc-50 transition-colors">
-            {{ backLabel }}
+            class="sketch-button bg-blue-50">
+            ← {{ backLabel }}
           </NuxtLink>
         </div>
       </div>
     </article>
-    <TableOfContents class="TableOfContents" :links="(doc as any).body?.toc?.links" />
+    <aside class="lg:w-72 shrink-0">
+      <TableOfContents class="TableOfContents sketch-border-2" :links="(doc as any).body?.toc?.links" />
+    </aside>
     <button
       v-if="showTopBtn"
-      class="back-to-top-btn"
+      class="back-to-top-btn sketch-border-3 sketch-shadow-sm"
       @click="scrollToTop"
       aria-label="Back to top"
     >
@@ -43,6 +45,76 @@
     </button>
   </div>
 </template>
+
+<style scoped>
+.TableOfContents {
+  position: sticky;
+  top: 100px;
+  align-self: flex-start;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  z-index: 10;
+  background: #fff;
+  padding: 20px 16px;
+  min-width: 240px;
+}
+.back-to-top-btn {
+  position: fixed;
+  right: 32px;
+  bottom: 48px;
+  z-index: 50;
+  background: #fff;
+  color: #18181b;
+  width: 50px;
+  height: 50px;
+  font-size: 1.8em;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.back-to-top-btn:hover {
+  transform: translateY(-4px);
+  @apply bg-zinc-50;
+}
+.markdown-theme-btn {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.icon-dots {
+  font-family: inherit;
+  font-size: 1.5em;
+  letter-spacing: 0.1em;
+}
+.markdown-theme-panel {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  background: #fff;
+  min-width: 120px;
+  z-index: 100;
+  padding: 8px 0;
+  overflow: hidden;
+}
+.markdown-theme-panel > div {
+  padding: 8px 20px;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-family: 'Patrick Hand', sans-serif;
+  color: #18181b;
+  transition: all 0.2s;
+}
+.markdown-theme-panel > div.active,
+.markdown-theme-panel > div:hover {
+  background: #f4f4f5;
+  @apply font-bold;
+}
+</style>
 
 <script setup lang="ts">
 import { defineProps, ref, onMounted, onUnmounted } from 'vue'

@@ -2,20 +2,23 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <!-- Page Header -->
     <div class="mb-12">
-      <h1 class="text-4xl font-bold text-zinc-900 mb-4">{{ title }}</h1>
-      <p class="text-lg text-zinc-600">{{ subtitle }}</p>
+      <h1 class="text-5xl font-bold text-zinc-900 mb-4 transform -rotate-1">{{ title }}</h1>
+      <p class="text-2xl text-zinc-600 font-hand">{{ subtitle }}</p>
     </div>
     <!-- Store Grid -->
     <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
       <NuxtLink v-for="item in list" :key="(item as any).path" :to="(item as any).path"
-        class="group bg-zinc-50 rounded-lg border border-zinc-200 hover:border-zinc-300 transition-all duration-200 overflow-hidden">
-        <div class="p-6">
-          <div class="flex items-center justify-between mb-2">
-            <h2 class="text-xl font-bold text-zinc-800 group-hover:text-zinc-600">
+        class="group sketch-card hover:sketch-shadow-hover transition-all duration-200">
+        <div class="p-2">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-2xl font-bold text-zinc-800 group-hover:text-zinc-600 font-hand underline decoration-wavy decoration-zinc-300 group-hover:decoration-zinc-800">
               {{ (item as any).title }}
             </h2>
           </div>
-          <p class="text-zinc-600 mb-4">{{ (item as any).description }}</p>
+          <p class="text-zinc-600 mb-4 text-lg">{{ (item as any).description }}</p>
+          <div class="flex justify-end">
+            <span class="sketch-button py-1 px-4 text-sm">Read More →</span>
+          </div>
         </div>
       </NuxtLink>
     </div>

@@ -1,36 +1,38 @@
 <template>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <!-- Page Header -->
-    <div class="mb-12">
-      <h1 class="text-4xl font-bold text-zinc-900 mb-4">Developer Tools</h1>
-      <p class="text-lg text-zinc-600">A collection of useful tools for developers</p>
+    <div class="mb-16 text-center">
+      <h1 class="text-5xl font-bold text-zinc-900 mb-4 transform -rotate-1 font-hand">Developer Tools</h1>
+      <p class="text-2xl text-zinc-600 font-hand">A collection of useful tools for developers</p>
     </div>
 
     <!-- Tools Grid -->
-    <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+    <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
       <NuxtLink
         v-for="tool in tools"
         :key="tool.to"
         :to="tool.to"
-        class="group bg-white rounded-lg border border-zinc-200 hover:border-zinc-300 transition-all duration-200 overflow-hidden"
+        class="group sketch-card hover:sketch-shadow-hover transition-all duration-300 transform hover:-rotate-1"
       >
-        <div class="p-6">
+        <div class="p-2">
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-bold text-zinc-800 group-hover:text-zinc-600">
+            <h2 class="text-2xl font-bold text-zinc-800 group-hover:text-zinc-600 font-hand underline decoration-wavy decoration-zinc-200 group-hover:decoration-zinc-800">
               {{ tool.title }}
             </h2>
-            <i class="pi pi-arrow-right text-zinc-400 group-hover:text-zinc-600 transition-colors"></i>
           </div>
-          <p class="text-zinc-600 mb-4">{{ tool.description }}</p>
-          <div class="flex gap-2">
+          <p class="text-zinc-600 mb-6 text-lg h-24 overflow-hidden">{{ tool.description }}</p>
+          <div class="flex flex-wrap gap-2 mb-4">
             <span
               v-for="tag in tool.tags"
               :key="tag.label"
-              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-              :class="tag.color === 'green' ? 'bg-green-100 text-green-800' : 'bg-indigo-100 text-indigo-800'"
+              class="inline-flex items-center px-3 py-1 sketch-border-3 text-xs font-bold font-hand"
+              :class="tag.color === 'green' ? 'bg-green-50 text-green-700' : 'bg-indigo-50 text-indigo-700'"
             >
-              {{ tag.label }}
+              # {{ tag.label }}
             </span>
+          </div>
+          <div class="flex justify-end">
+             <span class="font-hand font-bold text-zinc-800 group-hover:translate-x-1 transition-transform">Try it →</span>
           </div>
         </div>
       </NuxtLink>

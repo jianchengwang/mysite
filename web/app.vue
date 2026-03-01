@@ -17,6 +17,10 @@ html {
 }
 
 body {
-  @apply bg-gray-50;
+  @apply bg-zinc-50 text-zinc-900 font-sans;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-hand;
 }
 </style>
