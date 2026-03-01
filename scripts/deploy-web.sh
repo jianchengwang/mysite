@@ -1,7 +1,7 @@
 #!/bin/bash
 # 用法: ./deploy.sh 用户名@远程IP
 
-LOCAL_DIST_DIR="../web/dist/"
+LOCAL_DIST_DIR="../web/.output/public/"
 REMOTE_USER_HOST="$1"
 REMOTE_DIR="/data/mysite/"
 
