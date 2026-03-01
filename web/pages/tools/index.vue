@@ -116,6 +116,24 @@ const tools = [
       { label: 'Free', color: 'green' }
     ]
   },
+  {
+    to: '/tools/yuki',
+    title: 'Yuki AI',
+    description: 'A minimalist hand-drawn AI chat assistant powered by OpenRouter.',
+    tags: [
+      { label: 'AI Chat', color: 'indigo' },
+      { label: 'Hand-drawn', color: 'green' }
+    ]
+  },
+  {
+    to: '/tools/whiteboard',
+    title: 'Whiteboard',
+    description: 'A sketchy, hand-drawn whiteboard for your ideas and sketches.',
+    tags: [
+      { label: 'Tool', color: 'indigo' },
+      { label: 'Drawing', color: 'green' }
+    ]
+  },
 ]
 </script>
 
