@@ -56,27 +56,20 @@
         <div class="sketch-card p-4 space-y-4">
           <h3 class="font-bold border-b border-zinc-200 pb-2 mb-2">OpenRouter AI</h3>
           <div class="space-y-2">
-            <select v-model="aiModel" class="w-full text-xs p-2 sketch-border bg-white">
-              <option v-for="m in aiModels" :key="m.id" :value="m.id">{{ m.name }}</option>
-            </select>
-            <textarea 
-              v-model="aiPrompt" 
-              placeholder="Enter prompt..." 
-              class="w-full text-xs p-2 sketch-border bg-white h-20 resize-none font-hand"
-            ></textarea>
             <button 
-              @click="generateAIImage" 
-              :disabled="isGenerating || !aiPrompt"
+              @click="showGenerateModal = true" 
+              :disabled="isGenerating"
               class="w-full sketch-button py-2 text-sm bg-zinc-900 text-white disabled:opacity-50"
             >
-              {{ isGenerating ? 'Generating...' : '✨ Generate' }}
+              {{ isGenerating ? '✨ Generating...' : '✨ Generate Image' }}
             </button>
           </div>
         </div>
 
         <div class="mt-auto sketch-card p-4 text-xs italic text-zinc-500">
           Tip: Drag to draw. <br>
-          Use shapes for clean sketches.
+          Use shapes for clean sketches. <br>
+          Mouse wheel to zoom selected image.
         </div>
       </div>
 
@@ -95,6 +88,50 @@
         ></canvas>
       </div>
     </div>
+
+    <!-- Generate Modal -->
+    <Teleport to="body">
+      <div v-if="showGenerateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm font-hand">
+        <div class="sketch-card bg-white w-full max-w-md p-6 space-y-4">
+          <div class="flex justify-between items-center mb-2">
+            <h2 class="text-2xl font-bold">Generate Image</h2>
+            <button @click="showGenerateModal = false" class="text-2xl hover:text-zinc-500">×</button>
+          </div>
+          
+          <div class="space-y-2">
+            <label class="block font-bold">AI Model</label>
+            <select v-model="aiModel" class="w-full p-2 sketch-border bg-white text-sm">
+              <option v-for="m in aiModels" :key="m.id" :value="m.id">{{ m.name }}</option>
+            </select>
+          </div>
+          
+          <div class="space-y-2">
+            <label class="block font-bold">Prompt</label>
+            <textarea 
+              v-model="aiPrompt" 
+              placeholder="Describe what you want to see..." 
+              class="w-full p-3 sketch-border bg-white h-32 resize-none font-hand"
+            ></textarea>
+          </div>
+          
+          <div class="flex gap-4 pt-2">
+            <button 
+              @click="showGenerateModal = false" 
+              class="flex-1 sketch-button py-2 bg-white text-zinc-900"
+            >
+              Cancel
+            </button>
+            <button 
+              @click="generateAIImage" 
+              :disabled="isGenerating || !aiPrompt"
+              class="flex-1 sketch-button py-2 bg-zinc-900 text-white disabled:opacity-50"
+            >
+              {{ isGenerating ? 'Generating...' : '✨ Generate' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -135,13 +172,43 @@ const colors = ['#000000', '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'
 const aiModel = ref('black-forest-labs/flux-schnell')
 const aiPrompt = ref('')
 const isGenerating = ref(false)
-const aiModels = [
-  { id: 'black-forest-labs/flux-schnell', name: 'Flux Schnell' },
-  { id: 'black-forest-labs/flux-1.1-pro', name: 'Flux 1.1 Pro' },
-  { id: 'openai/dall-e-3', name: 'DALL-E 3' },
-  { id: 'stabilityai/stable-diffusion-xl', name: 'SDXL' },
-  { id: 'midjourney/midjourney', name: 'Midjourney' },
-]
+const showGenerateModal = ref(false)
+const aiModels = ref<any[]>([])
+
+const fetchModels = async () => {
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/models')
+    const data = await response.json()
+    if (data.data) {
+      // Filter models that have image output or are known image models
+      aiModels.value = data.data
+        .filter((m: any) => {
+          const architecture = m.architecture || {}
+          const output_modalities = architecture.output_modalities || []
+          return output_modalities.includes('image') || 
+                 m.id.includes('flux') || 
+                 m.id.includes('dall-e') || 
+                 m.id.includes('stable-diffusion') ||
+                 m.id.includes('midjourney')
+        })
+        .map((m: any) => ({
+          id: m.id,
+          name: m.name
+        }))
+      
+      if (aiModels.value.length > 0 && !aiModels.value.find(m => m.id === aiModel.value)) {
+        aiModel.value = aiModels.value[0].id
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch models:', error)
+    // Fallback models
+    aiModels.value = [
+      { id: 'black-forest-labs/flux-schnell', name: 'Flux Schnell' },
+      { id: 'openai/dall-e-3', name: 'DALL-E 3' }
+    ]
+  }
+}
 
 // Selection state
 const selectedObjectId = ref<string | null>(null)
@@ -178,12 +245,18 @@ onMounted(() => {
     ctx.value = canvas.value.getContext('2d')
     
     window.addEventListener('resize', handleResize)
+    canvas.value.addEventListener('wheel', handleWheel, { passive: false })
+    
+    fetchModels()
     render()
   }
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
+  if (canvas.value) {
+    canvas.value.removeEventListener('wheel', handleWheel)
+  }
 })
 
 const handleResize = () => {
@@ -197,6 +270,26 @@ const handleResize = () => {
     canvas.value.width = rect.width
     canvas.value.height = rect.height
     render()
+  }
+}
+
+const handleWheel = (e: WheelEvent) => {
+  if (selectedObjectId.value) {
+    const obj = objects.value.find(o => (o as any).id === selectedObjectId.value) as any
+    if (obj && obj.type === 'image') {
+      e.preventDefault()
+      const zoomFactor = e.deltaY > 0 ? 0.95 : 1.05
+      const oldWidth = obj.width
+      const oldHeight = obj.height
+      obj.width *= zoomFactor
+      obj.height *= zoomFactor
+      
+      // Keep center point stable
+      obj.pos.x -= (obj.width - oldWidth) / 2
+      obj.pos.y -= (obj.height - oldHeight) / 2
+      
+      render()
+    }
   }
 }
 
@@ -349,6 +442,7 @@ const handleTouchEnd = () => handleMouseUp({} as any)
 const generateAIImage = async () => {
   if (!aiPrompt.value || isGenerating.value) return
   isGenerating.value = true
+  showGenerateModal.value = false
   
   try {
     const response = await $fetch('/api/v1/openrouter/images/generations', {

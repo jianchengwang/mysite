@@ -376,7 +376,24 @@ const sendMessage = async () => {
     
     const data = await response.json()
     const aiText = data.choices[0].message.content
-    messages.value.push({ role: 'assistant', content: aiText })
+    
+    // Extract image URLs from the response content
+    const imageUrls: string[] = []
+    const urlRegex = /https?:\/\/\S+\.(?:png|jpg|jpeg|gif|webp)(?:\?\S+)?/gi
+    const matches = aiText.match(urlRegex)
+    if (matches) {
+      matches.forEach((url: string) => {
+        // Clean up URL (remove trailing markdown parens or quotes)
+        const cleanUrl = url.split(')')[0].split('"')[0].split("'")[0]
+        imageUrls.push(cleanUrl)
+      })
+    }
+
+    messages.value.push({ 
+      role: 'assistant', 
+      content: aiText,
+      images: imageUrls.length > 0 ? imageUrls : undefined
+    })
     characterResponse.value = aiText.length > 200 ? aiText.substring(0, 200) + '...' : aiText
     
     localStorage.setItem('yuki_messages', JSON.stringify(messages.value))
