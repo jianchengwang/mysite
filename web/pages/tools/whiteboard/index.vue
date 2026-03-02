@@ -56,16 +56,12 @@
         <div class="sketch-card p-4 space-y-4">
           <h3 class="font-bold border-b border-zinc-200 pb-2 mb-2">OpenRouter AI</h3>
           <div class="space-y-2">
-            <input 
-              v-model="apiKey" 
-              type="password" 
-              placeholder="API Key (sk-or-...)" 
-              class="w-full p-2 text-xs sketch-border bg-white outline-none"
-            />
+            <p v-if="!apiKey" class="text-xs text-red-500 mb-2 font-hand">Please set API Key in Global Settings (top right)</p>
             <button 
               @click="showGenerateModal = true" 
-              :disabled="isGenerating"
+              :disabled="isGenerating || !apiKey"
               class="w-full sketch-button py-2 text-sm bg-zinc-900 text-white disabled:opacity-50"
+              :title="!apiKey ? 'API Key required' : ''"
             >
               {{ isGenerating ? '✨ Generating...' : '✨ Generate Image' }}
             </button>
@@ -229,10 +225,7 @@ watch(selectedObjectId, (newId) => {
   }
 })
 
-// Watch apiKey to persist it
-watch(apiKey, (newKey) => {
-  localStorage.setItem('whiteboard_api_key', newKey)
-})
+// Watch apiKey to persist it (Removed for global key)
 
 // History state
 const objects = ref<WbObject[]>([])
@@ -256,7 +249,10 @@ onMounted(() => {
     canvas.value.height = rect.height
     ctx.value = canvas.value.getContext('2d')
     
-    apiKey.value = localStorage.getItem('whiteboard_api_key') || ''
+    apiKey.value = localStorage.getItem('global_openrouter_key') || ''
+    window.addEventListener('storage', () => {
+      apiKey.value = localStorage.getItem('global_openrouter_key') || ''
+    })
     
     window.addEventListener('resize', handleResize)
     canvas.value.addEventListener('wheel', handleWheel, { passive: false })

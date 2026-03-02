@@ -1,112 +1,131 @@
 <template>
-  <div class="max-w-3xl mx-auto px-4 py-12 space-y-10">
-    <!-- Modbus 读命令生成器 -->
-    <div class="bg-white rounded-lg shadow border p-6 space-y-6">
-      <h2 class="text-xl font-bold mb-2">Modbus 读命令生成器</h2>
-      <div class="flex gap-3">
-        <div class="flex-1">
-          <label class="block text-xs font-medium mb-1">设备地址</label>
-          <input v-model="readAddr" type="number" min="0" max="255" class="w-full border rounded px-2 py-1" />
-        </div>
-        <div class="flex-1">
-          <label class="block text-xs font-medium mb-1">功能码</label>
-          <input v-model="readFunc" type="number" min="0" max="255" class="w-full border rounded px-2 py-1" />
-        </div>
-        <div class="flex-1">
-          <label class="block text-xs font-medium mb-1">寄存器地址</label>
-          <input v-model="readReg" type="number" min="0" max="65535" class="w-full border rounded px-2 py-1" />
-        </div>
-        <div class="flex-1">
-          <label class="block text-xs font-medium mb-1">数量</label>
-          <input v-model="readNum" type="number" min="1" max="125" class="w-full border rounded px-2 py-1" />
-        </div>
-      </div>
-      <div class="flex gap-2">
-        <button @click="fillCRC" class="btn-gray">自动填充CRC</button>
-        <input v-model="readCmd" type="text" class="flex-1 border rounded px-2 py-1 font-mono" readonly />
-      </div>
+  <div class="min-h-screen bg-[#fcfcfc] font-hand p-4 md:p-8">
+    <div class="max-w-5xl mx-auto mb-10">
+      <h1 class="text-4xl font-bold text-zinc-900 mb-2 font-hand">Modbus Helper</h1>
+      <p class="text-zinc-600 italic">Generate read commands and parse HEX frames with ease</p>
     </div>
 
-    <!-- Modbus 协议解析工具（完整帧分区） -->
-    <div class="bg-white rounded-lg shadow border p-6 space-y-6 flex flex-col md:flex-row gap-8">
-      <div class="flex-1 min-w-[260px]">
-        <h2 class="text-xl font-bold mb-2">Modbus 协议解析</h2>
-        <label class="block text-sm font-medium mb-1">十六进制帧数据</label>
-        <textarea v-model="hexInput" rows="4" placeholder="如 01 03 04 00 01 00 02 79 84" class="w-full border rounded px-3 py-2 text-base mb-4 resize-vertical" />
-        <div v-if="frameInfo.valid" class="space-y-2">
-          <div class="flex flex-wrap gap-4 text-sm text-zinc-600">
-            <div>地址: <span class="font-mono text-zinc-900">{{ frameInfo.addr }}</span></div>
-            <div>功能码: <span class="font-mono text-zinc-900">{{ frameInfo.func }}</span></div>
-            <div>字节数: <span class="font-mono text-zinc-900">{{ frameInfo.byteCount }}</span></div>
-            <div>CRC: <span class="font-mono text-zinc-900">{{ frameInfo.crc }}</span></div>
+    <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
+      <!-- Read Command Generator -->
+      <div class="sketch-card p-6 bg-white space-y-6 flex flex-col">
+        <h2 class="text-2xl font-bold mb-4 border-b-2 border-zinc-100 pb-2">Read Command Generator</h2>
+        <div class="grid grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="block text-sm font-bold text-zinc-700">Device Address (HEX)</label>
+            <input v-model="readAddrHex" type="text" placeholder="01" class="w-full sketch-border px-3 py-2 outline-none focus:sketch-shadow-sm font-mono uppercase" />
           </div>
-          <div class="text-xs text-zinc-500 mb-1">数据区寄存器（2字节/组，点击多选）：</div>
-          <div class="flex flex-wrap gap-2">
-            <div v-for="(reg, idx) in frameInfo.regs" :key="idx"
-              :class="['reg-box', selectedRegs.includes(idx) ? 'reg-box-selected' : '']"
-              @click="toggleReg(idx)">
-              <span class="text-xs text-zinc-400">{{ idx }}</span>
-              <span class="ml-1 font-mono">{{ reg.join(' ') }}</span>
+          <div class="space-y-2">
+            <label class="block text-sm font-bold text-zinc-700">Function Code (HEX)</label>
+            <input v-model="readFuncHex" type="text" placeholder="03" class="w-full sketch-border px-3 py-2 outline-none focus:sketch-shadow-sm font-mono uppercase" />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-bold text-zinc-700">Start Address (HEX)</label>
+            <input v-model="readRegHex" type="text" placeholder="0000" class="w-full sketch-border px-3 py-2 outline-none focus:sketch-shadow-sm font-mono uppercase" />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-bold text-zinc-700">Quantity (DEC)</label>
+            <input v-model="readNum" type="number" min="1" max="125" class="w-full sketch-border px-3 py-2 outline-none focus:sketch-shadow-sm font-hand" />
+          </div>
+        </div>
+        <div class="flex-1 flex flex-col justify-end pt-4 gap-4">
+          <button @click="generateReadCmd" class="sketch-button bg-zinc-900 text-white py-3">Generate Command</button>
+          <div v-if="readCmd" class="p-4 bg-zinc-50 sketch-border font-mono text-center text-lg break-all select-all cursor-pointer" title="Click to select all">
+            {{ readCmd }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Protocol Parser -->
+      <div class="sketch-card p-6 bg-white space-y-6">
+        <h2 class="text-2xl font-bold mb-4 border-b-2 border-zinc-100 pb-2">HEX Frame Parser</h2>
+        <div class="space-y-2">
+          <label class="block text-sm font-bold text-zinc-700">Input HEX Frame</label>
+          <textarea 
+            v-model="hexInput" 
+            rows="3" 
+            placeholder="e.g. 01 03 04 00 01 00 02 79 84" 
+            class="w-full sketch-border px-3 py-2 outline-none focus:sketch-shadow-sm font-mono text-sm resize-none"
+          ></textarea>
+        </div>
+
+        <div v-if="frameInfo.valid" class="space-y-4">
+          <div class="grid grid-cols-3 gap-2 text-xs font-bold text-zinc-500 uppercase tracking-wider">
+            <div>Addr: <span class="text-zinc-900 font-mono">{{ frameInfo.addr }}</span></div>
+            <div>Bytes: <span class="text-zinc-900 font-mono">{{ frameInfo.byteCount }}</span></div>
+            <div>CRC: <span class="text-zinc-900 font-mono" :class="frameInfo.crcValid ? 'text-green-600' : 'text-red-600'">{{ frameInfo.crc }}</span></div>
+          </div>
+          
+          <div class="space-y-2">
+            <label class="block text-xs font-bold text-zinc-400 uppercase">Registers (2 bytes each, click to select)</label>
+            <div class="flex flex-wrap gap-2">
+              <div 
+                v-for="(reg, idx) in frameInfo.regs" 
+                :key="idx"
+                @click="toggleReg(idx)"
+                :class="[
+                  'px-3 py-1 sketch-border cursor-pointer transition-all text-sm font-mono',
+                  selectedRegs.includes(idx) ? 'bg-zinc-900 text-white -translate-y-0.5' : 'bg-white hover:bg-zinc-50'
+                ]"
+              >
+                <span class="text-[10px] opacity-50 mr-2">{{ idx }}</span>
+                {{ reg }}
+              </div>
             </div>
           </div>
-        </div>
-        <div v-else-if="hexInput.trim()" class="text-red-500 text-xs mt-2">帧格式不正确或数据不足</div>
-      </div>
-      <div class="flex-1 min-w-[220px] border-l md:pl-8 md:border-l md:border-zinc-100 pt-4 md:pt-0">
-        <div class="mb-2 text-sm text-zinc-500">待解析字节（可手动编辑）：</div>
-        <input v-model="manualHex" @input="onManualInput" class="mb-2 font-mono text-base bg-zinc-50 border rounded px-3 py-2 min-h-[2.2em] w-full" placeholder="如 00 00 03 45" />
-        <div class="flex gap-4 mb-4">
-          <div class="flex-1">
-            <label class="block text-sm font-medium mb-1">
-              字节序
-              <span class="help-icon" title="大端(1234)：高字节在前，低字节在后，如 0x12345678 存储为 12 34 56 78；小端(4321)：低字节在前，高字节在后，存储为 78 56 34 12。2143/3412为特殊排列。">?</span>
-            </label>
-            <select v-model="byteOrder" class="w-full border rounded px-2 py-1">
-              <option value="1234">1234 (大端)</option>
-              <option value="2143">2143 (特殊)</option>
-              <option value="3412">3412 (特殊)</option>
-              <option value="4321">4321 (小端)</option>
-            </select>
+
+          <div class="grid grid-cols-2 gap-4 pt-2">
+            <div class="space-y-1">
+              <label class="block text-xs font-bold text-zinc-400 uppercase">Byte Order</label>
+              <select v-model="byteOrder" class="w-full sketch-border px-2 py-1 text-xs bg-white font-hand">
+                <option value="1234">Big Endian (1234)</option>
+                <option value="4321">Little Endian (4321)</option>
+                <option value="2143">Mid-Big Endian (2143)</option>
+                <option value="3412">Mid-Little Endian (3412)</option>
+              </select>
+            </div>
+            <div class="space-y-1">
+              <label class="block text-xs font-bold text-zinc-400 uppercase">Data Type</label>
+              <select v-model="dataType" class="w-full sketch-border px-2 py-1 text-xs bg-white font-hand">
+                <option value="int16">Int16</option>
+                <option value="uint16">Uint16</option>
+                <option value="int32">Int32</option>
+                <option value="uint32">Uint32</option>
+                <option value="float32">Float32</option>
+              </select>
+            </div>
           </div>
-          <div class="flex-1">
-            <label class="block text-sm font-medium mb-1">
-              数据类型
-              <span class="help-icon" title="int16/int32/int64：有符号整数，float32/float64：IEEE754标准浮点数，常用于Modbus寄存器解析。">?</span>
-            </label>
-            <select v-model="dataType" class="w-full border rounded px-2 py-1">
-              <option value="int16">int16</option>
-              <option value="int32">int32</option>
-              <option value="int64">int64</option>
-              <option value="float32">float32</option>
-              <option value="float64">float64</option>
-            </select>
+
+          <div v-if="parsedResult !== null" class="mt-4 p-4 bg-zinc-900 text-white sketch-card text-center">
+            <div class="text-xs opacity-50 uppercase tracking-widest mb-1">Parsed Value</div>
+            <div class="text-3xl font-mono">{{ parsedResult }}</div>
           </div>
         </div>
-        <button @click="parseSelected" class="btn-gray">解析</button>
-        <div v-if="result !== null" class="bg-zinc-50 border rounded p-4 mt-2">
-          <div class="text-sm text-zinc-500 mb-1">解析结果：</div>
-          <div class="text-lg font-mono text-zinc-800">{{ result }}</div>
+        <div v-else-if="hexInput.trim()" class="text-red-500 text-xs italic">
+          Invalid Modbus RTU response frame (too short or bad format)
         </div>
-        <div v-if="error" class="text-red-500 text-sm">{{ error }}</div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-// 读命令生成器
-const readAddr = ref(1)
-const readFunc = ref(3)
-const readReg = ref(0)
+import { ref, computed } from 'vue'
+
+definePageMeta({ layout: 'default' })
+
+// Read Generator State
+const readAddrHex = ref('01')
+const readFuncHex = ref('03')
+const readRegHex = ref('0000')
 const readNum = ref(1)
 const readCmd = ref('')
-function fillCRC() {
-  const arr = [readAddr.value, readFunc.value, readReg.value >> 8, readReg.value & 0xFF, readNum.value >> 8, readNum.value & 0xFF]
-  const crc = calcCRC16(arr)
-  arr.push(crc & 0xFF, crc >> 8)
-  readCmd.value = arr.map(x => x.toString(16).padStart(2, '0').toUpperCase()).join(' ')
-}
+
+// Parser State
+const hexInput = ref('')
+const selectedRegs = ref<number[]>([])
+const byteOrder = ref('1234')
+const dataType = ref('int32')
+
 function calcCRC16(bytes: number[]) {
   let crc = 0xFFFF
   for (let b of bytes) {
@@ -118,177 +137,131 @@ function calcCRC16(bytes: number[]) {
   }
   return crc
 }
-// 协议解析
-const hexInput = ref('')
-const byteOrder = ref('1234')
-const dataType = ref('int32')
-const result = ref<null | number>(null)
-const error = ref('')
-const selectedRegs = ref<number[]>([])
-const manualHex = ref('')
-const manualEdited = ref(false)
+
+function generateReadCmd() {
+  const addr = parseInt(readAddrHex.value, 16) || 0
+  const func = parseInt(readFuncHex.value, 16) || 0
+  const reg = parseInt(readRegHex.value, 16) || 0
+  const num = readNum.value || 0
+  
+  const bytes = [
+    addr & 0xFF,
+    func & 0xFF,
+    (reg >> 8) & 0xFF,
+    reg & 0xFF,
+    (num >> 8) & 0xFF,
+    num & 0xFF
+  ]
+  
+  const crc = calcCRC16(bytes)
+  bytes.push(crc & 0xFF, (crc >> 8) & 0xFF)
+  
+  readCmd.value = bytes.map(x => x.toString(16).padStart(2, '0').toUpperCase()).join(' ')
+}
+
 const frameInfo = computed(() => {
-  let hex = hexInput.value.replace(/[^0-9a-fA-F]/g, ' ').replace(/\s+/g, ' ').trim()
-  if (!hex) return { valid: false }
-  const bytes = hex.split(' ').map(x => parseInt(x, 16)).filter(x => !isNaN(x))
-  if (bytes.length < 5) return { valid: false }
-  const addr = bytes[0]?.toString(16).padStart(2, '0').toUpperCase() ?? '--'
-  const func = bytes[1]?.toString(16).padStart(2, '0').toUpperCase() ?? '--'
-  const byteCount = bytes[2] ?? 0
-  if (bytes.length < 3 + byteCount + 2) return { valid: false }
-  const dataStart = 3
-  const dataEnd = 3 + byteCount
-  const dataBytes = bytes.slice(dataStart, dataEnd)
-  const regs = []
-  for (let i = 0; i < dataBytes.length; i += 2) {
-    regs.push([
-      dataBytes[i]?.toString(16).padStart(2, '0').toUpperCase() ?? '--',
-      dataBytes[i+1]?.toString(16).padStart(2, '0').toUpperCase() ?? '--'
-    ])
+  const cleanHex = hexInput.value.replace(/[^0-9a-fA-F]/g, '')
+  if (cleanHex.length < 10) return { valid: false }
+  
+  const bytes = []
+  for (let i = 0; i < cleanHex.length; i += 2) {
+    bytes.push(parseInt(cleanHex.substr(i, 2), 16))
   }
-  const crc = bytes.slice(-2).map(x => x.toString(16).padStart(2, '0').toUpperCase()).join(' ')
+  
+  const addr = bytes[0].toString(16).padStart(2, '0').toUpperCase()
+  const func = bytes[1].toString(16).padStart(2, '0').toUpperCase()
+  const byteCount = bytes[2]
+  
+  if (bytes.length < 3 + byteCount + 2) return { valid: false }
+  
+  const dataBytes = bytes.slice(3, 3 + byteCount)
+  const regs: string[] = []
+  for (let i = 0; i < dataBytes.length; i += 2) {
+    if (i + 1 < dataBytes.length) {
+      regs.push(dataBytes[i].toString(16).padStart(2, '0').toUpperCase() + dataBytes[i+1].toString(16).padStart(2, '0').toUpperCase())
+    }
+  }
+  
+  const receivedCrc = (bytes[bytes.length - 1] << 8) | bytes[bytes.length - 2]
+  const calculatedCrc = calcCRC16(bytes.slice(0, bytes.length - 2))
+  
   return {
     valid: true,
     addr,
     func,
     byteCount,
     regs,
-    crc
+    crc: receivedCrc.toString(16).padStart(4, '0').toUpperCase(),
+    crcValid: receivedCrc === calculatedCrc,
+    rawBytes: dataBytes
   }
 })
+
 function toggleReg(idx: number) {
-  if (selectedRegs.value.includes(idx)) {
-    selectedRegs.value = selectedRegs.value.filter(i => i !== idx)
+  const index = selectedRegs.value.indexOf(idx)
+  if (index > -1) {
+    selectedRegs.value.splice(index, 1)
   } else {
-    selectedRegs.value.push(idx)
+    // Limit selection based on data type length
+    const maxRegs = { int16: 1, uint16: 1, int32: 2, uint32: 2, float32: 2 }[dataType.value as any] || 4
+    if (selectedRegs.value.length >= maxRegs) {
+      selectedRegs.value = [idx]
+    } else {
+      selectedRegs.value.push(idx)
+      selectedRegs.value.sort((a, b) => a - b)
+    }
   }
-  manualHex.value = selectedRegs.value.map(i => frameInfo.value.regs?.[i]).flat().join(' ')
-  manualEdited.value = false
 }
-const selectedHex = computed(() => {
-  if (manualHex.value.trim()) return manualHex.value.trim()
-  if (!frameInfo.value.valid) return ''
-  return selectedRegs.value.map(i => frameInfo.value.regs?.[i]).flat().join(' ')
-})
-// 监听寄存器选择，若未手动编辑则自动填充输入框
-watch(selectedRegs, () => {
-  if (!manualEdited.value) {
-    manualHex.value = selectedRegs.value.map(i => frameInfo.value.regs?.[i]).flat().join(' ')
+
+const parsedResult = computed(() => {
+  if (selectedRegs.value.length === 0 || !frameInfo.value.valid) return null
+  
+  let bytes: number[] = []
+  selectedRegs.value.forEach(idx => {
+    const regHex = frameInfo.value.regs?.[idx]
+    if (regHex) {
+      bytes.push(parseInt(regHex.substr(0, 2), 16))
+      bytes.push(parseInt(regHex.substr(2, 2), 16))
+    }
+  })
+  
+  const len = bytes.length
+  if (len === 0) return null
+
+  // Byte Order Handling
+  let ordered = [...bytes]
+  if (byteOrder.value === '4321') ordered.reverse()
+  else if (byteOrder.value === '2143') {
+    for (let i = 0; i < len; i += 2) [ordered[i], ordered[i+1]] = [ordered[i+1], ordered[i]]
+  } else if (byteOrder.value === '3412') {
+    if (len === 4) ordered = [ordered[2], ordered[3], ordered[0], ordered[1]]
   }
-})
-// 监听输入框手动编辑
-function onManualInput() {
-  manualEdited.value = true
-}
-function parseSelected() {
-  error.value = ''
-  result.value = null
-  const hex = selectedHex.value.replace(/[^0-9a-fA-F]/g, ' ').replace(/\s+/g, ' ').trim()
-  if (!hex) {
-    error.value = '请选择要解析的寄存器'; return
-  }
-  const bytes = hex.split(' ').map(x => parseInt(x, 16))
-  if (bytes.some(isNaN)) {
-    error.value = '包含无效的十六进制字节'; return
-  }
-  const typeBytes = { int16: 2, int32: 4, int64: 8, float32: 4, float64: 8 }
-  const len = typeBytes[dataType.value as keyof typeof typeBytes]
-  if (bytes.length !== len) {
-    error.value = `所选寄存器字节数需为${len}，当前为${bytes.length}`; return
-  }
-  let seg = bytes.slice(0, len)
-  // 字节序处理
-  if (byteOrder.value === '2143') {
-    if (len === 2) seg = [seg[1], seg[0]]
-    if (len === 4) seg = [seg[1], seg[0], seg[3], seg[2]]
-    if (len === 8) seg = [seg[1], seg[0], seg[3], seg[2], seg[5], seg[4], seg[7], seg[6]]
-  }
-  if (byteOrder.value === '3412') {
-    if (len === 2) seg = [seg[1], seg[0]]
-    if (len === 4) seg = [seg[2], seg[3], seg[0], seg[1]]
-    if (len === 8) seg = [seg[2], seg[3], seg[0], seg[1], seg[6], seg[7], seg[4], seg[5]]
-  }
+
   const buf = new ArrayBuffer(len)
   const view = new DataView(buf)
-  seg.forEach((b, i) => view.setUint8(i, b))
-  const littleEndian = byteOrder.value === '4321'
+  ordered.forEach((b, i) => view.setUint8(i, b))
+
   try {
-    switch (dataType.value) {
-      case 'int16': result.value = view.getInt16(0, littleEndian); break
-      case 'int32': result.value = view.getInt32(0, littleEndian); break
-      case 'int64': {
-        const hi = view.getUint32(0, littleEndian)
-        const lo = view.getUint32(4, littleEndian)
-        result.value = Number(BigInt(hi) << 32n | BigInt(lo))
-        break
-      }
-      case 'float32': result.value = view.getFloat32(0, littleEndian); break
-      case 'float64': result.value = view.getFloat64(0, littleEndian); break
-    }
+    if (dataType.value === 'int16' && len >= 2) return view.getInt16(0)
+    if (dataType.value === 'uint16' && len >= 2) return view.getUint16(0)
+    if (dataType.value === 'int32' && len >= 4) return view.getInt32(0)
+    if (dataType.value === 'uint32' && len >= 4) return view.getUint32(0)
+    if (dataType.value === 'float32' && len >= 4) return view.getFloat32(0).toFixed(4)
   } catch (e) {
-    error.value = '解析失败：' + (e as Error).message
+    return 'Error'
   }
-}
+  return null
+})
 </script>
 
 <style scoped>
-input, select, textarea {
-  outline: none;
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Indie+Flower&display=swap');
+
+.font-hand {
+  font-family: 'Patrick Hand', cursive;
 }
-textarea {
-  min-height: 70px;
-  resize: vertical;
-}
-.btn-gray {
-  background: #f4f4f5;
-  color: #222;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  padding: 0.5em 1.5em;
-  font-weight: 500;
-  transition: background 0.18s, color 0.18s, border 0.18s;
-  cursor: pointer;
-}
-.btn-gray:hover {
-  background: #e5e7eb;
-  color: #111;
-  border-color: #d1d5db;
-}
-.help-icon {
-  display: inline-block;
-  margin-left: 4px;
-  width: 1.1em;
-  height: 1.1em;
-  line-height: 1.1em;
-  text-align: center;
-  border-radius: 50%;
-  background: #f4f4f5;
-  color: #888;
-  font-size: 0.95em;
-  font-weight: bold;
-  cursor: help;
-  border: 1px solid #e5e7eb;
-  transition: background 0.18s, color 0.18s;
-}
-.help-icon:hover {
-  background: #e5e7eb;
-  color: #222;
-}
-.reg-box {
-  display: inline-block;
-  min-width: 60px;
-  padding: 0.3em 0.7em;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  background: #f8fafc;
-  color: #333;
-  cursor: pointer;
-  user-select: none;
-  transition: background 0.18s, border 0.18s, color 0.18s;
-}
-.reg-box-selected {
-  background: #e5e7eb;
-  border-color: #bdbdbd;
-  color: #111;
+
+h1, h2 {
+  font-family: 'Indie Flower', cursive;
 }
 </style>

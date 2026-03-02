@@ -30,23 +30,13 @@
             </div>
           </div>
         </div>
-        <button @click="resetApiKey" class="text-xs text-zinc-400 hover:text-zinc-600 underline shrink-0">Reset Key</button>
       </div>
     </div>
 
-    <!-- API Key Input (if not set) -->
-    <div v-if="!apiKey" class="max-w-md mx-auto sketch-card mt-20">
-      <h2 class="text-xl font-bold mb-4">Set OpenRouter API Key</h2>
-      <p class="mb-4 text-sm text-zinc-500 italic">Your API key is stored locally in your browser and used only to call OpenRouter directly.</p>
-      <div class="flex flex-col gap-4">
-        <input 
-          v-model="tempApiKey" 
-          type="password" 
-          placeholder="sk-or-v1-..." 
-          class="px-4 py-2 sketch-border bg-white outline-none focus:sketch-shadow-sm w-full"
-        />
-        <button @click="saveApiKey" class="sketch-button w-full">Save Key</button>
-      </div>
+    <!-- API Key Input Warning (if not set) -->
+    <div v-if="!apiKey" class="max-w-md mx-auto sketch-card mt-20 text-center">
+      <h2 class="text-xl font-bold mb-4 text-red-500">Missing API Key</h2>
+      <p class="mb-4 text-zinc-600">Please set your OpenRouter API Key in the Global Settings (click the gear icon in the top right corner of the header).</p>
     </div>
 
     <!-- Main Content -->
@@ -54,11 +44,24 @@
       
       <!-- Left: Live2D Character (40% width on desktop) -->
       <div class="lg:col-span-5 relative flex flex-col items-center">
+        <!-- Character Selector -->
+        <div class="w-full mb-4 max-w-[500px]">
+          <select 
+            v-model="currentLive2dModel" 
+            @change="handleLive2dModelChange"
+            class="w-full sketch-border px-3 py-2 bg-white outline-none focus:sketch-shadow-sm text-sm font-hand"
+          >
+            <option v-for="model in availableLive2dModels" :key="model.id" :value="model.id">
+              {{ model.name }}
+            </option>
+          </select>
+        </div>
+
         <div class="character-container w-full aspect-square max-w-[500px] sketch-card p-0 overflow-hidden bg-white relative">
           <ClientOnly>
             <div id="L2dCanvas" class="w-full h-full relative"></div>
             <div v-if="!isModelLoaded" class="absolute inset-0 flex items-center justify-center bg-white/80">
-              <span class="animate-pulse italic">Summoning Yuki...</span>
+              <span class="animate-pulse italic">Summoning {{ currentCharacterName }}...</span>
             </div>
           </ClientOnly>
         </div>
@@ -94,7 +97,7 @@
             </div>
             <div v-if="isLoading" class="flex justify-start">
               <div class="p-4 sketch-border-3 bg-white animate-pulse italic">
-                Yuki is thinking...
+                {{ currentCharacterName }} is thinking...
               </div>
             </div>
           </div>
@@ -145,23 +148,35 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import { marked } from 'marked'
 
 definePageMeta({ layout: 'default' })
 
 // State
 const apiKey = ref('')
-const tempApiKey = ref('')
 const currentModel = ref('google/gemini-2.0-flash-001')
-const messages = ref<any[]>([
-  { role: 'assistant', content: "Hi there! I'm Yuki, your hand-drawn AI companion. How can I help you today?" }
-])
+const messages = ref<any[]>([])
 const inputMessage = ref('')
 const isLoading = ref(false)
 const chatContainer = ref<HTMLElement | null>(null)
 const selectedImage = ref<string | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
+
+// Live2D Models
+const availableLive2dModels = ref([
+  { id: 'xuefeng_3', name: 'Sarah' },
+  { id: 'xuefeng', name: 'Emma' },
+  { id: 'lafei_4', name: 'Sophie' },
+  { id: 'lafei', name: 'Lafei' },
+  { id: 'chuixue_3', name: 'Chuixue' }
+])
+const currentLive2dModel = ref('xuefeng_3')
+
+const currentCharacterName = computed(() => {
+  const model = availableLive2dModels.value.find(m => m.id === currentLive2dModel.value)
+  return model ? model.name : 'Sarah'
+})
 
 // Model search and selection
 const availableModels = ref<any[]>([
@@ -191,14 +206,17 @@ const selectModel = (m: any) => {
 
 // Live2D State
 const isModelLoaded = ref(false)
-const characterResponse = ref("Hi there! I'm Yuki, your hand-drawn AI companion. How can I help you today?")
+const characterResponse = ref("")
 let l2dv: any = null
+let speechSynthesis: SpeechSynthesis | null = null
+
+const defaultMessage = computed(() => `Hi there! I'm ${currentCharacterName.value}, your hand-drawn AI companion. How can I help you today?`)
 
 onMounted(async () => {
-  const storedKey = localStorage.getItem('yuki_api_key')
-  if (storedKey) {
-    apiKey.value = storedKey
-  }
+  apiKey.value = localStorage.getItem('global_openrouter_key') || ''
+  
+  // Listen for storage changes from settings
+  window.addEventListener('storage', handleStorageChange)
   
   const savedMessages = localStorage.getItem('yuki_messages')
   if (savedMessages) {
@@ -206,14 +224,24 @@ onMounted(async () => {
       messages.value = JSON.parse(savedMessages)
     } catch (e) {
       console.error('Failed to load messages:', e)
+      messages.value = [{ role: 'assistant', content: defaultMessage.value }]
     }
+  } else {
+    messages.value = [{ role: 'assistant', content: defaultMessage.value }]
   }
+
+  characterResponse.value = defaultMessage.value
 
   const savedModel = localStorage.getItem('yuki_current_model')
   if (savedModel) {
     currentModel.value = savedModel
   }
   
+  const savedL2dModel = localStorage.getItem('yuki_live2d_model')
+  if (savedL2dModel) {
+    currentLive2dModel.value = savedL2dModel
+  }
+
   scrollToBottom()
   
   // Fetch models from OpenRouter
@@ -228,7 +256,13 @@ onMounted(async () => {
   }
 
   // Initialize Live2D
-  initLive2D()
+  if (apiKey.value) {
+    initLive2D()
+  }
+
+  if (window.speechSynthesis) {
+    speechSynthesis = window.speechSynthesis
+  }
 
   // Click outside to close dropdown
   window.addEventListener('click', handleOutsideClick)
@@ -238,8 +272,19 @@ onUnmounted(() => {
   if (l2dv) {
     l2dv = null
   }
+  if (speechSynthesis) {
+    speechSynthesis.cancel()
+  }
   window.removeEventListener('click', handleOutsideClick)
+  window.removeEventListener('storage', handleStorageChange)
 })
+
+const handleStorageChange = () => {
+  apiKey.value = localStorage.getItem('global_openrouter_key') || ''
+  if (apiKey.value && !l2dv) {
+    initLive2D()
+  }
+}
 
 const handleOutsideClick = (e: MouseEvent) => {
   const target = e.target as HTMLElement
@@ -269,25 +314,6 @@ const fetchModels = async () => {
     }
   } catch (error) {
     console.error('Failed to fetch models:', error)
-  }
-}
-
-// Handlers
-const saveApiKey = () => {
-  if (tempApiKey.value.trim()) {
-    apiKey.value = tempApiKey.value.trim()
-    localStorage.setItem('yuki_api_key', apiKey.value)
-    tempApiKey.value = ''
-    nextTick(() => {
-      initLive2D()
-    })
-  }
-}
-
-const resetApiKey = () => {
-  if (confirm('Are you sure you want to reset your API key?')) {
-    apiKey.value = ''
-    localStorage.removeItem('yuki_api_key')
   }
 }
 
@@ -321,6 +347,7 @@ const scrollToBottom = () => {
 
 const sendMessage = async () => {
   if (isLoading.value || (!inputMessage.value.trim() && !selectedImage.value)) return
+  if (!apiKey.value) return
   
   const userText = inputMessage.value.trim()
   const userImage = selectedImage.value
@@ -355,6 +382,9 @@ const sendMessage = async () => {
       return { role: m.role, content: m.content }
     })
 
+    // Inject character prompt into system instructions dynamically if needed, or just let chat history dictate
+    // For simplicity, we just send chat history
+    
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -365,7 +395,10 @@ const sendMessage = async () => {
       },
       body: JSON.stringify({
         model: currentModel.value,
-        messages: apiMessages
+        messages: [
+          { role: 'system', content: `You are ${currentCharacterName.value}, a friendly hand-drawn AI companion. Keep answers concise, natural, and helpful.` },
+          ...apiMessages
+        ]
       })
     })
     
@@ -388,20 +421,17 @@ const sendMessage = async () => {
       aiText = message.content || ''
     }
 
-    // Check for images array in message object (OpenRouter specific)
     if (message.images && Array.isArray(message.images)) {
       message.images.forEach((url: string) => {
         if (!imageUrls.includes(url)) imageUrls.push(url)
       })
     }
 
-    // Fallback: extract image URLs from the response content text if no images found yet
     if (imageUrls.length === 0) {
       const urlRegex = /https?:\/\/\S+\.(?:png|jpg|jpeg|gif|webp)(?:\?\S+)?/gi
       const matches = aiText.match(urlRegex)
       if (matches) {
         matches.forEach((url: string) => {
-          // Clean up URL (remove trailing markdown parens or quotes)
           const cleanUrl = url.split(')')[0].split('"')[0].split("'")[0]
           if (!imageUrls.includes(cleanUrl)) imageUrls.push(cleanUrl)
         })
@@ -417,10 +447,11 @@ const sendMessage = async () => {
     
     localStorage.setItem('yuki_messages', JSON.stringify(messages.value))
     
-    // Trigger Live2D motion
+    // Trigger Live2D motion & play voice
     if (l2dv) {
       l2dv.startMotion('tap_body')
     }
+    playVoice(aiText)
   } catch (error: any) {
     console.error('AI Error:', error)
     messages.value.push({ role: 'assistant', content: `Error: ${error.message}` })
@@ -433,9 +464,9 @@ const sendMessage = async () => {
 const clearChat = () => {
   if (confirm('Clear chat history?')) {
     messages.value = [
-      { role: 'assistant', content: "Hi there! I'm Yuki, your hand-drawn AI companion. How can I help you today?" }
+      { role: 'assistant', content: defaultMessage.value }
     ]
-    characterResponse.value = "Hi there! I'm Yuki, your hand-drawn AI companion. How can I help you today?"
+    characterResponse.value = defaultMessage.value
     localStorage.removeItem('yuki_messages')
   }
 }
@@ -446,10 +477,8 @@ const initLive2D = async () => {
     const canvas = document.getElementById('L2dCanvas')
     if (!canvas) return
     
-    // Clear canvas
     canvas.innerHTML = ''
     
-    // Load SDK scripts if not already loaded
     await Promise.all([
       loadScript('https://unpkg.com/core-js-bundle@3.6.1/minified.js'),
       loadScript('https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/lib/live2dcubismcore.min.js'),
@@ -458,11 +487,10 @@ const initLive2D = async () => {
     ])
 
     if (window.L2dViewer) {
-      // Initialize Viewer
       window.l2dv = new window.L2dViewer({
         el: canvas,
         modelHomePath: 'https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/model/moc3/',
-        model: 'xuefeng_3',
+        model: currentLive2dModel.value,
         width: canvas.clientWidth || 500,
         height: canvas.clientHeight || 500,
         autoMotion: true
@@ -473,6 +501,41 @@ const initLive2D = async () => {
     }
   } catch (error) {
     console.error('Failed to initialize Live2D:', error)
+  }
+}
+
+const handleLive2dModelChange = () => {
+  if (l2dv) {
+    l2dv.loadModel(currentLive2dModel.value)
+    characterResponse.value = `Hi there! I'm ${currentCharacterName.value}.`
+    playVoice(characterResponse.value)
+    localStorage.setItem('yuki_live2d_model', currentLive2dModel.value)
+  }
+}
+
+const playVoice = (text: string) => {
+  if (!speechSynthesis) return
+  
+  try {
+    speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = 'en-US'
+    utterance.pitch = 1.0
+    utterance.rate = 0.9
+    
+    const voices = speechSynthesis.getVoices()
+    const englishVoice = voices.find(voice => 
+      voice.lang.includes('en') && 
+      (voice.name.includes('Samantha') || voice.name.includes('Karen') || voice.name.includes('Alex'))
+    )
+    
+    if (englishVoice) {
+      utterance.voice = englishVoice
+    }
+    
+    speechSynthesis.speak(utterance)
+  } catch (error) {
+    console.error('Failed to play voice:', error)
   }
 }
 
@@ -510,7 +573,6 @@ h1, h2 {
   font-family: 'Indie Flower', cursive;
 }
 
-/* Override prose to use hand-drawn font */
 :deep(.prose) {
   font-family: 'Patrick Hand', cursive;
 }
@@ -519,7 +581,6 @@ h1, h2 {
   border-radius: 40px 10px 45px 15px / 15px 45px 15px 40px;
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -543,7 +604,6 @@ h1, h2 {
   align-items: center;
 }
 
-/* Style for the model dropdown search */
 .model-selector-container .sketch-border {
   border-radius: 12px 4px 14px 5px / 5px 14px 5px 12px;
 }

@@ -54,15 +54,6 @@ const tools = [
     ]
   },
   {
-    to: '/tools/live2d',
-    title: 'Live2D Talk',
-    description: 'Chat with a cute anime character.',
-    tags: [
-      { label: 'Feature Tag', color: 'indigo' },
-      { label: 'Free', color: 'green' }
-    ]
-  },
-  {
     to: '/tools/prompt-collection',
     title: 'Prompt Collection',
     description: 'A collection of useful prompts for AI.',
