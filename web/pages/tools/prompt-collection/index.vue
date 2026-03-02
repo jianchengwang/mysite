@@ -85,7 +85,7 @@ marked.setOptions({
   }
 })
 
-const { data: page, pending } = await useAsyncData('prompt-collection', () => queryContent('tools', 'prompt-collection').findOne())
+const { data: page, pending } = await useAsyncData('prompt-collection', () => queryContent('/tools/prompt-collection').findOne())
 
 const prompts = ref<any[]>([])
 const selectedPrompt = ref<any>(null)

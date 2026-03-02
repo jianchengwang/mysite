@@ -6,7 +6,7 @@
         <p class="text-zinc-600 italic">Convert Markdown to WeChat official account format with sketch-style polish</p>
       </div>
       <div class="flex flex-wrap gap-3 items-center">
-        <button @click="copyWechatFormat" class="sketch-button bg-zinc-900 text-white">Copy to WeChat</button>
+        <button @click="copyWechatFormat" class="sketch-button bg-zinc-900 text-white !text-white">Copy to WeChat</button>
         <button @click="pasteExample" class="sketch-button bg-white text-zinc-900">Example</button>
         <button @click="clearInput" class="sketch-button bg-white text-red-600">Clear</button>
         <button @click="resetTheme" class="sketch-button bg-white text-zinc-900">Reset Default Style</button>

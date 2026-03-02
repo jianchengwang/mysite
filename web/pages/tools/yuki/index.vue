@@ -424,8 +424,12 @@ const sendMessage = async () => {
     }
 
     if (message.images && Array.isArray(message.images)) {
-      message.images.forEach((url: string) => {
-        if (!imageUrls.includes(url)) imageUrls.push(url)
+      message.images.forEach((imgObj: any) => {
+        if (typeof imgObj === 'string') {
+          if (!imageUrls.includes(imgObj)) imageUrls.push(imgObj)
+        } else if (imgObj.image_url && imgObj.image_url.url) {
+          if (!imageUrls.includes(imgObj.image_url.url)) imageUrls.push(imgObj.image_url.url)
+        }
       })
     }
 

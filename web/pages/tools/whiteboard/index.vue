@@ -493,7 +493,12 @@ const generateAIImage = async () => {
     }
 
     if (!imageUrl && message.images && message.images.length > 0) {
-      imageUrl = message.images[0]
+      const firstImg = message.images[0]
+      if (typeof firstImg === 'string') {
+        imageUrl = firstImg
+      } else if (firstImg.image_url && firstImg.image_url.url) {
+        imageUrl = firstImg.image_url.url
+      }
     }
 
     if (imageUrl) {

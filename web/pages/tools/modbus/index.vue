@@ -12,19 +12,19 @@
         <div class="grid grid-cols-2 gap-6">
           <div class="space-y-2">
             <label class="block text-sm font-bold text-zinc-700">Device Address (HEX)</label>
-            <input v-model="readAddrHex" type="text" placeholder="01" class="w-full sketch-border px-3 py-2 outline-none focus:sketch-shadow-sm font-mono uppercase" />
+            <input v-model="readAddrHex" type="text" placeholder="01" class="w-full bg-white text-zinc-900 sketch-border px-3 py-2 outline-none focus:sketch-shadow-sm font-mono uppercase" />
           </div>
           <div class="space-y-2">
             <label class="block text-sm font-bold text-zinc-700">Function Code (HEX)</label>
-            <input v-model="readFuncHex" type="text" placeholder="03" class="w-full sketch-border px-3 py-2 outline-none focus:sketch-shadow-sm font-mono uppercase" />
+            <input v-model="readFuncHex" type="text" placeholder="03" class="w-full bg-white text-zinc-900 sketch-border px-3 py-2 outline-none focus:sketch-shadow-sm font-mono uppercase" />
           </div>
           <div class="space-y-2">
             <label class="block text-sm font-bold text-zinc-700">Start Address (HEX)</label>
-            <input v-model="readRegHex" type="text" placeholder="0000" class="w-full sketch-border px-3 py-2 outline-none focus:sketch-shadow-sm font-mono uppercase" />
+            <input v-model="readRegHex" type="text" placeholder="0000" class="w-full bg-white text-zinc-900 sketch-border px-3 py-2 outline-none focus:sketch-shadow-sm font-mono uppercase" />
           </div>
           <div class="space-y-2">
             <label class="block text-sm font-bold text-zinc-700">Quantity (DEC)</label>
-            <input v-model="readNum" type="number" min="1" max="125" class="w-full sketch-border px-3 py-2 outline-none focus:sketch-shadow-sm font-hand" />
+            <input v-model="readNum" type="number" min="1" max="125" class="w-full bg-white text-zinc-900 sketch-border px-3 py-2 outline-none focus:sketch-shadow-sm font-hand" />
           </div>
         </div>
         <div class="flex-1 flex flex-col justify-end pt-4 gap-4">
@@ -44,7 +44,7 @@
             v-model="hexInput" 
             rows="3" 
             placeholder="e.g. 01 03 04 00 01 00 02 79 84" 
-            class="w-full sketch-border px-3 py-2 outline-none focus:sketch-shadow-sm font-mono text-sm resize-none"
+            class="w-full sketch-border bg-white text-zinc-900 px-3 py-2 outline-none focus:sketch-shadow-sm font-mono text-sm resize-none"
           ></textarea>
         </div>
 

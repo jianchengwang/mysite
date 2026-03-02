@@ -21,6 +21,15 @@
             </select>
           </div>
           <div class="flex-1">
+            <label class="block text-sm font-bold text-zinc-700 mb-2">Model</label>
+            <select v-model="selectedModel" class="w-full sketch-border bg-white px-3 py-2 outline-none focus:sketch-shadow-sm font-hand">
+              <option value="google/gemini-2.0-flash-001">Gemini 2.0 Flash</option>
+              <option value="anthropic/claude-3.5-haiku">Claude 3.5 Haiku</option>
+              <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
+              <option value="x-ai/grok-2-vision">Grok 2</option>
+            </select>
+          </div>
+          <div class="flex-1">
             <label class="block text-sm font-bold text-zinc-700 mb-2">Topic</label>
             <select v-model="topic" class="w-full sketch-border bg-white px-3 py-2 outline-none focus:sketch-shadow-sm font-hand">
               <option value="daily_routines">Daily Routines</option>
@@ -124,6 +133,7 @@ definePageMeta({ layout: 'default' })
 
 const numChunks = ref(5)
 const topic = ref('daily_routines')
+const selectedModel = ref('google/gemini-2.0-flash-001')
 const chunks = ref<Array<{ phrase: string; examples: string[] }>>([])
 const scenario = ref<{ title: string; context: string; content: string } | null>(null)
 const loading = ref(false)
@@ -206,7 +216,7 @@ Return strictly a JSON object with this structure:
         'X-Title': 'Gemini English Chunk'
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.0-flash-001',
+        model: selectedModel.value,
         messages: [{ role: 'user', content: prompt }],
         response_format: { type: 'json_object' }
       })
