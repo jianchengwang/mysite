@@ -13,6 +13,7 @@
     "@nuxt/content": "^3.4.0",
     "@primeuix/themes": "^1.0.3",
     "@primevue/forms": "^4.3.3",
+    "better-sqlite3": "^12.6.2",
     "highlight.js": "^11.11.1",
     "marked": "^15.0.7",
     "nuxt": "^3.10.1",
@@ -24,5 +25,12 @@
     "@primevue/nuxt-module": "^4.3.3",
     "@types/node": "^20.11.16",
     "typescript": "^5.3.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "esbuild",
+      "@parcel/watcher"
+    ]
   }
 }

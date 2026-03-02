@@ -99,7 +99,6 @@ const tools = [
     ]
   },
   {
-    to: '/tools/xai',
     title: 'XAI Chat',
     description: 'Chat with XAI.',
     tags: [
