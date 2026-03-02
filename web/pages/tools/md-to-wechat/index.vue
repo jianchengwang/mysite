@@ -17,19 +17,19 @@
     </div>
 
     <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[70vh]">
-      <div class="flex flex-col gap-3 h-full">
+      <div class="flex flex-col gap-3 h-auto lg:h-full">
         <div class="flex justify-between items-center px-2">
           <span class="text-sm font-bold uppercase tracking-wider text-zinc-500">Markdown Editor</span>
           <span class="text-xs text-zinc-500 italic">{{ markdownInput.length }} chars</span>
         </div>
         <textarea
           v-model="markdownInput"
-          class="flex-1 min-h-[420px] w-full p-6 sketch-card bg-white resize-none outline-none focus:sketch-shadow-sm font-mono text-sm leading-relaxed"
+          class="flex-1 min-h-[420px] lg:min-h-0 w-full p-6 sketch-card bg-white resize-none outline-none focus:sketch-shadow-sm font-mono text-sm leading-relaxed"
           placeholder="Paste your markdown here..."
         ></textarea>
       </div>
 
-      <div class="flex flex-col gap-3 h-full">
+      <div class="flex flex-col gap-3 h-auto lg:h-full">
         <div class="flex justify-between items-center px-2 gap-4">
           <span class="text-sm font-bold uppercase tracking-wider text-zinc-500">WeChat Preview</span>
           <div class="flex items-center gap-2">

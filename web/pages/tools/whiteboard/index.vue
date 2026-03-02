@@ -16,9 +16,9 @@
     </div>
 
     <!-- Toolbar & Canvas Area -->
-    <div class="flex-1 flex gap-6 min-h-0">
+    <div class="flex-1 flex flex-col md:flex-row gap-6 min-h-0">
       <!-- Sidebar Toolbar -->
-      <div class="w-48 flex flex-col gap-4">
+      <div class="w-full md:w-48 flex flex-col gap-4">
         <div class="sketch-card p-4 space-y-4">
           <h3 class="font-bold border-b border-zinc-200 pb-2 mb-2">Tools</h3>
           <div class="grid grid-cols-2 gap-2">

@@ -89,7 +89,7 @@
         </div>
       </div>
 
-      <div class="lg:col-span-7 flex flex-col h-[75vh] min-h-[500px]">
+      <div class="lg:col-span-7 flex flex-col h-auto lg:h-[75vh] min-h-[500px]">
         <div class="flex-1 flex flex-col sketch-card bg-white p-0 overflow-hidden">
           <div ref="chatContainer" class="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
             <div v-for="(msg, index) in messages" :key="index" :class="['flex', msg.role === 'user' ? 'justify-end' : 'justify-start']">

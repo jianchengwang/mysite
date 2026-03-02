@@ -5,28 +5,31 @@
         JianchengWang
       </NuxtLink>
 
+      <!-- Mobile: only show settings button -->
       <div class="flex items-center space-x-6">
-        <NuxtLink to="/tech" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
-          Tech
-        </NuxtLink>
-        <NuxtLink to="/store" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
-          Store
-        </NuxtLink>
-        <NuxtLink to="/column" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
-          Column
-        </NuxtLink>
-        <NuxtLink to="/english" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
-          English
-        </NuxtLink>
-        <NuxtLink to="/tools" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
-          Tools
-        </NuxtLink>
-        <NuxtLink to="/links" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
-          Links
-        </NuxtLink>
-        <NuxtLink to="/about" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
-          About
-        </NuxtLink>
+        <div class="hidden md:flex items-center space-x-6">
+          <NuxtLink to="/tech" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
+            Tech
+          </NuxtLink>
+          <NuxtLink to="/store" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
+            Store
+          </NuxtLink>
+          <NuxtLink to="/column" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
+            Column
+          </NuxtLink>
+          <NuxtLink to="/english" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
+            English
+          </NuxtLink>
+          <NuxtLink to="/tools" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
+            Tools
+          </NuxtLink>
+          <NuxtLink to="/links" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
+            Links
+          </NuxtLink>
+          <NuxtLink to="/about" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
+            About
+          </NuxtLink>
+        </div>
         <button
           @click="openSettings"
           class="sketch-button !px-3 !py-2 !shadow-[2px_2px_0_0_rgba(0,0,0,1)] !rounded-[16px_8px_18px_7px/7px_18px_7px_16px] text-zinc-700 hover:text-zinc-900 bg-white"
