@@ -48,7 +48,7 @@
         <button 
           @click="generateChunks"
           :disabled="loading || !apiKey"
-          class="w-full sketch-button py-3 text-lg bg-zinc-900 text-white disabled:opacity-50"
+          class="w-full sketch-button py-3 text-lg !bg-zinc-900 !text-white disabled:opacity-50"
         >
           {{ loading ? 'Generating...' : '✨ Generate Chunks' }}
         </button>

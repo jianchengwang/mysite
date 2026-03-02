@@ -28,7 +28,7 @@
           </div>
         </div>
         <div class="flex-1 flex flex-col justify-end pt-4 gap-4">
-          <button @click="generateReadCmd" class="sketch-button bg-zinc-900 text-white py-3">Generate Command</button>
+          <button @click="generateReadCmd" class="sketch-button !bg-zinc-900 !text-white py-3">Generate Command</button>
           <div v-if="readCmd" class="p-4 bg-zinc-50 sketch-border font-mono text-center text-lg break-all select-all cursor-pointer" title="Click to select all">
             {{ readCmd }}
           </div>
@@ -64,7 +64,7 @@
                 @click="toggleReg(idx)"
                 :class="[
                   'px-3 py-1 sketch-border cursor-pointer transition-all text-sm font-mono',
-                  selectedRegs.includes(idx) ? 'bg-zinc-900 text-white -translate-y-0.5' : 'bg-white hover:bg-zinc-50'
+                  selectedRegs.includes(idx) ? '!bg-zinc-900 !text-white -translate-y-0.5' : 'bg-white hover:bg-zinc-50'
                 ]"
               >
                 <span class="text-[10px] opacity-50 mr-2">{{ idx }}</span>
@@ -95,7 +95,7 @@
             </div>
           </div>
 
-          <div v-if="parsedResult !== null" class="mt-4 p-4 bg-zinc-900 text-white sketch-card text-center">
+          <div v-if="parsedResult !== null" class="mt-4 p-4 !bg-zinc-900 !text-white sketch-card text-center">
             <div class="text-xs opacity-50 uppercase tracking-widest mb-1">Parsed Value</div>
             <div class="text-3xl font-mono">{{ parsedResult }}</div>
           </div>

@@ -94,7 +94,7 @@
         class="relative sketch-card bg-white px-12 py-16 min-w-[800px] min-h-[220px] flex flex-col items-center justify-center mb-12 select-none text-5xl font-sketch tracking-wider outline-none focus:ring-4 focus:ring-yellow-100 transition-all cursor-text shadow-xl" 
         tabindex="0" @click="focusTypingArea" ref="typingArea" @focus="handleFocus" @blur="handleBlur">
         
-        <div class="absolute -top-4 right-8 bg-zinc-900 text-white font-hand px-4 py-1 transform rotate-2">Type here!</div>
+        <div class="absolute -top-4 right-8 !bg-zinc-900 !text-white font-hand px-4 py-1 transform rotate-2">Type here!</div>
 
         <!-- 打字区：根据默写模式切换显示 -->
         <template v-if="!dictationMode">

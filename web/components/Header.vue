@@ -73,7 +73,7 @@
             </button>
             <button 
               @click="saveSettings" 
-              class="flex-1 sketch-button py-2 px-4 bg-zinc-900 text-white"
+              class="flex-1 sketch-button py-2 px-4 !bg-zinc-900 !text-white"
             >
               Save
             </button>

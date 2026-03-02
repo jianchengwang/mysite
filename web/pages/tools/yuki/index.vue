@@ -35,7 +35,7 @@
     <div v-if="!apiKey" class="max-w-xl mx-auto sketch-card mt-16 text-center bg-white">
       <h2 class="text-xl font-bold mb-3 text-red-600">Missing API Key</h2>
       <p class="mb-5 text-zinc-600">Please set your OpenRouter API Key in global settings (top right gear icon).</p>
-      <button class="sketch-button bg-zinc-900 text-white" @click="openGlobalSettings">
+      <button class="sketch-button !bg-zinc-900 !text-white" @click="openGlobalSettings">
         Open Global Settings
       </button>
     </div>
@@ -76,7 +76,7 @@
               @click="handleLive2dModelChange(model.id)"
               :class="[
                 'model-card text-left p-3 sketch-border transition-all duration-200',
-                currentLive2dModel === model.id ? 'bg-zinc-900 text-white scale-[1.01]' : 'bg-white hover:bg-zinc-50'
+                currentLive2dModel === model.id ? '!bg-zinc-900 !text-white scale-[1.01]' : 'bg-white hover:bg-zinc-50'
               ]"
             >
               <div class="thumbnail-box mb-2" :class="currentLive2dModel === model.id ? 'thumbnail-active' : ''">

@@ -11,7 +11,7 @@
         <button @click="undo" :disabled="!canUndo" class="sketch-button py-1 px-3 text-sm disabled:opacity-30">Undo</button>
         <button @click="redo" :disabled="!canRedo" class="sketch-button py-1 px-3 text-sm disabled:opacity-30">Redo</button>
         <button @click="clear" class="sketch-button py-1 px-3 text-sm border-red-200 text-red-600">Clear</button>
-        <button @click="save" class="sketch-button py-1 px-3 text-sm bg-zinc-900 text-white">Save</button>
+        <button @click="save" class="sketch-button py-1 px-3 text-sm !bg-zinc-900 !text-white">Save</button>
       </div>
     </div>
 
@@ -60,7 +60,7 @@
             <button 
               @click="showGenerateModal = true" 
               :disabled="isGenerating || !apiKey"
-              class="w-full sketch-button py-2 text-sm bg-zinc-900 text-white disabled:opacity-50"
+              class="w-full sketch-button py-2 text-sm !bg-zinc-900 !text-white disabled:opacity-50"
               :title="!apiKey ? 'API Key required' : ''"
             >
               {{ isGenerating ? '✨ Generating...' : '✨ Generate Image' }}
@@ -126,7 +126,7 @@
             <button 
               @click="generateAIImage" 
               :disabled="isGenerating || !aiPrompt"
-              class="flex-1 sketch-button py-2 bg-zinc-900 text-white disabled:opacity-50"
+              class="flex-1 sketch-button py-2 !bg-zinc-900 !text-white disabled:opacity-50"
             >
               {{ isGenerating ? 'Generating...' : '✨ Generate' }}
             </button>

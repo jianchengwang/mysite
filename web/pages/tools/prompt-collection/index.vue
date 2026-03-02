@@ -48,7 +48,7 @@
             <div class="text-xs text-zinc-500 uppercase tracking-[0.14em]">Prompt Content</div>
             <button
               @click="copyPrompt"
-              class="sketch-button bg-zinc-900 text-white py-1 px-4 text-sm"
+              class="sketch-button !bg-zinc-900 !text-white py-1 px-4 text-sm"
               :class="copied ? 'bg-green-700 border-green-700' : ''"
             >
               {{ copied ? 'Copied' : 'Copy Prompt' }}
