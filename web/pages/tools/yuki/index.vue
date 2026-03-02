@@ -1,24 +1,23 @@
 <template>
   <div class="min-h-screen bg-[#fcfcfc] font-hand py-4 px-4 md:px-8">
-    <!-- Header -->
     <div class="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
         <h1 class="text-4xl font-bold text-zinc-900 mb-1">Yuki AI</h1>
         <p class="text-zinc-600 italic">A minimalist hand-drawn AI companion</p>
       </div>
-      <div class="flex gap-4 items-center w-full md:w-auto">
-        <!-- Model Selector with Search -->
-        <div class="model-selector-container relative group flex-1 md:flex-none">
-          <input 
+      <div class="w-full md:w-auto">
+        <div class="model-selector-container relative group">
+          <label class="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">AI Model</label>
+          <input
             v-model="modelSearch"
             @focus="showModelDropdown = true"
             placeholder="Search AI model..."
-            class="sketch-border px-3 py-1 bg-white outline-none focus:sketch-shadow-sm text-sm w-full md:w-64"
+            class="sketch-border px-3 py-2 bg-white outline-none focus:sketch-shadow-sm text-sm w-full md:w-80"
           />
           <div v-if="showModelDropdown" class="absolute top-full right-0 mt-2 w-full md:w-80 max-h-80 overflow-y-auto bg-white sketch-border z-50 shadow-xl">
-            <div 
-              v-for="m in filteredModels" 
-              :key="m.id" 
+            <div
+              v-for="m in filteredModels"
+              :key="m.id"
               class="px-3 py-2 hover:bg-zinc-100 cursor-pointer text-sm border-b border-zinc-100 last:border-0"
               @click="selectModel(m)"
             >
@@ -33,65 +32,76 @@
       </div>
     </div>
 
-    <!-- API Key Input Warning (if not set) -->
-    <div v-if="!apiKey" class="max-w-md mx-auto sketch-card mt-20 text-center">
-      <h2 class="text-xl font-bold mb-4 text-red-500">Missing API Key</h2>
-      <p class="mb-4 text-zinc-600">Please set your OpenRouter API Key in the Global Settings (click the gear icon in the top right corner of the header).</p>
+    <div v-if="!apiKey" class="max-w-xl mx-auto sketch-card mt-16 text-center bg-white">
+      <h2 class="text-xl font-bold mb-3 text-red-600">Missing API Key</h2>
+      <p class="mb-5 text-zinc-600">Please set your OpenRouter API Key in global settings (top right gear icon).</p>
+      <button class="sketch-button bg-zinc-900 text-white" @click="openGlobalSettings">
+        Open Global Settings
+      </button>
     </div>
 
-    <!-- Main Content -->
     <div v-else class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-      
-      <!-- Left: Live2D Character (40% width on desktop) -->
-      <div class="lg:col-span-5 relative flex flex-col items-center">
-        <!-- Character Selector -->
-        <div class="w-full mb-4 max-w-[500px]">
-          <select 
-            v-model="currentLive2dModel" 
-            @change="handleLive2dModelChange"
-            class="w-full sketch-border px-3 py-2 bg-white outline-none focus:sketch-shadow-sm text-sm font-hand"
-          >
-            <option v-for="model in availableLive2dModels" :key="model.id" :value="model.id">
-              {{ model.name }}
-            </option>
-          </select>
+      <div class="lg:col-span-5 space-y-5">
+        <div class="sketch-card bg-white p-4 md:p-5">
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <h2 class="text-2xl font-bold">{{ currentCharacterName }}</h2>
+            <span class="text-xs uppercase tracking-wide text-zinc-500">Live2D</span>
+          </div>
+
+          <div class="character-container w-full aspect-square max-w-[520px] mx-auto sketch-border-3 p-0 overflow-hidden bg-white relative">
+            <ClientOnly>
+              <div id="L2dCanvas" class="w-full h-full relative"></div>
+              <div v-if="!isModelLoaded" class="absolute inset-0 flex items-center justify-center bg-white/80">
+                <span class="animate-pulse italic">Summoning {{ currentCharacterName }}...</span>
+              </div>
+            </ClientOnly>
+          </div>
+
+          <div v-if="characterResponse" class="mt-4 sketch-border-3 p-4 bg-white max-w-[460px] mx-auto relative">
+            <div class="absolute -top-3 left-10 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[12px] border-b-black"></div>
+            <p class="text-sm leading-relaxed">{{ characterResponse }}</p>
+          </div>
         </div>
 
-        <div class="character-container w-full aspect-square max-w-[500px] sketch-card p-0 overflow-hidden bg-white relative">
-          <ClientOnly>
-            <div id="L2dCanvas" class="w-full h-full relative"></div>
-            <div v-if="!isModelLoaded" class="absolute inset-0 flex items-center justify-center bg-white/80">
-              <span class="animate-pulse italic">Summoning {{ currentCharacterName }}...</span>
-            </div>
-          </ClientOnly>
-        </div>
-        <!-- Yuki's thoughts/bubble -->
-        <div v-if="characterResponse" class="mt-4 sketch-border-3 p-4 bg-white max-w-[400px] relative">
-          <div class="absolute -top-3 left-10 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[12px] border-b-black"></div>
-          <p class="text-sm leading-relaxed">{{ characterResponse }}</p>
+        <div class="sketch-card bg-white p-4 md:p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-2xl font-bold">Model Switch Panel</h3>
+            <span class="text-xs uppercase tracking-wide text-zinc-500">{{ availableLive2dModels.length }} models</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-3">
+            <button
+              v-for="model in availableLive2dModels"
+              :key="model.id"
+              type="button"
+              @click="handleLive2dModelChange(model.id)"
+              :class="[
+                'model-card text-left p-3 sketch-border transition-all duration-200',
+                currentLive2dModel === model.id ? 'bg-zinc-900 text-white scale-[1.01]' : 'bg-white hover:bg-zinc-50'
+              ]"
+            >
+              <div class="thumbnail-box mb-2" :class="currentLive2dModel === model.id ? 'thumbnail-active' : ''">
+                <span class="text-xl font-bold">{{ model.name.slice(0, 1) }}</span>
+              </div>
+              <p class="text-sm font-bold leading-tight">{{ model.name }}</p>
+              <p class="text-[10px] opacity-70 truncate">{{ model.id }}</p>
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Right: Chat Interface (60% width on desktop) -->
       <div class="lg:col-span-7 flex flex-col h-[75vh] min-h-[500px]">
         <div class="flex-1 flex flex-col sketch-card bg-white p-0 overflow-hidden">
-          <!-- Messages -->
-          <div 
-            ref="chatContainer" 
-            class="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth"
-          >
+          <div ref="chatContainer" class="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
             <div v-for="(msg, index) in messages" :key="index" :class="['flex', msg.role === 'user' ? 'justify-end' : 'justify-start']">
-              <div 
+              <div
                 :class="[
-                  'max-w-[90%] p-4 sketch-border-3 relative', 
+                  'max-w-[90%] p-4 sketch-border-3 relative',
                   msg.role === 'user' ? 'bg-zinc-50' : 'bg-white'
                 ]"
               >
-                <!-- Image in message -->
                 <div v-if="msg.images && msg.images.length" class="mb-3 flex flex-wrap gap-2">
                   <img v-for="(img, i) in msg.images" :key="i" :src="img" class="max-w-[200px] max-h-[200px] object-contain sketch-border" />
                 </div>
-                
                 <div class="prose prose-zinc max-w-none prose-sm sm:prose-base" v-html="renderMarkdown(msg.content)"></div>
               </div>
             </div>
@@ -102,9 +112,7 @@
             </div>
           </div>
 
-          <!-- Input Area -->
           <div class="p-4 border-t-2 border-zinc-200 bg-zinc-50/50">
-            <!-- Image Preview -->
             <div v-if="selectedImage" class="mb-3 relative inline-block">
               <img :src="selectedImage" class="w-20 h-20 object-cover sketch-border" />
               <button @click="selectedImage = null" class="absolute -top-2 -right-2 bg-black text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-zinc-800 transition-colors">×</button>
@@ -112,15 +120,15 @@
 
             <div class="flex gap-3 items-end">
               <div class="flex-1 relative">
-                <textarea 
-                  v-model="inputMessage" 
+                <textarea
+                  v-model="inputMessage"
                   @keydown.enter.prevent="handleEnter"
                   rows="2"
                   placeholder="Type your message..."
                   class="w-full p-3 pr-10 sketch-border bg-white resize-none outline-none focus:sketch-shadow-sm min-h-[80px]"
                 ></textarea>
-                <button 
-                  @click="$refs.fileInput.click()" 
+                <button
+                  @click="fileInput?.click()"
                   class="absolute right-3 bottom-3 text-zinc-400 hover:text-zinc-800 transition-colors"
                   title="Upload Image"
                 >
@@ -129,9 +137,9 @@
                 <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleImageUpload" />
               </div>
               <div class="flex flex-col gap-2">
-                <button 
-                  @click="sendMessage" 
-                  :disabled="isLoading || (!inputMessage.trim() && !selectedImage)" 
+                <button
+                  @click="sendMessage"
+                  :disabled="isLoading || (!inputMessage.trim() && !selectedImage)"
                   class="sketch-button py-2 min-w-[80px] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Send
@@ -142,7 +150,6 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </template>
@@ -153,7 +160,8 @@ import { marked } from 'marked'
 
 definePageMeta({ layout: 'default' })
 
-// State
+const GLOBAL_KEY_STORAGE = 'global_openrouter_key'
+
 const apiKey = ref('')
 const currentModel = ref('google/gemini-2.0-flash-001')
 const messages = ref<any[]>([])
@@ -163,7 +171,6 @@ const chatContainer = ref<HTMLElement | null>(null)
 const selectedImage = ref<string | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 
-// Live2D Models
 const availableLive2dModels = ref([
   { id: 'xuefeng_3', name: 'Sarah' },
   { id: 'xuefeng', name: 'Emma' },
@@ -174,11 +181,10 @@ const availableLive2dModels = ref([
 const currentLive2dModel = ref('xuefeng_3')
 
 const currentCharacterName = computed(() => {
-  const model = availableLive2dModels.value.find(m => m.id === currentLive2dModel.value)
+  const model = availableLive2dModels.value.find((m) => m.id === currentLive2dModel.value)
   return model ? model.name : 'Sarah'
 })
 
-// Model search and selection
 const availableModels = ref<any[]>([
   { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash (Fast)' },
   { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini (Smart)' },
@@ -191,9 +197,8 @@ const showModelDropdown = ref(false)
 const filteredModels = computed(() => {
   if (!modelSearch.value) return availableModels.value.slice(0, 50)
   const search = modelSearch.value.toLowerCase()
-  return availableModels.value.filter(m => 
-    (m.name?.toLowerCase().includes(search)) || 
-    (m.id?.toLowerCase().includes(search))
+  return availableModels.value.filter(
+    (m) => (m.name?.toLowerCase().includes(search)) || (m.id?.toLowerCase().includes(search))
   )
 })
 
@@ -204,20 +209,30 @@ const selectModel = (m: any) => {
   localStorage.setItem('yuki_current_model', m.id)
 }
 
-// Live2D State
 const isModelLoaded = ref(false)
-const characterResponse = ref("")
+const characterResponse = ref('')
 let l2dv: any = null
 let speechSynthesis: SpeechSynthesis | null = null
 
 const defaultMessage = computed(() => `Hi there! I'm ${currentCharacterName.value}, your hand-drawn AI companion. How can I help you today?`)
 
+const syncGlobalKey = () => {
+  apiKey.value = localStorage.getItem(GLOBAL_KEY_STORAGE) || ''
+}
+
+const handleGlobalKeyChange = () => {
+  syncGlobalKey()
+  if (apiKey.value && !l2dv) {
+    initLive2D()
+  }
+}
+
 onMounted(async () => {
-  apiKey.value = localStorage.getItem('global_openrouter_key') || ''
-  
-  // Listen for storage changes from settings
-  window.addEventListener('storage', handleStorageChange)
-  
+  syncGlobalKey()
+
+  window.addEventListener('storage', handleGlobalKeyChange)
+  window.addEventListener('global-openrouter-key-updated', handleGlobalKeyChange as EventListener)
+
   const savedMessages = localStorage.getItem('yuki_messages')
   if (savedMessages) {
     try {
@@ -236,26 +251,18 @@ onMounted(async () => {
   if (savedModel) {
     currentModel.value = savedModel
   }
-  
+
   const savedL2dModel = localStorage.getItem('yuki_live2d_model')
   if (savedL2dModel) {
     currentLive2dModel.value = savedL2dModel
   }
 
   scrollToBottom()
-  
-  // Fetch models from OpenRouter
   await fetchModels()
-  
-  // Set initial model search text
-  const initialModel = availableModels.value.find(m => m.id === currentModel.value)
-  if (initialModel) {
-    modelSearch.value = initialModel.name || initialModel.id
-  } else {
-    modelSearch.value = currentModel.value
-  }
 
-  // Initialize Live2D
+  const initialModel = availableModels.value.find((m) => m.id === currentModel.value)
+  modelSearch.value = initialModel?.name || currentModel.value
+
   if (apiKey.value) {
     initLive2D()
   }
@@ -264,7 +271,6 @@ onMounted(async () => {
     speechSynthesis = window.speechSynthesis
   }
 
-  // Click outside to close dropdown
   window.addEventListener('click', handleOutsideClick)
 })
 
@@ -275,15 +281,14 @@ onUnmounted(() => {
   if (speechSynthesis) {
     speechSynthesis.cancel()
   }
+
   window.removeEventListener('click', handleOutsideClick)
-  window.removeEventListener('storage', handleStorageChange)
+  window.removeEventListener('storage', handleGlobalKeyChange)
+  window.removeEventListener('global-openrouter-key-updated', handleGlobalKeyChange as EventListener)
 })
 
-const handleStorageChange = () => {
-  apiKey.value = localStorage.getItem('global_openrouter_key') || ''
-  if (apiKey.value && !l2dv) {
-    initLive2D()
-  }
+const openGlobalSettings = () => {
+  window.dispatchEvent(new Event('open-global-settings'))
 }
 
 const handleOutsideClick = (e: MouseEvent) => {
@@ -294,12 +299,13 @@ const handleOutsideClick = (e: MouseEvent) => {
 }
 
 const fetchModels = async () => {
-  // Load from cache first
   const cached = localStorage.getItem('yuki_available_models')
   if (cached) {
     try {
       availableModels.value = JSON.parse(cached)
-    } catch (e) {}
+    } catch {
+      // no-op
+    }
   }
 
   try {
@@ -334,7 +340,7 @@ const handleEnter = (e: KeyboardEvent) => {
 }
 
 const renderMarkdown = (text: string) => {
-  return marked(text)
+  return marked(text) as string
 }
 
 const scrollToBottom = () => {
@@ -348,27 +354,26 @@ const scrollToBottom = () => {
 const sendMessage = async () => {
   if (isLoading.value || (!inputMessage.value.trim() && !selectedImage.value)) return
   if (!apiKey.value) return
-  
+
   const userText = inputMessage.value.trim()
   const userImage = selectedImage.value
-  
+
   const newMessage: any = { role: 'user', content: userText }
   if (userImage) {
     newMessage.images = [userImage]
   }
-  
+
   messages.value.push(newMessage)
   inputMessage.value = ''
   selectedImage.value = null
   if (fileInput.value) fileInput.value.value = ''
-  
+
   isLoading.value = true
   scrollToBottom()
   localStorage.setItem('yuki_current_model', currentModel.value)
 
   try {
-    // Format messages for OpenRouter
-    const apiMessages = messages.value.map(m => {
+    const apiMessages = messages.value.map((m) => {
       if (m.images && m.images.length) {
         const content = [{ type: 'text', text: m.content || '' }]
         m.images.forEach((img: string) => {
@@ -382,9 +387,6 @@ const sendMessage = async () => {
       return { role: m.role, content: m.content }
     })
 
-    // Inject character prompt into system instructions dynamically if needed, or just let chat history dictate
-    // For simplicity, we just send chat history
-    
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -401,12 +403,12 @@ const sendMessage = async () => {
         ]
       })
     })
-    
+
     if (!response.ok) {
       const err = await response.json()
       throw new Error(err.error?.message || 'Failed to fetch response')
     }
-    
+
     const data = await response.json()
     const message = data.choices[0].message
     let aiText = ''
@@ -438,16 +440,15 @@ const sendMessage = async () => {
       }
     }
 
-    messages.value.push({ 
-      role: 'assistant', 
+    messages.value.push({
+      role: 'assistant',
       content: aiText,
       images: imageUrls.length > 0 ? imageUrls : undefined
     })
-    characterResponse.value = aiText.length > 200 ? aiText.substring(0, 200) + '...' : aiText
-    
+    characterResponse.value = aiText.length > 200 ? `${aiText.substring(0, 200)}...` : aiText
+
     localStorage.setItem('yuki_messages', JSON.stringify(messages.value))
-    
-    // Trigger Live2D motion & play voice
+
     if (l2dv) {
       l2dv.startMotion('tap_body')
     }
@@ -463,27 +464,25 @@ const sendMessage = async () => {
 
 const clearChat = () => {
   if (confirm('Clear chat history?')) {
-    messages.value = [
-      { role: 'assistant', content: defaultMessage.value }
-    ]
+    messages.value = [{ role: 'assistant', content: defaultMessage.value }]
     characterResponse.value = defaultMessage.value
     localStorage.removeItem('yuki_messages')
   }
 }
 
-// Live2D Initialization
 const initLive2D = async () => {
   try {
     const canvas = document.getElementById('L2dCanvas')
     if (!canvas) return
-    
+
+    isModelLoaded.value = false
     canvas.innerHTML = ''
-    
+
     await Promise.all([
       loadScript('https://unpkg.com/core-js-bundle@3.6.1/minified.js'),
       loadScript('https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/lib/live2dcubismcore.min.js'),
       loadScript('https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/live2dv3.js'),
-      loadScript('https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/charData.js'),
+      loadScript('https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/charData.js')
     ])
 
     if (window.L2dViewer) {
@@ -495,7 +494,7 @@ const initLive2D = async () => {
         height: canvas.clientHeight || 500,
         autoMotion: true
       })
-      
+
       l2dv = window.l2dv
       isModelLoaded.value = true
     }
@@ -504,35 +503,39 @@ const initLive2D = async () => {
   }
 }
 
-const handleLive2dModelChange = () => {
+const handleLive2dModelChange = (modelId: string) => {
+  if (currentLive2dModel.value === modelId) return
+
+  currentLive2dModel.value = modelId
+  localStorage.setItem('yuki_live2d_model', modelId)
+
   if (l2dv) {
-    l2dv.loadModel(currentLive2dModel.value)
-    characterResponse.value = `Hi there! I'm ${currentCharacterName.value}.`
-    playVoice(characterResponse.value)
-    localStorage.setItem('yuki_live2d_model', currentLive2dModel.value)
+    l2dv.loadModel(modelId)
   }
+
+  characterResponse.value = `Hi there! I'm ${currentCharacterName.value}.`
+  playVoice(characterResponse.value)
 }
 
 const playVoice = (text: string) => {
   if (!speechSynthesis) return
-  
+
   try {
     speechSynthesis.cancel()
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.lang = 'en-US'
     utterance.pitch = 1.0
     utterance.rate = 0.9
-    
+
     const voices = speechSynthesis.getVoices()
-    const englishVoice = voices.find(voice => 
-      voice.lang.includes('en') && 
-      (voice.name.includes('Samantha') || voice.name.includes('Karen') || voice.name.includes('Alex'))
+    const englishVoice = voices.find(
+      (voice) => voice.lang.includes('en') && (voice.name.includes('Samantha') || voice.name.includes('Karen') || voice.name.includes('Alex'))
     )
-    
+
     if (englishVoice) {
       utterance.voice = englishVoice
     }
-    
+
     speechSynthesis.speak(utterance)
   } catch (error) {
     console.error('Failed to play voice:', error)
@@ -553,7 +556,6 @@ const loadScript = (src: string): Promise<void> => {
   })
 }
 
-// Extend window interface
 declare global {
   interface Window {
     l2dv: any;
@@ -569,7 +571,7 @@ declare global {
   font-family: 'Patrick Hand', cursive;
 }
 
-h1, h2 {
+h1, h2, h3 {
   font-family: 'Indie Flower', cursive;
 }
 
@@ -579,6 +581,18 @@ h1, h2 {
 
 .character-container {
   border-radius: 40px 10px 45px 15px / 15px 45px 15px 40px;
+}
+
+.thumbnail-box {
+  @apply h-16 sketch-border flex items-center justify-center bg-zinc-50;
+}
+
+.thumbnail-active {
+  @apply bg-zinc-800 text-white border-white;
+}
+
+.model-card {
+  border-radius: 18px 10px 14px 9px / 9px 14px 10px 18px;
 }
 
 ::-webkit-scrollbar {

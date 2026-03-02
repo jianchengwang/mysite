@@ -9,7 +9,8 @@
     <div class="sketch-card p-6 mb-8 bg-white">
       <div class="space-y-6">
         <div v-if="!apiKey" class="bg-red-50 border-2 border-red-200 rounded-lg p-4 text-red-700 text-sm italic">
-          Please set your OpenRouter API Key in the Global Settings (top right gear icon) to use this tool.
+          <p>Please set your OpenRouter API Key in the Global Settings (top right gear icon) to use this tool.</p>
+          <button @click="openGlobalSettings" class="mt-3 sketch-button bg-white text-zinc-900 py-1 px-4 not-italic">Open Settings</button>
         </div>
 
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -116,7 +117,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useTTS } from '~/composables/useTTS'
 
 definePageMeta({ layout: 'default' })
@@ -129,15 +130,28 @@ const loading = ref(false)
 const error = ref('')
 const copied = ref(false)
 const apiKey = ref('')
+const GLOBAL_KEY_STORAGE = 'global_openrouter_key'
 
 const { isPlaying, speak, stop } = useTTS()
 
+const syncGlobalKey = () => {
+  apiKey.value = localStorage.getItem(GLOBAL_KEY_STORAGE) || ''
+}
+
 onMounted(() => {
-  apiKey.value = localStorage.getItem('global_openrouter_key') || ''
-  window.addEventListener('storage', () => {
-    apiKey.value = localStorage.getItem('global_openrouter_key') || ''
-  })
+  syncGlobalKey()
+  window.addEventListener('storage', syncGlobalKey)
+  window.addEventListener('global-openrouter-key-updated', syncGlobalKey as EventListener)
 })
+
+onUnmounted(() => {
+  window.removeEventListener('storage', syncGlobalKey)
+  window.removeEventListener('global-openrouter-key-updated', syncGlobalKey as EventListener)
+})
+
+const openGlobalSettings = () => {
+  window.dispatchEvent(new Event('open-global-settings'))
+}
 
 const formattedDialogue = computed(() => {
   if (!scenario.value?.content) return []
