@@ -459,6 +459,18 @@ const generateAIImage = async () => {
   showGenerateModal.value = false
   
   try {
+    let requestContent: any = `Please generate an image based on this description: ${aiPrompt.value}`
+    
+    if (selectedObjectId.value) {
+      const selectedObj = objects.value.find(o => (o as any).id === selectedObjectId.value) as any
+      if (selectedObj && selectedObj.type === 'image' && selectedObj.img?.src) {
+        requestContent = [
+          { type: 'text', text: requestContent },
+          { type: 'image_url', image_url: { url: selectedObj.img.src } }
+        ]
+      }
+    }
+
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -469,7 +481,7 @@ const generateAIImage = async () => {
       },
       body: JSON.stringify({
         model: aiModel.value,
-        messages: [{ role: 'user', content: `Please generate an image based on this description: ${aiPrompt.value}` }],
+        messages: [{ role: 'user', content: requestContent }],
         modalities: ["image"]
       })
     })

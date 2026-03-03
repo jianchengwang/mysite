@@ -23,10 +23,7 @@
           <div class="flex-1">
             <label class="block text-sm font-bold text-zinc-700 mb-2">Model</label>
             <select v-model="selectedModel" class="w-full sketch-border bg-white px-3 py-2 outline-none focus:sketch-shadow-sm font-hand">
-              <option value="google/gemini-2.0-flash-001">Gemini 2.0 Flash</option>
-              <option value="anthropic/claude-3.5-haiku">Claude 3.5 Haiku</option>
-              <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
-              <option value="x-ai/grok-2-vision">Grok 2</option>
+              <option v-for="m in aiModels" :key="m.id" :value="m.id">{{ m.name }}</option>
             </select>
           </div>
           <div class="flex-1">
@@ -134,6 +131,7 @@ definePageMeta({ layout: 'default' })
 const numChunks = ref(5)
 const topic = ref('daily_routines')
 const selectedModel = ref('google/gemini-2.0-flash-001')
+const aiModels = ref<{id: string, name: string}[]>([])
 const chunks = ref<Array<{ phrase: string; examples: string[] }>>([])
 const scenario = ref<{ title: string; context: string; content: string } | null>(null)
 const loading = ref(false)
@@ -148,8 +146,43 @@ const syncGlobalKey = () => {
   apiKey.value = localStorage.getItem(GLOBAL_KEY_STORAGE) || ''
 }
 
+const fetchModels = async () => {
+  try {
+    const cached = localStorage.getItem('english_chunk_available_models')
+    if (cached) {
+      aiModels.value = JSON.parse(cached)
+      if (!aiModels.value.find(m => m.id === selectedModel.value) && aiModels.value.length > 0) {
+        selectedModel.value = aiModels.value[0].id
+      }
+    }
+    const response = await fetch('https://openrouter.ai/api/v1/models')
+    const data = await response.json()
+    if (data.data) {
+      aiModels.value = data.data.map((m: any) => ({
+        id: m.id,
+        name: m.name
+      }))
+      localStorage.setItem('english_chunk_available_models', JSON.stringify(aiModels.value))
+      if (!aiModels.value.find(m => m.id === selectedModel.value) && aiModels.value.length > 0) {
+        selectedModel.value = aiModels.value[0].id
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch models:', error)
+    if (aiModels.value.length === 0) {
+      aiModels.value = [
+        { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash' },
+        { id: 'anthropic/claude-3.5-haiku', name: 'Claude 3.5 Haiku' },
+        { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini' },
+        { id: 'x-ai/grok-2-vision', name: 'Grok 2' }
+      ]
+    }
+  }
+}
+
 onMounted(() => {
   syncGlobalKey()
+  fetchModels()
   window.addEventListener('storage', syncGlobalKey)
   window.addEventListener('global-openrouter-key-updated', syncGlobalKey as EventListener)
 })

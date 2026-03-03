@@ -85,7 +85,7 @@ marked.setOptions({
   }
 })
 
-const { data: page, pending } = await useAsyncData('prompt-collection', () => queryContent('/tools/prompt-collection').findOne())
+const { data: page, pending } = await useAsyncData('prompt-collection-data', () => queryContent('/tools/prompt-collection').findOne())
 
 const prompts = ref<any[]>([])
 const selectedPrompt = ref<any>(null)
@@ -126,8 +126,8 @@ onMounted(() => {
         if (nextNode.tag === 'h2' || nextNode.tag === 'h3') break
 
         if (nextNode.tag === 'pre') {
-          const rawCode = nextNode.children?.[0]?.children?.[0]?.value || ''
-          const langClass = nextNode.props?.className?.find((cls: string) => cls.startsWith('language-')) || ''
+          const rawCode = nextNode.props?.code || nextNode.children?.[0]?.children?.[0]?.value || extractText(nextNode) || ''
+          const langClass = nextNode.props?.className?.find((cls: string) => cls.startsWith('language-')) || nextNode.props?.language || ''
           const codeLang = langClass.replace('language-', '') || inferCodeLang(rawCode)
           content += `\n\`\`\`${codeLang}\n${rawCode}\n\`\`\`\n`
           continue
