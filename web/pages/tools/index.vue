@@ -99,14 +99,6 @@ const tools = [
     ]
   },
   {
-    title: 'XAI Chat',
-    description: 'Chat with XAI.',
-    tags: [
-      { label: 'XAI', color: 'indigo' },
-      { label: 'Free', color: 'green' }
-    ]
-  },
-  {
     to: '/tools/yuki',
     title: 'Yuki AI',
     description: 'A minimalist hand-drawn AI chat assistant powered by OpenRouter.',

@@ -13,7 +13,7 @@
           <button @click="openGlobalSettings" class="mt-3 sketch-button bg-white text-zinc-900 py-1 px-4 not-italic">Open Settings</button>
         </div>
 
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex flex-col md:flex-row items-start md:items-center md:items-center justify-between gap-4">
           <div class="flex-1">
             <label class="block text-sm font-bold text-zinc-700 mb-2">Number of chunks</label>
             <select v-model="numChunks" class="w-full sketch-border bg-white px-3 py-2 outline-none focus:sketch-shadow-sm font-hand">
@@ -22,9 +22,28 @@
           </div>
           <div class="flex-1">
             <label class="block text-sm font-bold text-zinc-700 mb-2">Model</label>
-            <select v-model="selectedModel" class="w-full sketch-border bg-white px-3 py-2 outline-none focus:sketch-shadow-sm font-hand">
-              <option v-for="m in aiModels" :key="m.id" :value="m.id">{{ m.name }}</option>
-            </select>
+            <div class="model-selector-container relative group">
+              <input
+                v-model="modelSearch"
+                @focus="showModelDropdown = true"
+                placeholder="Search AI model..."
+                class="w-full sketch-border bg-white px-3 py-2 outline-none focus:sketch-shadow-sm font-hand"
+              />
+              <div v-if="showModelDropdown" class="absolute top-full left-0 mt-2 w-full max-h-60 overflow-y-auto bg-white sketch-border z-50 shadow-xl">
+                <div
+                  v-for="m in filteredModels"
+                  :key="m.id"
+                  class="px-3 py-2 hover:bg-zinc-100 cursor-pointer text-sm border-b border-zinc-100 last:border-0"
+                  @click="selectModel(m)"
+                >
+                  <div class="font-bold">{{ m.name || m.id }}</div>
+                  <div class="text-[10px] text-zinc-400 truncate">{{ m.id }}</div>
+                </div>
+                <div v-if="filteredModels.length === 0" class="px-3 py-2 text-sm text-zinc-500 italic">
+                  No models found
+                </div>
+              </div>
+            </div>
           </div>
           <div class="flex-1">
             <label class="block text-sm font-bold text-zinc-700 mb-2">Topic</label>
@@ -71,7 +90,7 @@
 
       <!-- Scenario Section -->
       <div v-if="scenario?.content" class="sketch-card p-8 bg-white border-2 border-zinc-900">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between items-start md:items-center gap-4 mb-6">
           <div>
             <h2 class="text-2xl font-bold text-zinc-900">{{ scenario.title }}</h2>
             <p class="text-zinc-500 italic mt-1">{{ scenario.context }}</p>
@@ -132,6 +151,8 @@ const numChunks = ref(5)
 const topic = ref('daily_routines')
 const selectedModel = ref('google/gemini-2.0-flash-001')
 const aiModels = ref<{id: string, name: string}[]>([])
+const modelSearch = ref('')
+const showModelDropdown = ref(false)
 const chunks = ref<Array<{ phrase: string; examples: string[] }>>([])
 const scenario = ref<{ title: string; context: string; content: string } | null>(null)
 const loading = ref(false)
@@ -141,6 +162,21 @@ const apiKey = ref('')
 const GLOBAL_KEY_STORAGE = 'global_openrouter_key'
 
 const { isPlaying, speak, stop } = useTTS()
+
+const filteredModels = computed(() => {
+  if (!modelSearch.value) return aiModels.value.slice(0, 50)
+  const search = modelSearch.value.toLowerCase()
+  return aiModels.value.filter(
+    (m) => (m.name?.toLowerCase().includes(search)) || (m.id?.toLowerCase().includes(search))
+  )
+})
+
+const selectModel = (m: any) => {
+  selectedModel.value = m.id
+  modelSearch.value = m.name || m.id
+  showModelDropdown.value = false
+  localStorage.setItem('english_chunk_current_model', m.id)
+}
 
 const syncGlobalKey = () => {
   apiKey.value = localStorage.getItem(GLOBAL_KEY_STORAGE) || ''
