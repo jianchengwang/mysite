@@ -144,7 +144,7 @@
                 >
                   Send
                 </button>
-                <div class="flex items-center justify-between mt-1">
+                <div class="flex items-center justify-between mt-1 gap-3">
                   <label class="flex items-center cursor-pointer select-none text-xs text-zinc-500 hover:text-zinc-700">
                     <input type="checkbox" v-model="autoPronounce" class="mr-1 w-3 h-3 accent-zinc-900" />
                     Auto-Speak
@@ -537,7 +537,17 @@ const playVoice = (text: string) => {
 
   try {
     speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(text)
+    
+    // Strip markdown syntax, emojis, and special characters
+    const cleanText = text
+      .replace(/https?:\/\/\S+/g, '') // Remove URLs
+      .replace(/[*_~`#>\[\]\(\)]/g, '') // Remove markdown syntax
+      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '') // Remove emojis
+      .replace(/[^\p{L}\p{N}\s.,!?'"-\u4e00-\u9fa5]/gu, '') // Remove other special chars, keep unicode letters/numbers and Chinese
+      .replace(/\s+/g, ' ')
+      .trim()
+      
+    const utterance = new SpeechSynthesisUtterance(cleanText)
     utterance.lang = 'en-US'
     utterance.pitch = 1.0
     utterance.rate = 0.9
