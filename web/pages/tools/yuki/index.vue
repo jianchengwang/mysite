@@ -144,7 +144,13 @@
                 >
                   Send
                 </button>
-                <button @click="clearChat" class="text-xs text-zinc-400 hover:text-zinc-600 underline">Clear</button>
+                <div class="flex items-center justify-between mt-1">
+                  <label class="flex items-center cursor-pointer select-none text-xs text-zinc-500 hover:text-zinc-700">
+                    <input type="checkbox" v-model="autoPronounce" class="mr-1 w-3 h-3 accent-zinc-900" />
+                    Auto-Speak
+                  </label>
+                  <button @click="clearChat" class="text-xs text-zinc-400 hover:text-zinc-600 underline">Clear</button>
+                </div>
               </div>
             </div>
           </div>
@@ -170,6 +176,7 @@ const isLoading = ref(false)
 const chatContainer = ref<HTMLElement | null>(null)
 const selectedImage = ref<string | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
+const autoPronounce = ref(true)
 
 const availableLive2dModels = ref([
   { id: 'xuefeng_3', name: 'Sarah' },
@@ -456,7 +463,9 @@ const sendMessage = async () => {
     if (l2dv) {
       l2dv.startMotion('tap_body')
     }
-    playVoice(aiText)
+    if (autoPronounce.value) {
+      playVoice(aiText)
+    }
   } catch (error: any) {
     console.error('AI Error:', error)
     messages.value.push({ role: 'assistant', content: `Error: ${error.message}` })
@@ -518,7 +527,9 @@ const handleLive2dModelChange = (modelId: string) => {
   }
 
   characterResponse.value = `Hi there! I'm ${currentCharacterName.value}.`
-  playVoice(characterResponse.value)
+  if (autoPronounce.value) {
+    playVoice(characterResponse.value)
+  }
 }
 
 const playVoice = (text: string) => {
@@ -532,9 +543,22 @@ const playVoice = (text: string) => {
     utterance.rate = 0.9
 
     const voices = speechSynthesis.getVoices()
-    const englishVoice = voices.find(
-      (voice) => voice.lang.includes('en') && (voice.name.includes('Samantha') || voice.name.includes('Karen') || voice.name.includes('Alex'))
+    let englishVoice = voices.find(
+      (voice) => voice.lang.includes('en') && (
+        voice.name.includes('Samantha') || 
+        voice.name.includes('Karen') || 
+        voice.name.includes('Victoria') ||
+        voice.name.includes('Zira') ||
+        voice.name.includes('Tessa') ||
+        voice.name.includes('Moira') ||
+        voice.name.toLowerCase().includes('female')
+      )
     )
+    
+    // Fallback if no specific female voice found
+    if (!englishVoice) {
+      englishVoice = voices.find((voice) => voice.lang.includes('en'))
+    }
 
     if (englishVoice) {
       utterance.voice = englishVoice
