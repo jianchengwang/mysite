@@ -13,14 +13,43 @@
           <div class="sketch-card bg-white">
             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
               <h2 class="text-2xl font-bold">1. Draft Copy</h2>
-              <select v-model="textModel" class="p-2 text-sm sketch-border bg-white outline-none w-full sm:w-64 max-w-full">
-                <option v-for="m in textModels" :key="m.id" :value="m.id">{{ m.name }}</option>
-              </select>
+              <div ref="textModelComboboxRef" class="relative w-full sm:w-72 max-w-full">
+                <input
+                  v-model="textModelQuery"
+                  placeholder="Search text model..."
+                  class="w-full p-2 pr-10 text-sm sketch-border bg-white text-black outline-none"
+                  @focus="textModelOpen = true"
+                  @keydown.enter.prevent="chooseFirstTextModel"
+                />
+                <button
+                  class="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 text-xs"
+                  @click.prevent="textModelOpen = !textModelOpen"
+                >
+                  ▼
+                </button>
+                <div
+                  v-if="textModelOpen"
+                  class="absolute left-0 right-0 top-[calc(100%+6px)] z-20 bg-white border-2 border-zinc-900 rounded-lg shadow-lg max-h-56 overflow-y-auto"
+                >
+                  <button
+                    v-for="m in filteredTextModels"
+                    :key="m.id"
+                    class="w-full text-left px-3 py-2 hover:bg-zinc-100 border-b border-zinc-100 last:border-b-0"
+                    @mousedown.prevent="selectTextModel(m)"
+                  >
+                    <p class="text-sm text-zinc-900 truncate">{{ m.name }}</p>
+                    <p class="text-[11px] text-zinc-500 truncate">{{ m.id }}</p>
+                  </button>
+                  <div v-if="filteredTextModels.length === 0" class="px-3 py-3 text-sm text-zinc-500">
+                    No model match found.
+                  </div>
+                </div>
+              </div>
             </div>
             <textarea 
               v-model="rawText" 
               rows="6" 
-              class="w-full p-4 sketch-border focus:sketch-shadow-sm outline-none resize-none text-base"
+              class="w-full p-4 sketch-border bg-white text-black placeholder:text-zinc-500 focus:sketch-shadow-sm outline-none resize-none text-base"
               placeholder="Paste your raw thoughts here..."
             ></textarea>
             
@@ -39,7 +68,7 @@
           <div class="sketch-card bg-white">
             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
               <h2 class="text-2xl font-bold">2. Visuals</h2>
-              <select v-model="imageModel" class="p-2 text-sm sketch-border bg-white outline-none w-full sm:w-64 max-w-full">
+              <select v-model="imageModel" class="p-2 text-sm sketch-border bg-white text-black outline-none w-full sm:w-64 max-w-full">
                 <option v-for="m in imageModels" :key="m.id" :value="m.id">{{ m.name }}</option>
               </select>
             </div>
@@ -60,7 +89,7 @@
                 <input 
                   v-model="imagePrompt" 
                   placeholder="Describe image to generate..." 
-                  class="flex-1 p-2 text-sm sketch-border outline-none"
+                  class="flex-1 p-2 text-sm sketch-border bg-white text-black placeholder:text-zinc-500 outline-none"
                   @keyup.enter="generateImage"
                 />
                 <button 
@@ -70,6 +99,77 @@
                 >
                   {{ isGeneratingImage ? '...' : '✨ Gen' }}
                 </button>
+              </div>
+
+              <div class="space-y-2">
+                <textarea
+                  v-model="galleryEditPrompt"
+                  rows="3"
+                  placeholder="Prompt for selected images (merge / edit)..."
+                  class="w-full p-3 text-sm sketch-border bg-white text-black placeholder:text-zinc-500 outline-none resize-none"
+                ></textarea>
+                <button
+                  @click="generateMergedImage"
+                  :disabled="isMergingImages || selectedGalleryIds.length === 0 || !galleryEditPrompt"
+                  class="w-full sketch-button py-2 text-sm !bg-zinc-900 !text-white disabled:opacity-50"
+                >
+                  {{ isMergingImages ? '✨ Merging...' : `✨ Merge/Edit ${selectedGalleryIds.length || 0} Selected` }}
+                </button>
+              </div>
+
+              <div class="rounded-xl border-2 border-zinc-200 bg-zinc-50 p-3">
+                <div class="flex justify-between items-center mb-2">
+                  <h3 class="font-bold text-zinc-900">Gallery</h3>
+                  <p class="text-xs text-zinc-500">Drag image to right preview</p>
+                </div>
+                <div v-if="galleryImages.length > 0" class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-72 overflow-y-auto pr-1">
+                  <div
+                    v-for="img in galleryImages"
+                    :key="img.id"
+                    draggable="true"
+                    class="group relative rounded-lg overflow-hidden border-2 bg-white cursor-grab active:cursor-grabbing"
+                    :class="isGallerySelected(img.id) ? 'border-rose-500' : 'border-zinc-200'"
+                    @dragstart="handleGalleryDragStart($event, img.id)"
+                    @dragend="draggedGalleryId = null"
+                  >
+                    <img
+                      :src="img.src"
+                      class="w-full aspect-square object-cover"
+                      @click="toggleGallerySelection(img.id)"
+                    />
+                    <label class="absolute left-1 top-1 bg-white/85 rounded px-1.5 py-0.5 text-[10px] text-zinc-700 flex items-center gap-1">
+                      <input
+                        type="checkbox"
+                        :checked="isGallerySelected(img.id)"
+                        @change="toggleGallerySelection(img.id)"
+                        @click.stop
+                      />
+                      Pick
+                    </label>
+                    <div class="absolute right-1 top-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        class="w-7 h-7 rounded bg-black/65 text-white text-xs"
+                        title="Add to Preview"
+                        @click.stop="addToPreview(img.id)"
+                      >
+                        +
+                      </button>
+                      <button
+                        class="w-7 h-7 rounded bg-black/65 text-white text-xs"
+                        title="Download"
+                        @click.stop="downloadImage(img)"
+                      >
+                        ↓
+                      </button>
+                    </div>
+                    <div class="absolute bottom-0 left-0 right-0 px-1.5 py-1 bg-black/45 text-white text-[10px] uppercase tracking-wide">
+                      {{ img.source }}
+                    </div>
+                  </div>
+                </div>
+                <div v-else class="py-8 text-center text-sm text-zinc-500">
+                  No gallery images yet. Use Draw, Upload, or Gen first.
+                </div>
               </div>
             </div>
             
@@ -88,40 +188,44 @@
             
             <div class="flex-1 overflow-y-auto pb-4 custom-scrollbar">
               <!-- Image Carousel -->
-              <div class="w-full aspect-[3/4] bg-zinc-100 border-b border-zinc-200 relative overflow-hidden flex items-center justify-center">
-                <div v-if="images.length > 0" class="w-full h-full relative group">
-                  <img :src="images[currentImageIdx]" class="w-full h-full object-cover" />
+              <div
+                class="w-full aspect-[3/4] bg-zinc-100 border-b border-zinc-200 relative overflow-hidden flex items-center justify-center transition-colors"
+                :class="isPreviewDragOver ? 'ring-4 ring-rose-300 bg-rose-50' : ''"
+                @dragover.prevent="handlePreviewDragOver"
+                @dragleave="handlePreviewDragLeave"
+                @drop.prevent="handlePreviewDrop"
+              >
+                <div v-if="previewImages.length > 0" class="w-full h-full relative group">
+                  <img :src="previewImages[currentImageIdx].src" class="w-full h-full object-cover" />
                   
                   <!-- Remove Image button -->
                   <button 
-                    @click="removeImage(currentImageIdx)" 
+                    @click="removePreviewImage(currentImageIdx)" 
                     class="absolute top-2 right-2 bg-black/60 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     ×
                   </button>
 
                   <!-- Navigation Dots -->
-                  <div v-if="images.length > 1" class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
-                    <div v-for="(_, idx) in images" :key="idx" 
+                  <div v-if="previewImages.length > 1" class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
+                    <div v-for="(_, idx) in previewImages" :key="idx" 
                         class="w-2 h-2 rounded-full border border-black/20"
                         :class="idx === currentImageIdx ? 'bg-rose-500 scale-110' : 'bg-white/80'"
                     ></div>
                   </div>
                   <!-- Arrow Keys -->
-                  <button v-if="images.length > 1" @click="prevImage" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold font-sans hover:bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">&lt;</button>
-                  <button v-if="images.length > 1" @click="nextImage" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold font-sans hover:bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">&gt;</button>
+                  <button v-if="previewImages.length > 1" @click="prevImage" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold font-sans hover:bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">&lt;</button>
+                  <button v-if="previewImages.length > 1" @click="nextImage" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold font-sans hover:bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">&gt;</button>
                 </div>
                 <div v-else class="text-zinc-400 text-center p-8">
                   <div class="text-4xl mb-2">📸</div>
-                  <p>No visuals yet.<br>Add images from the left panel.</p>
+                  <p>Drag images from the left gallery.<br>They will appear here.</p>
                 </div>
               </div>
 
               <!-- Content Area -->
               <div class="p-5">
-                <div v-if="optimizedText" class="whitespace-pre-wrap text-[15px] leading-[1.8] text-zinc-800 font-sans">
-                  {{ optimizedText }}
-                </div>
+                <article v-if="optimizedText" class="prose prose-zinc max-w-none prose-sm sm:prose-base font-sans" v-html="optimizedHtml"></article>
                 <div v-else class="text-zinc-400 text-center mt-10 font-sans text-sm">
                   <p>No optimized copy yet.<br>Generate text from the left panel.</p>
                 </div>
@@ -135,15 +239,19 @@
 
     <!-- Whiteboard Modal -->
     <Teleport to="body">
-      <div v-if="showWhiteboard" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
-        <div class="bg-white w-full max-w-6xl h-[90vh] rounded-2xl overflow-hidden flex flex-col relative shadow-2xl border-4 border-zinc-900">
-          <button 
-            @click="showWhiteboard = false" 
-            class="absolute top-4 right-4 z-[110] w-10 h-10 bg-white border-2 border-zinc-900 rounded-full flex items-center justify-center text-2xl hover:bg-zinc-100"
-          >
-            ×
-          </button>
-          <div class="flex-1 overflow-hidden">
+      <div v-if="showWhiteboard" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" @click.self="showWhiteboard = false">
+        <div class="bg-white w-full max-w-6xl h-[92vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl border-4 border-zinc-900">
+          <div class="px-4 py-3 border-b border-zinc-200 flex items-center justify-between">
+            <h3 class="font-bold text-zinc-900">Whiteboard</h3>
+            <button
+              @click="showWhiteboard = false"
+              class="w-9 h-9 bg-white border-2 border-zinc-900 rounded-full flex items-center justify-center text-2xl hover:bg-zinc-100"
+              aria-label="Close whiteboard"
+            >
+              ×
+            </button>
+          </div>
+          <div class="flex-1 min-h-0 overflow-hidden p-3 pt-2">
             <WhiteboardCanvas is-modal @save="handleWhiteboardSave" />
           </div>
         </div>
@@ -153,10 +261,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { marked } from 'marked'
 import WhiteboardCanvas from '~/components/WhiteboardCanvas.vue'
 
 definePageMeta({ layout: 'default' })
+
+type ModelOption = { id: string; name: string }
+type GalleryImage = { id: string; src: string; source: 'draw' | 'upload' | 'gen' | 'edit' }
 
 const apiKey = ref('')
 const rawText = ref('')
@@ -166,64 +278,195 @@ const isOptimizing = ref(false)
 const textModel = ref('google/gemini-2.0-flash-001')
 const imageModel = ref('black-forest-labs/flux-schnell')
 
-// Initial default models
-const textModels = ref([
+const textModels = ref<ModelOption[]>([
   { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash' },
   { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini' },
   { id: 'anthropic/claude-3-haiku', name: 'Claude 3 Haiku' },
   { id: 'deepseek/deepseek-chat', name: 'DeepSeek Chat' }
 ])
 
-const imageModels = ref([
+const imageModels = ref<ModelOption[]>([
   { id: 'black-forest-labs/flux-schnell', name: 'Flux Schnell' },
   { id: 'openai/dall-e-3', name: 'DALL-E 3' },
   { id: 'google/imagen-3', name: 'Imagen 3' },
   { id: 'stabilityai/stable-diffusion-3-medium', name: 'Stable Diffusion 3' }
 ])
 
-const images = ref<string[]>([])
+const textModelQuery = ref('')
+const textModelOpen = ref(false)
+const textModelComboboxRef = ref<HTMLElement | null>(null)
+
+const galleryImages = ref<GalleryImage[]>([])
+const selectedGalleryIds = ref<string[]>([])
+const galleryEditPrompt = ref('')
+
+const previewGalleryIds = ref<string[]>([])
 const currentImageIdx = ref(0)
 const imagePrompt = ref('')
 const isGeneratingImage = ref(false)
+const isMergingImages = ref(false)
 const showWhiteboard = ref(false)
+const draggedGalleryId = ref<string | null>(null)
+const isPreviewDragOver = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
+
+const TEXT_MODELS_CACHE_KEY = 'rednote_text_models_v2'
+const IMAGE_MODELS_CACHE_KEY = 'rednote_image_models_v2'
+
+const previewImages = computed(() =>
+  previewGalleryIds.value
+    .map(id => galleryImages.value.find(img => img.id === id))
+    .filter((img): img is GalleryImage => Boolean(img))
+)
+
+const optimizedHtml = computed(() => {
+  if (!optimizedText.value) return ''
+  return marked.parse(optimizedText.value) as string
+})
+
+const normalize = (value: string) => value.toLowerCase().trim()
+
+const fuzzyMatch = (query: string, target: string) => {
+  if (!query) return true
+  const q = normalize(query)
+  const t = normalize(target)
+  if (t.includes(q)) return true
+
+  let qi = 0
+  for (let i = 0; i < t.length && qi < q.length; i++) {
+    if (t[i] === q[qi]) qi++
+  }
+  return qi === q.length
+}
+
+const filteredTextModels = computed(() => {
+  const q = textModelQuery.value
+  const models = textModels.value.filter(m => fuzzyMatch(q, `${m.name} ${m.id}`))
+  if (!q) return models
+
+  const nq = normalize(q)
+  return models.sort((a, b) => {
+    const aTarget = normalize(`${a.name} ${a.id}`)
+    const bTarget = normalize(`${b.name} ${b.id}`)
+    const aStarts = aTarget.startsWith(nq) ? 0 : 1
+    const bStarts = bTarget.startsWith(nq) ? 0 : 1
+    if (aStarts !== bStarts) return aStarts - bStarts
+    return a.name.localeCompare(b.name)
+  })
+})
+
+const parseCachedModels = (value: string | null): ModelOption[] => {
+  if (!value) return []
+  try {
+    const parsed = JSON.parse(value)
+    if (Array.isArray(parsed)) {
+      return parsed.filter((m: any) => typeof m?.id === 'string' && typeof m?.name === 'string')
+    }
+  } catch {
+    // no-op
+  }
+  return []
+}
+
+const syncTextModelQuery = () => {
+  const current = textModels.value.find(m => m.id === textModel.value)
+  textModelQuery.value = current ? `${current.name} (${current.id})` : textModel.value
+}
+
+const selectTextModel = (model: ModelOption) => {
+  textModel.value = model.id
+  textModelQuery.value = `${model.name} (${model.id})`
+  textModelOpen.value = false
+}
+
+const chooseFirstTextModel = () => {
+  if (filteredTextModels.value.length > 0) {
+    selectTextModel(filteredTextModels.value[0])
+  }
+}
+
+const handleOutsideClick = (event: MouseEvent) => {
+  if (!textModelComboboxRef.value) return
+  const target = event.target as Node
+  if (!textModelComboboxRef.value.contains(target)) {
+    textModelOpen.value = false
+  }
+}
+
+watch(textModel, () => {
+  syncTextModelQuery()
+})
+
+watch(
+  () => previewImages.value.length,
+  (length) => {
+    if (currentImageIdx.value >= length) {
+      currentImageIdx.value = Math.max(0, length - 1)
+    }
+  }
+)
 
 onMounted(() => {
   apiKey.value = localStorage.getItem('global_openrouter_key') || ''
+  syncTextModelQuery()
   fetchModels()
+  document.addEventListener('mousedown', handleOutsideClick)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('mousedown', handleOutsideClick)
 })
 
 const fetchModels = async () => {
-  const cached = localStorage.getItem('rednote_available_models')
-  if (cached) {
-    try {
-      const parsed = JSON.parse(cached)
-      if (parsed.length > 0) {
-        textModels.value = parsed
-      }
-    } catch {
-      // no-op
-    }
+  const cachedTextModels = parseCachedModels(localStorage.getItem(TEXT_MODELS_CACHE_KEY))
+  const cachedImageModels = parseCachedModels(localStorage.getItem(IMAGE_MODELS_CACHE_KEY))
+  if (cachedTextModels.length > 0) {
+    textModels.value = cachedTextModels
+  }
+  if (cachedImageModels.length > 0) {
+    imageModels.value = cachedImageModels
   }
 
   try {
     const response = await fetch('https://openrouter.ai/api/v1/models')
     const data = await response.json()
     if (data.data) {
-      const formattedModels = data.data.map((m: any) => ({
+      const fetchedTextModels = data.data.map((m: any) => ({
         id: m.id,
         name: m.name
       }))
-      
-      textModels.value = formattedModels
-      localStorage.setItem('rednote_available_models', JSON.stringify(formattedModels))
-      
-      const fetchedImageModels = formattedModels.filter((m: any) => 
-        m.id.includes('dall-e') || m.id.includes('flux') || m.id.includes('stable-diffusion') || m.id.includes('imagen')
-      )
+
+      const fetchedImageModels = data.data
+        .filter((m: any) => {
+          const architecture = m.architecture || {}
+          const outputModalities = architecture.output_modalities || []
+          return outputModalities.includes('image') ||
+            m.id.includes('flux') ||
+            m.id.includes('dall-e') ||
+            m.id.includes('stable-diffusion') ||
+            m.id.includes('imagen')
+        })
+        .map((m: any) => ({
+          id: m.id,
+          name: m.name
+        }))
+
+      if (fetchedTextModels.length > 0) {
+        textModels.value = fetchedTextModels
+        localStorage.setItem(TEXT_MODELS_CACHE_KEY, JSON.stringify(fetchedTextModels))
+      }
       if (fetchedImageModels.length > 0) {
         imageModels.value = fetchedImageModels
+        localStorage.setItem(IMAGE_MODELS_CACHE_KEY, JSON.stringify(fetchedImageModels))
       }
+
+      if (!textModels.value.find(m => m.id === textModel.value) && textModels.value.length > 0) {
+        textModel.value = textModels.value[0].id
+      }
+      if (!imageModels.value.find(m => m.id === imageModel.value) && imageModels.value.length > 0) {
+        imageModel.value = imageModels.value[0].id
+      }
+      syncTextModelQuery()
     }
   } catch (error) {
     console.error('Failed to fetch models:', error)
@@ -231,14 +474,14 @@ const fetchModels = async () => {
 }
 
 const prevImage = () => {
-  if (images.value.length > 0) {
-    currentImageIdx.value = (currentImageIdx.value - 1 + images.value.length) % images.value.length
+  if (previewImages.value.length > 0) {
+    currentImageIdx.value = (currentImageIdx.value - 1 + previewImages.value.length) % previewImages.value.length
   }
 }
 
 const nextImage = () => {
-  if (images.value.length > 0) {
-    currentImageIdx.value = (currentImageIdx.value + 1) % images.value.length
+  if (previewImages.value.length > 0) {
+    currentImageIdx.value = (currentImageIdx.value + 1) % previewImages.value.length
   }
 }
 
@@ -278,6 +521,36 @@ const optimizeCopy = async () => {
   }
 }
 
+const createGalleryId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+
+const addToGallery = (src: string, source: GalleryImage['source']) => {
+  const id = createGalleryId()
+  galleryImages.value.push({ id, src, source })
+  return id
+}
+
+const extractImageUrl = (message: any) => {
+  if (Array.isArray(message?.content)) {
+    const imgObj = message.content.find((c: any) => c.type === 'image_url')
+    if (imgObj?.image_url?.url) return imgObj.image_url.url as string
+  }
+
+  if (message?.images && message.images.length > 0) {
+    const firstImg = message.images[0]
+    return typeof firstImg === 'string' ? firstImg : (firstImg.image_url?.url || '')
+  }
+
+  if (typeof message?.content === 'string') {
+    if (message.content.startsWith('http') || message.content.startsWith('data:image')) {
+      return message.content
+    }
+    const urlMatch = message.content.match(/https?:\/\/[^\s)"']+/i)
+    if (urlMatch) return urlMatch[0]
+  }
+
+  return ''
+}
+
 const generateImage = async () => {
   if (!imagePrompt.value || !apiKey.value) {
     if (!apiKey.value) alert('Please set OpenRouter API Key in global settings')
@@ -291,31 +564,24 @@ const generateImage = async () => {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey.value}`,
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'Rednote Optimizer',
       },
       body: JSON.stringify({
         model: imageModel.value,
-        messages: [{ role: 'user', content: imagePrompt.value }]
+        messages: [{ role: 'user', content: imagePrompt.value }],
+        modalities: ['image']
       })
     })
 
     if (!response.ok) throw new Error('Generation failed')
     const data = await response.json()
     const message = data.choices[0].message
-    
-    let imageUrl = ''
-    if (Array.isArray(message.content)) {
-      const imgObj = message.content.find((c: any) => c.type === 'image_url')
-      if (imgObj) imageUrl = imgObj.image_url.url
-    } else if (message.images && message.images.length > 0) {
-      imageUrl = typeof message.images[0] === 'string' ? message.images[0] : (message.images[0].image_url?.url || '')
-    } else if (message.content && message.content.startsWith('http')) {
-      imageUrl = message.content
-    }
+    const imageUrl = extractImageUrl(message)
 
     if (imageUrl) {
-      images.value.push(imageUrl)
+      addToGallery(imageUrl, 'gen')
       imagePrompt.value = ''
-      currentImageIdx.value = images.value.length - 1
     } else {
       alert('Failed to parse image from response.')
     }
@@ -331,8 +597,7 @@ const openWhiteboard = () => {
 }
 
 const handleWhiteboardSave = (dataUrl: string) => {
-  images.value.push(dataUrl)
-  currentImageIdx.value = images.value.length - 1
+  addToGallery(dataUrl, 'draw')
   showWhiteboard.value = false
 }
 
@@ -347,19 +612,143 @@ const handleUpload = (e: Event) => {
       const reader = new FileReader()
       reader.onload = (event) => {
         if (event.target?.result) {
-          images.value.push(event.target.result as string)
-          currentImageIdx.value = images.value.length - 1
+          addToGallery(event.target.result as string, 'upload')
         }
       }
       reader.readAsDataURL(file)
     })
   }
+  ;(e.target as HTMLInputElement).value = ''
 }
 
-const removeImage = (idx: number) => {
-  images.value.splice(idx, 1)
-  if (currentImageIdx.value >= images.value.length) {
-    currentImageIdx.value = Math.max(0, images.value.length - 1)
+const isGallerySelected = (id: string) => selectedGalleryIds.value.includes(id)
+
+const toggleGallerySelection = (id: string) => {
+  if (selectedGalleryIds.value.includes(id)) {
+    selectedGalleryIds.value = selectedGalleryIds.value.filter(v => v !== id)
+    return
+  }
+  selectedGalleryIds.value = [...selectedGalleryIds.value, id]
+}
+
+const addToPreview = (galleryId: string) => {
+  if (previewGalleryIds.value.includes(galleryId)) {
+    currentImageIdx.value = previewGalleryIds.value.indexOf(galleryId)
+    return
+  }
+  previewGalleryIds.value.push(galleryId)
+  currentImageIdx.value = previewGalleryIds.value.length - 1
+}
+
+const removePreviewImage = (idx: number) => {
+  previewGalleryIds.value.splice(idx, 1)
+  if (currentImageIdx.value >= previewGalleryIds.value.length) {
+    currentImageIdx.value = Math.max(0, previewGalleryIds.value.length - 1)
+  }
+}
+
+const handleGalleryDragStart = (event: DragEvent, id: string) => {
+  draggedGalleryId.value = id
+  if (event.dataTransfer) {
+    event.dataTransfer.setData('text/plain', id)
+    event.dataTransfer.effectAllowed = 'copy'
+  }
+}
+
+const handlePreviewDragOver = () => {
+  isPreviewDragOver.value = true
+}
+
+const handlePreviewDragLeave = () => {
+  isPreviewDragOver.value = false
+}
+
+const handlePreviewDrop = (event: DragEvent) => {
+  isPreviewDragOver.value = false
+  const droppedId = event.dataTransfer?.getData('text/plain') || draggedGalleryId.value
+  if (!droppedId) return
+  const exists = galleryImages.value.some(img => img.id === droppedId)
+  if (!exists) return
+  addToPreview(droppedId)
+  draggedGalleryId.value = null
+}
+
+const generateMergedImage = async () => {
+  if (!galleryEditPrompt.value || selectedGalleryIds.value.length === 0 || !apiKey.value) {
+    if (!apiKey.value) alert('Please set OpenRouter API Key in global settings')
+    return
+  }
+  if (isMergingImages.value) return
+
+  const selectedImages = galleryImages.value.filter(img => selectedGalleryIds.value.includes(img.id))
+  if (selectedImages.length === 0) return
+
+  isMergingImages.value = true
+
+  try {
+    const content: any[] = [
+      {
+        type: 'text',
+        text: `Create one new image by merging/editing these reference images. Follow this prompt: ${galleryEditPrompt.value}`
+      }
+    ]
+
+    selectedImages.forEach(img => {
+      content.push({
+        type: 'image_url',
+        image_url: { url: img.src }
+      })
+    })
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey.value}`,
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'Rednote Optimizer',
+      },
+      body: JSON.stringify({
+        model: imageModel.value,
+        messages: [{ role: 'user', content }],
+        modalities: ['image']
+      })
+    })
+
+    if (!response.ok) throw new Error('Merge generation failed')
+    const data = await response.json()
+    const imageUrl = extractImageUrl(data.choices?.[0]?.message)
+    if (!imageUrl) throw new Error('No image parsed from response')
+
+    const newId = addToGallery(imageUrl, 'edit')
+    selectedGalleryIds.value = [newId]
+    galleryEditPrompt.value = ''
+  } catch (error: any) {
+    alert('Merge/edit generation failed: ' + error.message)
+  } finally {
+    isMergingImages.value = false
+  }
+}
+
+const downloadImage = async (image: GalleryImage) => {
+  const filename = `rednote-${image.id}.png`
+  try {
+    const response = await fetch(image.src)
+    const blob = await response.blob()
+    const objectUrl = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.download = filename
+    link.href = objectUrl
+    link.click()
+    URL.revokeObjectURL(objectUrl)
+    return
+  } catch {
+    const link = document.createElement('a')
+    link.download = filename
+    link.href = image.src
+    link.target = '_blank'
+    link.rel = 'noopener'
+    link.click()
   }
 }
 
