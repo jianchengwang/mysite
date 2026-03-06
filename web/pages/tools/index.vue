@@ -116,6 +116,15 @@ const tools = [
       { label: 'Drawing', color: 'green' }
     ]
   },
+  {
+    to: '/tools/rednote',
+    title: 'Rednote Optimizer',
+    description: 'AI-powered Xiaohongshu (Rednote) copy optimizer with built-in whiteboard and image generation.',
+    tags: [
+      { label: 'AI Copy', color: 'indigo' },
+      { label: 'Social Media', color: 'green' }
+    ]
+  },
 ]
 </script>
 
