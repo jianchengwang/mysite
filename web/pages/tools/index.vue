@@ -81,6 +81,15 @@ const tools = [
     ]
   },
   {
+    to: '/tools/typing',
+    title: 'Typing Story Lab',
+    description: 'Generate or paste English passages, clean the text, and practice with live typing stats.',
+    tags: [
+      { label: 'Typing Practice', color: 'indigo' },
+      { label: 'AI-Powered', color: 'green' }
+    ]
+  },
+  {
     to: '/tools/modbus',
     title: 'Modbus',
     description: 'Parse Modbus data.',
