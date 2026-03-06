@@ -147,8 +147,8 @@
             <span v-if="currentChunk.usphone">US: [{{ currentChunk.usphone }}]</span>
             <span v-if="currentChunk.ukphone" class="ml-6">UK: [{{ currentChunk.ukphone }}]</span>
           </div>
-          <div v-if="showTrans && currentChunk.trans && currentChunk.trans.length" class="mt-4 text-2xl text-zinc-600 text-center font-sans !tracking-tighter" style="letter-spacing: -0.05em;">
-            <span v-for="(tran, i) in currentChunk.trans" :key="i" class="mx-2">{{ tran }}</span>
+          <div v-if="showTrans && currentChunk.trans && currentChunk.trans.length" class="mt-4 text-2xl text-zinc-600 text-center font-sans !tracking-tighter" style="letter-spacing: -0.1em;">
+            <span v-for="(tran, i) in currentChunk.trans" :key="i" class="mx-1">{{ tran }}</span>
           </div>
           <div v-if="currentChunk.example" class="mt-4 text-xl text-zinc-500 italic text-center font-hand bg-zinc-50 p-3 sketch-border-3">
             <div v-if="Array.isArray(currentChunk.example)">

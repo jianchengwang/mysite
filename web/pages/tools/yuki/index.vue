@@ -95,7 +95,7 @@
             <div v-for="(msg, index) in messages" :key="index" :class="['flex', msg.role === 'user' ? 'justify-end' : 'justify-start']">
               <div
                 :class="[
-                  'max-w-[90%] p-4 sketch-border-3 relative',
+                  'max-w-[90%] p-4 sketch-border-3 relative group',
                   msg.role === 'user' ? 'bg-zinc-50' : 'bg-white'
                 ]"
               >
@@ -103,6 +103,16 @@
                   <img v-for="(img, i) in msg.images" :key="i" :src="img" class="max-w-[200px] max-h-[200px] object-contain sketch-border" />
                 </div>
                 <div class="prose prose-zinc max-w-none prose-sm sm:prose-base" v-html="renderMarkdown(msg.content)"></div>
+                
+                <!-- Play button for assistant messages -->
+                <button 
+                  v-if="msg.role === 'assistant'"
+                  @click="playVoice(msg.content)"
+                  class="absolute -right-10 top-0 opacity-0 group-hover:opacity-100 transition-opacity p-2 text-zinc-400 hover:text-zinc-800"
+                  title="Play message"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                </button>
               </div>
             </div>
             <div v-if="isLoading" class="flex justify-start">
@@ -145,10 +155,19 @@
                   Send
                 </button>
                 <div class="flex items-center justify-between mt-1 gap-3">
-                  <label class="flex items-center cursor-pointer select-none text-xs text-zinc-500 hover:text-zinc-700">
-                    <input type="checkbox" v-model="autoPronounce" class="mr-1 w-3 h-3 accent-zinc-900" />
-                    Auto-Speak
-                  </label>
+                  <div class="flex items-center gap-3">
+                    <label class="flex items-center cursor-pointer select-none text-xs text-zinc-500 hover:text-zinc-700">
+                      <input type="checkbox" v-model="autoPronounce" class="mr-1 w-3 h-3 accent-zinc-900" />
+                      Auto-Speak
+                    </label>
+                    <button 
+                      @click="stopVoice"
+                      class="text-[10px] text-red-500 hover:text-red-700 font-bold border border-red-200 px-1 rounded bg-red-50"
+                      v-if="isSpeaking"
+                    >
+                      Stop Speaking
+                    </button>
+                  </div>
                   <button @click="clearChat" class="text-xs text-zinc-400 hover:text-zinc-600 underline">Clear</button>
                 </div>
               </div>
@@ -177,6 +196,7 @@ const chatContainer = ref<HTMLElement | null>(null)
 const selectedImage = ref<string | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 const autoPronounce = ref(true)
+const isSpeaking = ref(false)
 
 const availableLive2dModels = ref([
   { id: 'xuefeng_3', name: 'Sarah' },
@@ -532,6 +552,13 @@ const handleLive2dModelChange = (modelId: string) => {
   }
 }
 
+const stopVoice = () => {
+  if (speechSynthesis) {
+    speechSynthesis.cancel()
+    isSpeaking.value = false
+  }
+}
+
 const playVoice = (text: string) => {
   if (!speechSynthesis) return
 
@@ -574,9 +601,14 @@ const playVoice = (text: string) => {
       utterance.voice = englishVoice
     }
 
+    utterance.onstart = () => { isSpeaking.value = true }
+    utterance.onend = () => { isSpeaking.value = false }
+    utterance.onerror = () => { isSpeaking.value = false }
+
     speechSynthesis.speak(utterance)
   } catch (error) {
     console.error('Failed to play voice:', error)
+    isSpeaking.value = false
   }
 }
 
