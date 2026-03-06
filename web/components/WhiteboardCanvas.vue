@@ -11,6 +11,13 @@
         <button @click="undo" :disabled="!canUndo" class="sketch-button py-1 px-3 text-sm disabled:opacity-30">Undo</button>
         <button @click="redo" :disabled="!canRedo" class="sketch-button py-1 px-3 text-sm disabled:opacity-30">Redo</button>
         <button @click="clear" class="sketch-button py-1 px-3 text-sm border-red-200 text-red-600">Clear</button>
+        <button
+          @click="saveCroppedArea"
+          :disabled="!hasCropSelection"
+          class="sketch-button py-1 px-3 text-sm disabled:opacity-30"
+        >
+          Crop Area & Save
+        </button>
         <button @click="saveFullCanvas" class="sketch-button py-1 px-3 text-sm !bg-zinc-900 !text-white">Save</button>
       </div>
     </div>
@@ -21,7 +28,13 @@
       <div class="flex gap-2">
         <button @click="undo" :disabled="!canUndo" class="sketch-button py-1 px-2 text-xs disabled:opacity-30">Undo</button>
         <button @click="clear" class="sketch-button py-1 px-2 text-xs border-red-200 text-red-600">Clear</button>
-        <button @click="confirmModalSave" class="sketch-button py-1 px-3 text-xs !bg-zinc-900 !text-white">Done</button>
+        <button
+          @click="confirmModalSave"
+          :disabled="currentTool === 'crop' && !hasCropSelection"
+          class="sketch-button py-1 px-3 text-xs !bg-zinc-900 !text-white disabled:opacity-30"
+        >
+          {{ currentTool === 'crop' ? 'Crop Area & Save' : 'Done' }}
+        </button>
       </div>
     </div>
 
@@ -43,7 +56,7 @@
             </button>
           </div>
           
-          <div class="pt-4" v-if="currentTool !== 'eraser' && currentTool !== 'select'">
+          <div class="pt-4" v-if="!['eraser', 'select', 'image', 'crop'].includes(currentTool)">
             <h3 class="font-bold border-b border-zinc-200 pb-2 mb-2">Color</h3>
             <div class="grid grid-cols-4 gap-1">
               <button 
@@ -61,6 +74,10 @@
             <h3 class="font-bold border-b border-zinc-200 pb-2 mb-2">Size</h3>
             <input type="range" v-model.number="currentSize" min="1" max="20" class="w-full accent-zinc-700" />
           </div>
+
+          <p v-if="currentTool === 'crop'" class="text-xs text-zinc-500 italic">
+            Drag on the canvas to define the crop area, then save only that selection.
+          </p>
         </div>
         
         <div class="sketch-card p-4 space-y-4">
@@ -160,11 +177,13 @@ type WbObject =
   | { type: 'image'; pos: Point; img: HTMLImageElement; width: number; height: number; id: string; prompt?: string; sourceIds?: string[] }
   | { type: 'link'; start: Point; end: Point; fromId: string; toId: string }
 
+type CropRect = { x: number; y: number; width: number; height: number }
+
 const canvas = ref<HTMLCanvasElement | null>(null)
 const canvasWrapper = ref<HTMLElement | null>(null)
 const ctx = ref<CanvasRenderingContext2D | null>(null)
 
-const currentTool = ref<'pencil' | 'rect' | 'circle' | 'diamond' | 'eraser' | 'image' | 'select'>('pencil')
+const currentTool = ref<'pencil' | 'rect' | 'circle' | 'diamond' | 'eraser' | 'image' | 'select' | 'crop'>('pencil')
 const currentColor = ref('#000000')
 const currentSize = ref(3)
 
@@ -176,6 +195,7 @@ const tools = [
   { id: 'image', name: 'Add Image', icon: '🖼' },
   { id: 'eraser', name: 'Eraser', icon: '⌫' },
   { id: 'select', name: 'Select', icon: '🖱' },
+  { id: 'crop', name: 'Crop Area', icon: '▣' },
 ]
 
 const colors = ['#000000', '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b']
@@ -242,6 +262,11 @@ const isDragging = ref(false)
 const dragOffset = ref<Point>({ x: 0, y: 0 })
 const currentPoints = ref<Point[]>([])
 const startPoint = ref<Point | null>(null)
+const cropSelection = ref<CropRect | null>(null)
+
+const hasCropSelection = computed(() =>
+  Boolean(cropSelection.value && cropSelection.value.width > 0 && cropSelection.value.height > 0)
+)
 
 onMounted(() => {
   if (canvas.value && canvasWrapper.value) {
@@ -304,6 +329,13 @@ const getMousePos = (e: MouseEvent | Touch): Point => {
     y: (e.clientY - rect.top) * (canvas.value.height / rect.height)
   }
 }
+
+const normalizeRect = (start: Point, end: Point): CropRect => ({
+  x: Math.min(start.x, end.x),
+  y: Math.min(start.y, end.y),
+  width: Math.abs(end.x - start.x),
+  height: Math.abs(end.y - start.y)
+})
 
 const handleMouseDown = (e: MouseEvent) => {
   const pos = getMousePos(e)
@@ -369,6 +401,14 @@ const handleMouseDown = (e: MouseEvent) => {
     return
   }
 
+  if (currentTool.value === 'crop') {
+    isDrawing.value = true
+    startPoint.value = pos
+    cropSelection.value = { x: pos.x, y: pos.y, width: 0, height: 0 }
+    render()
+    return
+  }
+
   isDrawing.value = true
   startPoint.value = pos
   if (currentTool.value === 'pencil' || currentTool.value === 'eraser') {
@@ -393,6 +433,14 @@ const handleMouseMove = (e: MouseEvent) => {
   }
 
   if (!isDrawing.value || !ctx.value) return
+
+  if (currentTool.value === 'crop') {
+    if (startPoint.value) {
+      cropSelection.value = normalizeRect(startPoint.value, pos)
+      render()
+    }
+    return
+  }
   
   if (currentTool.value === 'pencil' || currentTool.value === 'eraser') {
     currentPoints.value.push(pos)
@@ -418,11 +466,22 @@ const handleMouseMove = (e: MouseEvent) => {
   }
 }
 
-const handleMouseUp = (e: MouseEvent) => {
+const handleMouseUp = (e?: MouseEvent | Touch) => {
   isDragging.value = false
   if (!isDrawing.value) return
   isDrawing.value = false
-  const pos = getMousePos(e)
+  const pos = e ? getMousePos(e) : startPoint.value
+  if (!pos) return
+
+  if (currentTool.value === 'crop') {
+    cropSelection.value = startPoint.value ? normalizeRect(startPoint.value, pos) : cropSelection.value
+    if (cropSelection.value && (cropSelection.value.width < 8 || cropSelection.value.height < 8)) {
+      cropSelection.value = null
+    }
+    startPoint.value = null
+    render()
+    return
+  }
   
   if (currentTool.value === 'pencil' || currentTool.value === 'eraser') {
     if (currentPoints.value.length > 1) {
@@ -470,7 +529,7 @@ const handleContextMenu = (e: MouseEvent) => {
 // Touch support
 const handleTouchStart = (e: TouchEvent) => handleMouseDown(e.touches[0] as any)
 const handleTouchMove = (e: TouchEvent) => handleMouseMove(e.touches[0] as any)
-const handleTouchEnd = () => handleMouseUp({} as any)
+const handleTouchEnd = (e: TouchEvent) => handleMouseUp(e.changedTouches[0])
 
 const generateAIImage = async () => {
   if (!aiPrompt.value || isGenerating.value) return
@@ -583,27 +642,36 @@ const generateAIImage = async () => {
   }
 }
 
+const renderScene = (
+  targetCtx: CanvasRenderingContext2D,
+  targetCanvas: HTMLCanvasElement,
+  options: { includeCropOverlay?: boolean; clearCanvas?: boolean } = {}
+) => {
+  if (options.clearCanvas !== false) {
+    targetCtx.clearRect(0, 0, targetCanvas.width, targetCanvas.height)
+  }
+
+  objects.value.forEach(obj => {
+    if (obj.type === 'link') drawLink(targetCtx, obj)
+  })
+
+  objects.value.forEach(obj => {
+    if (obj.type === 'path') drawPath(targetCtx, obj)
+    else if (obj.type === 'rect' || obj.type === 'circle' || obj.type === 'diamond') drawShape(targetCtx, obj)
+  })
+
+  objects.value.forEach(obj => {
+    if (obj.type === 'image') drawImage(targetCtx, obj)
+  })
+
+  if (options.includeCropOverlay && cropSelection.value) {
+    drawCropSelection(targetCtx, targetCanvas, cropSelection.value)
+  }
+}
+
 const render = () => {
   if (!ctx.value || !canvas.value) return
-  ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
-  
-  // 1. Draw links (bottom layer)
-  objects.value.forEach(obj => {
-    if (obj.type === 'link') drawLink(ctx.value!, obj)
-  })
-
-  // 2. Draw paths and shapes (brush layer)
-  // We use a separate pass so erasers only affect this layer if we wanted to be strict,
-  // but for now, drawing images AFTER paths ensures they aren't erased.
-  objects.value.forEach(obj => {
-    if (obj.type === 'path') drawPath(ctx.value!, obj)
-    else if (obj.type === 'rect' || obj.type === 'circle' || obj.type === 'diamond') drawShape(ctx.value!, obj)
-  })
-
-  // 3. Draw images (top layer)
-  objects.value.forEach(obj => {
-    if (obj.type === 'image') drawImage(ctx.value!, obj)
-  })
+  renderScene(ctx.value, canvas.value, { includeCropOverlay: true, clearCanvas: true })
 }
 
 const drawLink = (ctx: CanvasRenderingContext2D, obj: any) => {
@@ -719,6 +787,20 @@ const drawHandDrawnCircle = (ctx: CanvasRenderingContext2D, cx: number, cy: numb
   drawIteration(1.2)
 }
 
+const drawCropSelection = (ctx: CanvasRenderingContext2D, targetCanvas: HTMLCanvasElement, rect: CropRect) => {
+  ctx.save()
+  ctx.fillStyle = 'rgba(17, 24, 39, 0.18)'
+  ctx.fillRect(0, 0, targetCanvas.width, rect.y)
+  ctx.fillRect(0, rect.y, rect.x, rect.height)
+  ctx.fillRect(rect.x + rect.width, rect.y, targetCanvas.width - rect.x - rect.width, rect.height)
+  ctx.fillRect(0, rect.y + rect.height, targetCanvas.width, targetCanvas.height - rect.y - rect.height)
+  ctx.setLineDash([10, 6])
+  ctx.strokeStyle = '#2563eb'
+  ctx.lineWidth = 2
+  ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
+  ctx.restore()
+}
+
 const commitToHistory = () => {
   const nextHistory = history.value.slice(0, historyIndex.value + 1)
   nextHistory.push([...objects.value.map(o => ({...o}))])
@@ -745,35 +827,84 @@ const redo = () => {
 const clear = () => {
   if (confirm('Clear everything?')) {
     objects.value = []
+    cropSelection.value = null
     commitToHistory()
     render()
   }
 }
 
+const buildExportCanvas = () => {
+  if (!canvas.value) return null
+  const exportCanvas = document.createElement('canvas')
+  exportCanvas.width = canvas.value.width
+  exportCanvas.height = canvas.value.height
+  const exportCtx = exportCanvas.getContext('2d')
+  if (!exportCtx) return null
+
+  exportCtx.fillStyle = '#ffffff'
+  exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height)
+  renderScene(exportCtx, exportCanvas, { includeCropOverlay: false, clearCanvas: false })
+  return exportCanvas
+}
+
+const downloadDataUrl = (filename: string, dataUrl: string) => {
+  const link = document.createElement('a')
+  link.download = filename
+  link.href = dataUrl
+  link.click()
+}
+
 const saveFullCanvas = () => {
-  if (!canvas.value) return
-  const saveCanvas = document.createElement('canvas')
-  saveCanvas.width = canvas.value.width
-  saveCanvas.height = canvas.value.height
-  const saveCtx = saveCanvas.getContext('2d')
-  if (!saveCtx) return
-  
-  saveCtx.fillStyle = '#ffffff'
-  saveCtx.fillRect(0, 0, saveCanvas.width, saveCanvas.height)
-  saveCtx.drawImage(canvas.value, 0, 0)
-  
-  const dataUrl = saveCanvas.toDataURL('image/png')
+  const exportCanvas = buildExportCanvas()
+  if (!exportCanvas) return
+
+  const dataUrl = exportCanvas.toDataURL('image/png')
   if (props.isModal) {
     emit('save', dataUrl)
   } else {
-    const link = document.createElement('a')
-    link.download = 'whiteboard-sketch.png'
-    link.href = dataUrl
-    link.click()
+    downloadDataUrl('whiteboard-sketch.png', dataUrl)
+  }
+}
+
+const saveCroppedArea = () => {
+  if (!cropSelection.value) return
+  const exportCanvas = buildExportCanvas()
+  if (!exportCanvas) return
+
+  const { x, y, width, height } = cropSelection.value
+  const cropCanvas = document.createElement('canvas')
+  cropCanvas.width = Math.round(width)
+  cropCanvas.height = Math.round(height)
+  const cropCtx = cropCanvas.getContext('2d')
+  if (!cropCtx) return
+
+  cropCtx.fillStyle = '#ffffff'
+  cropCtx.fillRect(0, 0, cropCanvas.width, cropCanvas.height)
+  cropCtx.drawImage(
+    exportCanvas,
+    x,
+    y,
+    width,
+    height,
+    0,
+    0,
+    cropCanvas.width,
+    cropCanvas.height
+  )
+
+  const dataUrl = cropCanvas.toDataURL('image/png')
+  if (props.isModal) {
+    emit('save', dataUrl)
+  } else {
+    downloadDataUrl('whiteboard-crop.png', dataUrl)
   }
 }
 
 const confirmModalSave = () => {
+  if (currentTool.value === 'crop' && hasCropSelection.value) {
+    saveCroppedArea()
+    return
+  }
   saveFullCanvas()
 }
 </script>

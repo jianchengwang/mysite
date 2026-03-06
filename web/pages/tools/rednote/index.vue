@@ -148,6 +148,13 @@
                     </label>
                     <div class="absolute right-1 top-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
+                        class="w-7 h-7 rounded bg-black/65 text-white text-sm leading-none"
+                        title="Delete"
+                        @click.stop="deleteGalleryImage(img.id)"
+                      >
+                        ×
+                      </button>
+                      <button
                         class="w-7 h-7 rounded bg-black/65 text-white text-xs"
                         title="Add to Preview"
                         @click.stop="addToPreview(img.id)"
@@ -644,6 +651,21 @@ const removePreviewImage = (idx: number) => {
   previewGalleryIds.value.splice(idx, 1)
   if (currentImageIdx.value >= previewGalleryIds.value.length) {
     currentImageIdx.value = Math.max(0, previewGalleryIds.value.length - 1)
+  }
+}
+
+const deleteGalleryImage = (id: string) => {
+  galleryImages.value = galleryImages.value.filter(img => img.id !== id)
+  selectedGalleryIds.value = selectedGalleryIds.value.filter(selectedId => selectedId !== id)
+
+  const removedPreviewIndex = previewGalleryIds.value.indexOf(id)
+  previewGalleryIds.value = previewGalleryIds.value.filter(previewId => previewId !== id)
+  if (removedPreviewIndex !== -1 && currentImageIdx.value >= removedPreviewIndex) {
+    currentImageIdx.value = Math.max(0, currentImageIdx.value - 1)
+  }
+
+  if (draggedGalleryId.value === id) {
+    draggedGalleryId.value = null
   }
 }
 

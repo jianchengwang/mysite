@@ -4,7 +4,7 @@
       <!-- Title -->
       <h1 class="text-5xl font-bold font-hand mb-12 transform -rotate-2">Qwerty Practice</h1>
 
-      <!-- 顶部统计 -->
+      <!-- Top stats -->
       <div class="flex space-x-12 mb-12 text-center sketch-border-2 p-6 bg-white relative">
         <div class="absolute -top-4 -left-4 bg-yellow-100 border border-black px-2 font-hand transform -rotate-12">Stats</div>
         <div>
@@ -23,13 +23,13 @@
         </div>
       </div>
 
-      <!-- 缓存统计 -->
+      <!-- Progress stats -->
       <div v-if="!customParagraphMode" class="mb-6 text-xl font-hand text-zinc-600 flex items-center space-x-6">
-        <span>已掌握：<span class="font-bold text-green-600 underline decoration-wavy">{{ correctCount }}</span> / <span class="font-bold">{{ totalWords }}</span></span>
-        <span>待练习：<span class="font-bold text-blue-600 underline decoration-dotted">{{ remainCount }}</span></span>
+        <span>Mastered: <span class="font-bold text-green-600 underline decoration-wavy">{{ correctCount }}</span> / <span class="font-bold">{{ totalWords }}</span></span>
+        <span>Remaining: <span class="font-bold text-blue-600 underline decoration-dotted">{{ remainCount }}</span></span>
       </div>
 
-      <!-- 字典选择 -->
+      <!-- Dictionary controls -->
       <div v-if="!customParagraphMode" class="mb-8 flex flex-wrap items-center justify-center gap-4 sketch-border-3 p-4 bg-white">
         <div class="flex items-center space-x-2">
           <label for="dict" class="text-lg font-hand text-zinc-800">Dictionary:</label>
@@ -53,30 +53,30 @@
         <div class="flex items-center gap-4 ml-4">
           <label class="flex items-center cursor-pointer select-none font-hand text-lg">
             <input type="checkbox" v-model="autoSpeak" class="mr-2 w-5 h-5 accent-zinc-900" />
-            自动发音
+            Auto pronounce
           </label>
           <label class="flex items-center cursor-pointer select-none font-hand text-lg">
             <input type="checkbox" v-model="isRandom" class="mr-2 w-5 h-5 accent-zinc-900" />
-            随机抽取
+            Randomize picks
           </label>
           <label class="flex items-center cursor-pointer select-none font-hand text-lg">
             <input type="checkbox" v-model="showTrans" class="mr-2 w-5 h-5 accent-zinc-900" />
-            显示翻译
+            Show translation
           </label>
         </div>
         
-        <button @click="clearCorrectIndexes(selectedDict); correctIndexes = []; nextGroup();" class="sketch-button bg-red-50 text-red-700 !border-red-900">清除缓存</button>
+        <button @click="clearCorrectIndexes(selectedDict); correctIndexes = []; nextGroup();" class="sketch-button bg-red-50 text-red-700 !border-red-900">Clear progress</button>
       </div>
 
-      <!-- 自定义段落模式 -->
+      <!-- Custom paragraph mode -->
       <div class="mb-8 flex items-center space-x-12">
         <label class="flex items-center cursor-pointer select-none font-hand text-2xl">
           <input type="checkbox" v-model="customParagraphMode" class="mr-3 w-6 h-6 accent-zinc-900" />
-          🎨 自定义段落
+          🎨 Custom paragraph
         </label>
         <label class="flex items-center cursor-pointer select-none font-hand text-2xl">
           <input type="checkbox" v-model="dictationMode" class="mr-3 w-6 h-6 accent-zinc-900" />
-          ✍️ 默写模式
+          ✍️ Dictation mode
         </label>
       </div>
 
@@ -89,17 +89,17 @@
         </div>
       </template>
 
-      <!-- 打字区 -->
+      <!-- Typing area -->
       <div v-if="(!customParagraphMode) || (customParagraphMode && customPracticeStarted)" 
         class="relative sketch-card bg-white px-12 py-16 min-w-[800px] min-h-[220px] flex flex-col items-center justify-center mb-12 select-none text-5xl font-sketch tracking-wider outline-none focus:ring-4 focus:ring-yellow-100 transition-all cursor-text shadow-xl" 
         tabindex="0" @click="focusTypingArea" ref="typingArea" @focus="handleFocus" @blur="handleBlur">
         
         <div class="absolute -top-4 right-8 !bg-zinc-900 !text-white font-hand px-4 py-1 transform rotate-2">Type here!</div>
 
-        <!-- 打字区：根据默写模式切换显示 -->
+        <!-- Switch display based on dictation mode -->
         <template v-if="!dictationMode">
           <div class="flex items-center space-x-6">
-            <!-- 原有字符显示 -->
+            <!-- Standard typing display -->
             <span class="leading-relaxed">
               <span v-for="(char, idx) in currentChunk.text.split('')" :key="idx">
                 <span v-if="idx < typedChars.length"
@@ -121,7 +121,7 @@
           </div>
         </template>
         <template v-else>
-          <!-- 默写模式内容 -->
+          <!-- Dictation mode content -->
           <div class="flex items-center space-x-8">
             <span class="leading-relaxed">
               <span v-for="(_, idx) in currentChunk.text.split('')" :key="idx" class="dictation-char">
@@ -135,7 +135,7 @@
               <span>🔊</span>
             </button>
           </div>
-          <!-- 显示答案 -->
+          <!-- Reveal answer -->
           <div v-if="showAnswer" :class="['mt-8','font-sketch','text-3xl', lastCorrect ? 'text-green-600' : 'text-red-500 underline decoration-wavy']">
             {{ currentChunk.text }}
           </div>
@@ -159,12 +159,12 @@
         </div>
       </div>
 
-      <!-- 进度 -->
+      <!-- Progress -->
       <div v-if="(!customParagraphMode) || (customParagraphMode && customPracticeStarted)" class="text-2xl font-hand text-zinc-500 mb-12">
         <span class="sketch-border-2 px-4 py-1">{{ completedChunks }} / {{ totalChunks }} completed</span>
       </div>
 
-      <!-- 结束弹窗 -->
+      <!-- Results modal -->
       <div v-if="showResults" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-6">
         <div class="sketch-card bg-white p-12 max-w-md w-full text-center relative">
           <div class="absolute -top-6 -right-6 text-6xl transform rotate-12">🏁</div>
@@ -218,12 +218,12 @@ const practiceHistory = ref<PracticeResult[]>([])
 const showResults = ref(false)
 const typingArea = ref<HTMLElement | null>(null)
 
-// 打字状态
+// Typing state
 const typedChars = ref<{char: string, correct: boolean}[]>([])
 const startTime = ref(0)
 const isPracticing = ref(false)
 
-// 当前组和索引
+// Current group and index
 const currentGroup = ref<TypingChunk[]>([])
 const currentGroupIndexes = ref<number[]>([]);
 
@@ -247,17 +247,17 @@ const difficultyWordCount: Record<string, number> = {
   easy: 5,
   medium: 10,
   hard: 20,
-  all: 5 // 默认
+  all: 5 // Default
 }
 
 const autoSpeak = ref(true)
-const isRandom = ref(true) // 是否随机，默认随机
+const isRandom = ref(true) // Random mode is enabled by default
 const showTrans = ref(true)
 const dictationMode = ref(false)
 const showAnswer = ref(false)
 const lastCorrect = ref(false)
 
-// 存储和读取本地已答对索引
+// Persist and read locally mastered item indexes
 function getCorrectIndexesKey(dict: string) {
   return `qwerty_correct_${dict}`
 }
@@ -276,7 +276,7 @@ function clearCorrectIndexes(dict: string) {
 }
 const correctIndexes = ref<number[]>([])
 
-// 预加载音效
+// Preload sound effects
 let clickAudio: HTMLAudioElement | null = null
 let correctAudio: HTMLAudioElement | null = null
 let beepAudio: HTMLAudioElement | null = null
@@ -310,13 +310,13 @@ function playBeep() {
 
 function speakWord(word: string) {
   if (process.client && word) {
-    // 先取消上一次的发音，防止队列堆积
+    // Cancel any previous utterance to avoid speech queue buildup.
     if (window.speechSynthesis.speaking) {
       window.speechSynthesis.cancel();
     }
     const utter = new window.SpeechSynthesisUtterance(word)
     utter.lang = 'en-US'
-    // 优先选择自然的英文女声
+    // Prefer a natural-sounding English voice when available.
     const voices = window.speechSynthesis.getVoices()
     const enVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Samantha') || v.name.includes('Karen') || v.name.includes('Google US English') || v.name.includes('English')))
     if (enVoice) utter.voice = enVoice
@@ -330,10 +330,9 @@ watch([currentGroup, currentGroupIndex, autoSpeak], ([group, idx, auto]) => {
   }
 })
 
-// 获取所有字典文件名（假设后端/构建时可注入，或用静态配置）
+// Load all dictionary file names.
 async function fetchDictFiles() {
-  // 由于 public 目录无法直接列目录，需手动维护或构建时注入
-  // 这里假设有个静态文件 dicts/index.json 记录所有字典文件名
+  // The public directory cannot be enumerated directly, so use a static index file.
   try {
     const res = await fetch('/qwerty/dicts/index.json')
     dictFiles.value = await res.json()
@@ -345,17 +344,17 @@ async function fetchDictFiles() {
   }
 }
 
-// 加载选中字典内容
+// Load the selected dictionary.
 async function loadChunksFromDict() {
   if (!selectedDict.value) return
   try {
     const res = await fetch(`/qwerty/dicts/${selectedDict.value}`)
     const data = await res.json()
-    // 适配为 TypingChunk 结构，保留音标和例句
+    // Adapt the data to the TypingChunk shape while preserving metadata.
     chunks.value = data.map((item: any, idx: number) => ({
       id: String(idx),
       text: item.name,
-      difficulty: 'all', // 可根据需要扩展
+      difficulty: 'all', // Extend later if dictionary difficulty is added.
       trans: item.trans,
       usphone: item.usphone,
       ukphone: item.ukphone,
@@ -375,20 +374,20 @@ const filterChunksByDifficulty = () => {
 const nextGroup = () => {
   const filteredChunks = filterChunksByDifficulty()
   if (filteredChunks.length === 0) return
-  // 排除已答对的
+  // Exclude already mastered items.
   const available = filteredChunks.filter((_, idx) => !correctIndexes.value.includes(idx))
   if (available.length === 0) {
-    // 全部做完，重置再抽题
+    // Reset when everything has been completed.
     correctIndexes.value = []
     saveCorrectIndexes(selectedDict.value, [])
     return nextGroup()
   }
   let group: TypingChunk[] = []
   if (selectedDifficulty.value === 'all') {
-    // all 模式：直接使用全部可用项
+    // In all mode, use every available item.
     group = available
   } else {
-    // 按难度分组
+    // Otherwise take a smaller batch.
     const wordCount = difficultyWordCount[selectedDifficulty.value] || 5
     if (isRandom.value) {
       const shuffled = available.slice().sort(() => Math.random() - 0.5)
@@ -398,9 +397,9 @@ const nextGroup = () => {
     }
   }
   currentGroup.value = group
-  // 记录当前组在原数组中的索引（用于存储）
+  // Store the original indexes for mastery tracking.
   currentGroupIndexes.value = group.map(chunk => chunks.value.findIndex(c => c.id === chunk.id))
-  // 开始新组时重置练习历史和状态，清空统计
+  // Reset practice state for the next batch.
   practiceHistory.value = []
   currentGroupIndex.value = 0
   typedChars.value = []
@@ -416,7 +415,7 @@ const focusTypingArea = () => {
   if (typingArea.value) typingArea.value.focus()
 }
 
-// 新增：聚焦和失焦事件处理
+// Focus and blur handling
 const handleFocus = () => {
   window.addEventListener('keydown', handleKeydown)
 }
@@ -430,12 +429,10 @@ const customChunks = ref<TypingChunk[]>([])
 const customPracticeStarted = ref(false)
 
 function startCustomPractice() {
-  // 按段落分句或直接整段
+  // Split the paragraph into practice units.
   const text = customParagraph.value.trim()
   if (!text) return
-  practiceHistory.value = []  // 清空练习历史，重置统计
-  // 可按句号/换行分句，也可整段
-  // 这里简单按换行或句号分句
+  practiceHistory.value = []
   const sentences = text.split(/\n+|(?<=[.!?])\s+/).filter(s => s.trim().length > 0)
   customChunks.value = sentences.map((s, idx) => ({
     id: String(idx),
@@ -454,13 +451,12 @@ function startCustomPractice() {
   })
 }
 
-// 打字区只在满足以下条件时显示：
-// 1. 非自定义段落模式，或 2. 自定义段落模式且 customPracticeStarted
+// The typing area only shows when practice is active.
 
-// handleKeydown 逻辑兼容 customParagraphMode，customPracticeStarted 结束时直接重置 customPracticeStarted
+// Keep the key handling compatible with custom paragraph mode.
 const handleKeydown = (e: KeyboardEvent) => {
   if (showResults.value) return
-  // 默写模式：Enter 触发下一项
+  // In dictation mode, Enter advances after the answer is revealed.
   if (dictationMode.value && e.key === 'Enter' && showAnswer.value) {
     showAnswer.value = false
     typedChars.value = []
@@ -482,7 +478,7 @@ const handleKeydown = (e: KeyboardEvent) => {
     startTime.value = Date.now()
     isPracticing.value = true
   }
-  // 空格键阻止页面滚动
+  // Prevent the page from scrolling on space.
   if (e.key === ' ' || e.code === 'Space') {
     e.preventDefault()
   }
@@ -500,7 +496,7 @@ const handleKeydown = (e: KeyboardEvent) => {
     const correct = e.key === expected
     typedChars.value.push({ char: e.key, correct })
     if (typedChars.value.length < currentChunk.value.text.length) {
-      // 在默写模式下所有按键使用点击音
+      // Dictation mode always uses the click sound.
       if (dictationMode.value) {
         playClick()
       } else if (correct) {
@@ -509,7 +505,7 @@ const handleKeydown = (e: KeyboardEvent) => {
         playBeep()
       }
     } else {
-      // 单词/句子打完
+      // The current word or sentence is complete.
       const endTime = Date.now()
       const timeSpent = (endTime - startTime.value) / 1000
       const isCorrect = typedChars.value.every((c, i) => c.char === currentChunk.value.text[i])
@@ -528,12 +524,12 @@ const handleKeydown = (e: KeyboardEvent) => {
       } else {
         playBeep()
       }
-      // 默写模式：记录并显示答案，等待 Enter
+      // In dictation mode, show the answer and wait for Enter.
       if (dictationMode.value) {
         lastCorrect.value = isCorrect
         showAnswer.value = true
       } else {
-        // 非默写模式：延迟操作，保证最后一个字符高亮可见
+        // Delay the transition so the last highlight remains visible.
         setTimeout(() => {
           if (customParagraphMode.value) {
             if (currentGroupIndex.value < currentGroup.value.length - 1) {
@@ -566,14 +562,12 @@ onMounted(async () => {
   await fetchDictFiles()
   await loadChunksFromDict()
   nextGroup()
-  // 不再全局监听，改为聚焦时监听
-  // window.addEventListener('keydown', handleKeydown)
   nextTick(() => {
     focusTypingArea()
   })
 })
 
-// 切换字典或难度时，直接生成新组
+// Regenerate the batch when the dictionary or difficulty changes.
 watch(selectedDict, async () => {
   await loadChunksFromDict()
   nextGroup()
@@ -582,7 +576,7 @@ watch(selectedDifficulty, () => {
   nextGroup()
 })
 
-// 切换自定义段落模式时，重置统计和答案显示
+// Reset status when custom paragraph mode toggles.
 watch(customParagraphMode, (val) => {
   if (val) {
     practiceHistory.value = []
@@ -591,7 +585,7 @@ watch(customParagraphMode, (val) => {
   }
 })
 
-// 统计信息
+// Summary stats
 const totalWords = computed(() => chunks.value.length)
 const correctCount = computed(() => correctIndexes.value.length)
 const remainCount = computed(() => totalWords.value - correctCount.value)
@@ -615,7 +609,7 @@ const resetPractice = () => {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
-/* 默写模式下划线和字母间距 */
+/* Dictation mode underline and spacing */
 .dictation-char {
   display: inline-block;
   letter-spacing: 0.4em;

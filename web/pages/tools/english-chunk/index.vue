@@ -48,17 +48,31 @@
           <div class="flex-1">
             <label class="block text-sm font-bold text-zinc-700 mb-2">Topic</label>
             <select v-model="topic" class="w-full sketch-border bg-white px-3 py-2 outline-none focus:sketch-shadow-sm font-hand">
-              <option value="daily_routines">Daily Routines</option>
-              <option value="work_life">Work Life</option>
-              <option value="socializing">Socializing</option>
-              <option value="travel">Travel</option>
-              <option value="shopping">Shopping</option>
-              <option value="dining">Dining</option>
-              <option value="health">Health & Wellness</option>
-              <option value="education">Education</option>
-              <option value="entertainment">Entertainment</option>
-              <option value="technology">Technology</option>
+              <option v-for="topicOption in topics" :key="topicOption.value" :value="topicOption.value">
+                {{ topicOption.label }}
+              </option>
             </select>
+          </div>
+        </div>
+        <div class="grid gap-4 md:grid-cols-[1fr_220px]">
+          <div>
+            <label class="block text-sm font-bold text-zinc-700 mb-2">Custom system prompt</label>
+            <textarea
+              v-model="customSystemPrompt"
+              rows="4"
+              placeholder="Add style or teaching constraints for the model..."
+              class="w-full sketch-border bg-white px-3 py-2 outline-none focus:sketch-shadow-sm font-hand resize-none"
+            ></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-zinc-700 mb-2">Prompt behavior</label>
+            <select v-model="systemPromptMode" class="w-full sketch-border bg-white px-3 py-2 outline-none focus:sketch-shadow-sm font-hand">
+              <option value="append">Append to default</option>
+              <option value="override">Override default</option>
+            </select>
+            <p class="mt-2 text-xs text-zinc-500 italic">
+              Append keeps the built-in generator rules. Override replaces them completely.
+            </p>
           </div>
         </div>
         <button 
@@ -147,12 +161,44 @@ import { useTTS } from '~/composables/useTTS'
 
 definePageMeta({ layout: 'default' })
 
+type TopicOption = { value: string; label: string }
+
+const DEFAULT_SYSTEM_PROMPT = `You are an expert English fluency coach and curriculum designer.
+Generate practical multi-word chunks for learners, keep the language natural and useful, and return only valid JSON.`
+
+const topics: TopicOption[] = [
+  { value: 'daily_routines', label: 'Daily Routines' },
+  { value: 'work_life', label: 'Work Life' },
+  { value: 'socializing', label: 'Socializing' },
+  { value: 'travel', label: 'Travel' },
+  { value: 'shopping', label: 'Shopping' },
+  { value: 'dining', label: 'Dining Out' },
+  { value: 'health', label: 'Health & Wellness' },
+  { value: 'education', label: 'Education' },
+  { value: 'entertainment', label: 'Entertainment' },
+  { value: 'technology', label: 'Technology' },
+  { value: 'job_interviews', label: 'Job Interviews' },
+  { value: 'remote_work', label: 'Remote Work' },
+  { value: 'friendship_conflicts', label: 'Friendship Conflicts' },
+  { value: 'dating', label: 'Dating & Relationships' },
+  { value: 'airport_survival', label: 'Airport Survival' },
+  { value: 'small_talk', label: 'Small Talk' },
+  { value: 'money_management', label: 'Money Management' },
+  { value: 'fitness', label: 'Fitness & Training' },
+  { value: 'movies_and_tv', label: 'Movies & TV' },
+  { value: 'gaming', label: 'Gaming' },
+  { value: 'customer_service', label: 'Customer Service' },
+  { value: 'creative_hobbies', label: 'Creative Hobbies' }
+]
+
 const numChunks = ref(5)
 const topic = ref('daily_routines')
 const selectedModel = ref('google/gemini-2.0-flash-001')
 const aiModels = ref<{id: string, name: string}[]>([])
 const modelSearch = ref('')
 const showModelDropdown = ref(false)
+const customSystemPrompt = ref('')
+const systemPromptMode = ref<'append' | 'override'>('append')
 const chunks = ref<Array<{ phrase: string; examples: string[] }>>([])
 const scenario = ref<{ title: string; context: string; content: string } | null>(null)
 const loading = ref(false)
@@ -162,6 +208,10 @@ const apiKey = ref('')
 const GLOBAL_KEY_STORAGE = 'global_openrouter_key'
 
 const { isPlaying, speak, stop } = useTTS()
+
+const selectedTopicLabel = computed(() =>
+  topics.find(item => item.value === topic.value)?.label || topic.value.replace(/_/g, ' ')
+)
 
 const filteredModels = computed(() => {
   if (!modelSearch.value) return aiModels.value.slice(0, 50)
@@ -255,6 +305,16 @@ const highlightChunks = (text: string, chunksList: any[]) => {
   return highlighted
 }
 
+const buildSystemPrompt = () => {
+  const customPrompt = customSystemPrompt.value.trim()
+  if (systemPromptMode.value === 'override') {
+    return customPrompt || DEFAULT_SYSTEM_PROMPT
+  }
+  return customPrompt
+    ? `${DEFAULT_SYSTEM_PROMPT}\n\nAdditional instructions:\n${customPrompt}`
+    : DEFAULT_SYSTEM_PROMPT
+}
+
 const generateChunks = async () => {
   if (!apiKey.value) return
   loading.value = true
@@ -263,7 +323,7 @@ const generateChunks = async () => {
   scenario.value = null
   
   try {
-    const prompt = `Generate ${numChunks.value} English chunks and a practice scenario for the topic '${topic.value.replace('_', ' ')}'. 
+    const prompt = `Generate ${numChunks.value} English chunks and a practice scenario for the topic '${selectedTopicLabel.value}'. 
 Return strictly a JSON object with this structure:
 {
   "chunks": [
@@ -286,7 +346,10 @@ Return strictly a JSON object with this structure:
       },
       body: JSON.stringify({
         model: selectedModel.value,
-        messages: [{ role: 'user', content: prompt }],
+        messages: [
+          { role: 'system', content: buildSystemPrompt() },
+          { role: 'user', content: prompt }
+        ],
         response_format: { type: 'json_object' }
       })
     })
