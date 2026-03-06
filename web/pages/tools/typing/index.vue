@@ -81,11 +81,38 @@
 
             <div>
               <label class="block text-sm font-bold text-zinc-700 mb-2">Model</label>
-              <select v-model="selectedModel" class="w-full sketch-border bg-white px-3 py-2 outline-none focus:sketch-shadow-sm">
-                <option v-for="option in modelOptions" :key="option.value" :value="option.value">
-                  {{ option.label }}
-                </option>
-              </select>
+              <div ref="modelSelectorRef" class="relative">
+                <input
+                  v-model="modelSearch"
+                  placeholder="Search AI model..."
+                  class="w-full sketch-border bg-white px-3 py-2 pr-10 outline-none focus:sketch-shadow-sm"
+                  @focus="showModelDropdown = true"
+                  @keydown.enter.prevent="chooseFirstModel"
+                />
+                <button
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 text-xs"
+                  @click.prevent="showModelDropdown = !showModelDropdown"
+                >
+                  ▼
+                </button>
+                <div
+                  v-if="showModelDropdown"
+                  class="absolute top-full left-0 mt-2 w-full max-h-60 overflow-y-auto bg-white sketch-border z-20 shadow-xl"
+                >
+                  <button
+                    v-for="model in filteredModels"
+                    :key="model.id"
+                    class="w-full text-left px-3 py-2 hover:bg-zinc-100 border-b border-zinc-100 last:border-0"
+                    @mousedown.prevent="selectModel(model)"
+                  >
+                    <div class="font-bold text-sm text-zinc-900 truncate">{{ model.name || model.id }}</div>
+                    <div class="text-[10px] text-zinc-400 truncate">{{ model.id }}</div>
+                  </button>
+                  <div v-if="filteredModels.length === 0" class="px-3 py-2 text-sm text-zinc-500 italic">
+                    No models found
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -190,14 +217,19 @@ definePageMeta({ layout: 'default' })
 type TopicOption = { value: string; label: string }
 type LengthOption = { value: string; label: string; words: string }
 type TypedEntry = { char: string; correct: boolean }
+type ModelOption = { id: string; name: string }
 
 const GLOBAL_KEY_STORAGE = 'global_openrouter_key'
 const MODEL_STORAGE_KEY = 'typing_generator_model'
+const MODEL_CACHE_KEY = 'typing_available_models'
 const DEFAULT_MODEL = 'google/gemini-2.0-flash-001'
 const DEFAULT_SYSTEM_PROMPT = `You write English typing practice passages.
 Always return valid JSON only.
 Keep the language natural and easy to type.
-Use plain ASCII with only letters, numbers, spaces, and basic punctuation.`
+Output plain ASCII characters only.
+Use only English letters, English numbers, spaces, and English punctuation.
+Do not use Chinese punctuation, full-width punctuation, smart punctuation, emojis, accents, symbols outside ASCII, or any other multibyte characters.
+The final passage must be pure English text optimized for typing practice.`
 
 const topics: TopicOption[] = [
   { value: 'daily_routines', label: 'Daily Routines' },
@@ -218,12 +250,6 @@ const lengthOptions: LengthOption[] = [
   { value: 'long', label: 'Long', words: '190 to 240 words' }
 ]
 
-const modelOptions = [
-  { value: 'google/gemini-2.0-flash-001', label: 'Gemini 2.0 Flash' },
-  { value: 'openai/gpt-4o-mini', label: 'GPT-4o Mini' },
-  { value: 'anthropic/claude-3.5-haiku', label: 'Claude 3.5 Haiku' }
-]
-
 const mode = ref<'input' | 'typing'>('input')
 const apiKey = ref('')
 const inputText = ref('')
@@ -231,6 +257,9 @@ const practiceText = ref('')
 const selectedTopic = ref(topics[0].value)
 const selectedLength = ref(lengthOptions[1].value)
 const selectedModel = ref(DEFAULT_MODEL)
+const availableModels = ref<ModelOption[]>([])
+const modelSearch = ref('')
+const showModelDropdown = ref(false)
 const generatorPrompt = ref('')
 const loading = ref(false)
 const statusMessage = ref('')
@@ -240,6 +269,7 @@ const typedEntries = ref<TypedEntry[]>([])
 const startedAt = ref<number | null>(null)
 const completedAt = ref<number | null>(null)
 const timerNow = ref(Date.now())
+const modelSelectorRef = ref<HTMLElement | null>(null)
 
 let timerId: ReturnType<typeof setInterval> | null = null
 
@@ -378,6 +408,105 @@ const lengthLabel = computed(() =>
   lengthOptions.find((item) => item.value === selectedLength.value)?.words || lengthOptions[1].words
 )
 
+const filteredModels = computed(() => {
+  if (!modelSearch.value) {
+    return availableModels.value.slice(0, 50)
+  }
+
+  const query = modelSearch.value.toLowerCase()
+  return availableModels.value.filter((model) =>
+    model.name.toLowerCase().includes(query) || model.id.toLowerCase().includes(query)
+  )
+})
+
+const parseCachedModels = (raw: string | null): ModelOption[] => {
+  if (!raw) return []
+
+  try {
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter((item): item is ModelOption =>
+      typeof item?.id === 'string' && typeof item?.name === 'string'
+    )
+  } catch {
+    return []
+  }
+}
+
+const ensureSelectedModel = () => {
+  if (availableModels.value.length === 0) return
+  if (!availableModels.value.find((model) => model.id === selectedModel.value)) {
+    selectedModel.value = availableModels.value[0].id
+  }
+}
+
+const syncModelSearch = () => {
+  const activeModel = availableModels.value.find((model) => model.id === selectedModel.value)
+  modelSearch.value = activeModel?.name || selectedModel.value
+}
+
+const selectModel = (model: ModelOption) => {
+  selectedModel.value = model.id
+  modelSearch.value = model.name || model.id
+  showModelDropdown.value = false
+}
+
+const chooseFirstModel = () => {
+  const [firstModel] = filteredModels.value
+  if (firstModel) {
+    selectModel(firstModel)
+  }
+}
+
+const handleOutsideClick = (event: MouseEvent) => {
+  if (!modelSelectorRef.value) return
+  if (!modelSelectorRef.value.contains(event.target as Node)) {
+    showModelDropdown.value = false
+    syncModelSearch()
+  }
+}
+
+const fetchModels = async () => {
+  const cachedModels = parseCachedModels(localStorage.getItem(MODEL_CACHE_KEY))
+  if (cachedModels.length > 0) {
+    availableModels.value = cachedModels
+    ensureSelectedModel()
+    syncModelSearch()
+  }
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/models')
+    const data = await response.json()
+
+    if (Array.isArray(data.data)) {
+      const fetchedModels = data.data
+        .map((model: any) => ({
+          id: model.id,
+          name: model.name || model.id
+        }))
+        .filter((model: ModelOption) => typeof model.id === 'string' && model.id.length > 0)
+
+      if (fetchedModels.length > 0) {
+        availableModels.value = fetchedModels
+        localStorage.setItem(MODEL_CACHE_KEY, JSON.stringify(fetchedModels))
+        ensureSelectedModel()
+        syncModelSearch()
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch typing models:', error)
+    if (availableModels.value.length === 0) {
+      availableModels.value = [
+        { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash' },
+        { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini' },
+        { id: 'anthropic/claude-3.5-haiku', name: 'Claude 3.5 Haiku' }
+      ]
+      ensureSelectedModel()
+      syncModelSearch()
+    }
+  }
+}
+
 const generatePassage = async () => {
   if (!apiKey.value) {
     setStatus('Set your global OpenRouter key before generating text.', 'error')
@@ -394,10 +523,13 @@ Requirements:
 - one paragraph only
 - natural and readable
 - useful for typing practice
-- only basic punctuation
+- ASCII characters only
+- use only English punctuation such as commas, periods, question marks, exclamation marks, semicolons, colons, apostrophes, quotation marks, parentheses, and hyphens
+- do not use Chinese commas, Chinese periods, full-width punctuation, curly quotes, em dashes, bullets, emojis, or any non-ASCII character
 - no markdown
 - no bullet points
 - no emojis
+- pure English text only
 
 Extra instruction: ${generatorPrompt.value.trim() || 'none'}
 
@@ -437,7 +569,12 @@ Return JSON:
       throw new Error('The model returned an empty passage')
     }
 
-    inputText.value = sanitizeForTyping(generated)
+    const sanitized = sanitizeForTyping(generated)
+    if (!sanitized) {
+      throw new Error('The generated passage did not contain usable ASCII typing text')
+    }
+
+    inputText.value = sanitized
     setStatus(`Generated a ${selectedLength.value} ${topicLabel.value.toLowerCase()} passage and inserted it into the editor.`)
   } catch (error: any) {
     setStatus(error.message || 'An error occurred while generating text.', 'error')
@@ -514,6 +651,7 @@ watch(selectedModel, (value) => {
   if (process.client) {
     localStorage.setItem(MODEL_STORAGE_KEY, value)
   }
+  syncModelSearch()
 })
 
 watch(mode, (value) => {
@@ -528,9 +666,12 @@ watch(mode, (value) => {
 onMounted(() => {
   syncGlobalKey()
   selectedModel.value = localStorage.getItem(MODEL_STORAGE_KEY) || DEFAULT_MODEL
+  syncModelSearch()
+  fetchModels()
   window.addEventListener('storage', syncGlobalKey)
   window.addEventListener('global-openrouter-key-updated', syncGlobalKey as EventListener)
   window.addEventListener('keydown', handleKeydown)
+  document.addEventListener('mousedown', handleOutsideClick)
 })
 
 onUnmounted(() => {
@@ -538,6 +679,7 @@ onUnmounted(() => {
   window.removeEventListener('storage', syncGlobalKey)
   window.removeEventListener('global-openrouter-key-updated', syncGlobalKey as EventListener)
   window.removeEventListener('keydown', handleKeydown)
+  document.removeEventListener('mousedown', handleOutsideClick)
 })
 </script>
 
