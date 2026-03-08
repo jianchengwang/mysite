@@ -1,12 +1,12 @@
 <template>
-  <div :class="['flex flex-col font-hand', isModal ? 'h-full' : 'h-screen max-w-7xl mx-auto px-4 py-8']">
-    <div v-if="!isModal" class="mb-6 flex justify-between items-center">
+  <div :class="['flex flex-col font-hand', isModal ? 'h-full min-h-0' : 'min-h-[100dvh] max-w-7xl mx-auto px-4 py-4 sm:py-6 lg:py-8']">
+    <div v-if="!isModal" class="sticky top-20 z-20 mb-4 flex flex-col gap-4 bg-zinc-50/95 py-2 backdrop-blur sm:mb-6 lg:static lg:bg-transparent lg:py-0 lg:backdrop-blur-none lg:flex-row lg:items-center lg:justify-between">
       <div>
-        <h1 class="text-4xl font-bold text-zinc-900 font-hand">Whiteboard</h1>
-        <p class="text-zinc-600 font-hand italic">Draw your sketchy ideas here</p>
+        <h1 class="text-3xl font-bold text-zinc-900 font-hand sm:text-4xl">Whiteboard</h1>
+        <p class="text-sm text-zinc-600 font-hand italic sm:text-base">Draw your sketchy ideas here</p>
       </div>
 
-      <div class="flex gap-2">
+      <div class="flex flex-wrap gap-2">
         <button @click="undo" :disabled="!canUndo" class="sketch-button py-1 px-3 text-sm disabled:opacity-30">Undo</button>
         <button @click="redo" :disabled="!canRedo" class="sketch-button py-1 px-3 text-sm disabled:opacity-30">Redo</button>
         <button @click="clear" class="sketch-button py-1 px-3 text-sm border-red-200 text-red-600">Clear</button>
@@ -21,9 +21,9 @@
       </div>
     </div>
 
-    <div v-else class="mb-4 flex justify-between items-center px-2">
-      <h2 class="text-xl font-bold">Whiteboard Canvas</h2>
-      <div class="flex gap-2">
+    <div v-else class="sticky top-0 z-20 mb-4 flex flex-wrap items-center justify-between gap-3 bg-white/95 px-2 py-2 backdrop-blur">
+      <h2 class="text-lg font-bold sm:text-xl">Whiteboard Canvas</h2>
+      <div class="flex flex-wrap gap-2">
         <button @click="undo" :disabled="!canUndo" class="sketch-button py-1 px-2 text-xs disabled:opacity-30">Undo</button>
         <button @click="clear" class="sketch-button py-1 px-2 text-xs border-red-200 text-red-600">Clear</button>
         <button
@@ -36,10 +36,17 @@
       </div>
     </div>
 
-    <div class="flex-1 flex flex-col md:flex-row gap-6 min-h-0">
-      <div class="w-full md:w-48 flex flex-col gap-4">
-        <div class="sketch-card p-4 space-y-4">
-          <h3 class="font-bold border-b border-zinc-200 pb-2 mb-2">Tools</h3>
+    <div class="flex flex-1 flex-col gap-4 min-h-0 lg:flex-row lg:gap-6">
+      <div class="w-full lg:w-56 lg:shrink-0">
+        <div class="flex flex-col gap-4 pb-1 sm:flex-row sm:overflow-x-auto lg:flex-col lg:overflow-visible lg:pb-0">
+        <div class="sketch-card w-full p-4 space-y-4 sm:min-w-[320px] lg:min-w-0">
+          <div class="flex items-center justify-between gap-3 border-b border-zinc-200 pb-2">
+            <h3 class="font-bold">Tools</h3>
+            <button class="text-xs font-bold uppercase tracking-wide text-zinc-500 lg:hidden" @click="mobileToolsExpanded = !mobileToolsExpanded">
+              {{ mobileToolsExpanded ? 'Hide' : 'Show' }}
+            </button>
+          </div>
+          <div :class="[mobileToolsExpanded ? 'block' : 'hidden', 'lg:block']">
           <div class="grid grid-cols-2 gap-2">
             <button
               v-for="tool in tools"
@@ -77,11 +84,17 @@
           <p v-else-if="currentTool === 'arrow'" class="text-xs text-zinc-500 italic">
             Drag from one shape or image to another to connect them with arrows.
           </p>
+          </div>
         </div>
 
-        <div class="sketch-card p-4 space-y-4">
-          <h3 class="font-bold border-b border-zinc-200 pb-2 mb-2">AI Generation</h3>
-          <div class="space-y-2">
+        <div class="sketch-card w-full p-4 space-y-4 sm:min-w-[280px] lg:min-w-0">
+          <div class="flex items-center justify-between gap-3 border-b border-zinc-200 pb-2">
+            <h3 class="font-bold">AI Generation</h3>
+            <button class="text-xs font-bold uppercase tracking-wide text-zinc-500 lg:hidden" @click="mobileAiExpanded = !mobileAiExpanded">
+              {{ mobileAiExpanded ? 'Hide' : 'Show' }}
+            </button>
+          </div>
+          <div :class="[mobileAiExpanded ? 'block' : 'hidden', 'lg:block']" class="space-y-2">
             <button
               @click="showGenerateModal = true"
               :disabled="isGenerating || !apiKey"
@@ -95,14 +108,15 @@
           </div>
         </div>
 
-        <div class="mt-auto sketch-card p-4 text-xs italic text-zinc-500 hidden md:block">
+        <div class="hidden text-xs italic text-zinc-500 lg:block lg:mt-auto sketch-card p-4">
           Tip: Ctrl+Click to multi-select. <br>
           Use Arrow mode to connect elements. <br>
           Mouse wheel zooms selected images.
         </div>
+        </div>
       </div>
 
-      <div class="flex-1 sketch-card bg-white p-0 overflow-hidden relative" ref="canvasWrapper">
+      <div class="relative flex-1 overflow-hidden rounded-[28px] border-2 border-zinc-900 bg-white shadow-[8px_8px_0_0_rgba(0,0,0,1)] min-h-[52vh] sm:min-h-[60vh] lg:min-h-0" ref="canvasWrapper">
         <canvas
           ref="canvas"
           @mousedown="handleMouseDown"
@@ -113,14 +127,14 @@
           @touchmove.prevent="handleTouchMove"
           @touchend.prevent="handleTouchEnd"
           @contextmenu.prevent="handleContextMenu"
-          class="w-full h-full cursor-crosshair bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px]"
+          class="h-full w-full cursor-crosshair bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px]"
         ></canvas>
       </div>
     </div>
 
     <Teleport to="body">
       <div v-if="showGenerateModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm font-hand">
-        <div class="sketch-card bg-white w-full max-w-md p-6 space-y-4">
+        <div class="sketch-card bg-white w-full max-w-md p-4 space-y-4 sm:p-6">
           <div class="flex justify-between items-center mb-2">
             <h2 class="text-2xl font-bold">AI Image Generation</h2>
             <button @click="showGenerateModal = false" class="text-2xl hover:text-zinc-500">×</button>
@@ -145,7 +159,7 @@
             </p>
           </div>
 
-          <div class="flex gap-4 pt-2">
+          <div class="flex flex-col gap-3 pt-2 sm:flex-row sm:gap-4">
             <button @click="showGenerateModal = false" class="flex-1 sketch-button py-2 bg-white text-zinc-900">Cancel</button>
             <button @click="generateAIImage" :disabled="isGenerating || !aiPrompt" class="flex-1 sketch-button py-2 !bg-zinc-900 !text-white disabled:opacity-50">
               {{ isGenerating ? 'Generating...' : '✨ Generate' }}
@@ -222,6 +236,8 @@ const ctx = ref<CanvasRenderingContext2D | null>(null)
 const currentTool = ref<ToolId>('pencil')
 const currentColor = ref('#000000')
 const currentSize = ref(3)
+const mobileToolsExpanded = ref(true)
+const mobileAiExpanded = ref(false)
 
 const tools = [
   { id: 'pencil', name: 'Pencil', icon: '✎' },

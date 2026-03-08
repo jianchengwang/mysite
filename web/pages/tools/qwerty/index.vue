@@ -1,22 +1,22 @@
 <template>
-  <div class="min-h-screen bg-zinc-50 flex flex-col justify-center items-center py-12 px-4">
+  <div class="min-h-screen bg-zinc-50 flex flex-col justify-center items-center py-8 sm:py-12 px-4">
     <ClientOnly>
       <!-- Title -->
-      <h1 class="text-5xl font-bold font-hand mb-12 transform -rotate-2">Qwerty Practice</h1>
+      <h1 class="mb-8 text-center text-4xl font-bold font-hand transform -rotate-2 sm:mb-12 sm:text-5xl">Qwerty Practice</h1>
 
       <!-- Top stats -->
-      <div class="flex space-x-12 mb-12 text-center sketch-border-2 p-6 bg-white relative">
+      <div class="relative mb-8 flex w-full max-w-4xl flex-col gap-4 bg-white p-5 text-center sketch-border-2 sm:mb-12 sm:flex-row sm:items-center sm:justify-center sm:gap-8 sm:p-6">
         <div class="absolute -top-4 -left-4 bg-yellow-100 border border-black px-2 font-hand transform -rotate-12">Stats</div>
         <div>
           <div class="text-zinc-500 font-hand text-lg">WPM</div>
           <div class="text-3xl font-bold text-zinc-900 font-sketch">{{ stats.wpm }}</div>
         </div>
-        <div class="border-l-2 border-zinc-200 h-12 self-center mx-2"></div>
+        <div class="hidden h-12 self-center border-l-2 border-zinc-200 sm:block"></div>
         <div>
           <div class="text-zinc-500 font-hand text-lg">Accuracy</div>
           <div class="text-3xl font-bold text-zinc-900 font-sketch">{{ stats.accuracy }}%</div>
         </div>
-        <div class="border-l-2 border-zinc-200 h-12 self-center mx-2"></div>
+        <div class="hidden h-12 self-center border-l-2 border-zinc-200 sm:block"></div>
         <div>
           <div class="text-zinc-500 font-hand text-lg">Time</div>
           <div class="text-3xl font-bold text-zinc-900 font-sketch">{{ stats.time }}s</div>
@@ -24,7 +24,7 @@
       </div>
 
       <!-- Progress stats -->
-      <div v-if="!customParagraphMode" class="mb-6 text-xl font-hand text-zinc-600 flex items-center space-x-6">
+      <div v-if="!customParagraphMode" class="mb-6 flex flex-col items-center gap-2 text-center text-lg font-hand text-zinc-600 sm:flex-row sm:gap-6 sm:text-xl">
         <span>Mastered: <span class="font-bold text-green-600 underline decoration-wavy">{{ correctCount }}</span> / <span class="font-bold">{{ totalWords }}</span></span>
         <span>Remaining: <span class="font-bold text-blue-600 underline decoration-dotted">{{ remainCount }}</span></span>
       </div>
@@ -50,7 +50,7 @@
 
         <button @click="playClick(); nextGroup()" class="sketch-button bg-blue-50">Next Group →</button>
         
-        <div class="flex items-center gap-4 ml-4">
+        <div class="ml-0 flex flex-wrap items-center gap-4 sm:ml-4">
           <label class="flex items-center cursor-pointer select-none font-hand text-lg">
             <input type="checkbox" v-model="autoSpeak" class="mr-2 w-5 h-5 accent-zinc-900" />
             Auto pronounce
@@ -69,12 +69,12 @@
       </div>
 
       <!-- Custom paragraph mode -->
-      <div class="mb-8 flex items-center space-x-12">
-        <label class="flex items-center cursor-pointer select-none font-hand text-2xl">
+      <div class="mb-8 flex w-full max-w-4xl flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-center sm:gap-12">
+        <label class="flex items-center cursor-pointer select-none font-hand text-xl sm:text-2xl">
           <input type="checkbox" v-model="customParagraphMode" class="mr-3 w-6 h-6 accent-zinc-900" />
           🎨 Custom paragraph
         </label>
-        <label class="flex items-center cursor-pointer select-none font-hand text-2xl">
+        <label class="flex items-center cursor-pointer select-none font-hand text-xl sm:text-2xl">
           <input type="checkbox" v-model="dictationMode" class="mr-3 w-6 h-6 accent-zinc-900" />
           ✍️ Dictation mode
         </label>
@@ -91,14 +91,14 @@
 
       <!-- Typing area -->
       <div v-if="(!customParagraphMode) || (customParagraphMode && customPracticeStarted)" 
-        class="relative sketch-card bg-white px-12 py-16 min-w-[800px] min-h-[220px] flex flex-col items-center justify-center mb-12 select-none text-5xl font-sketch tracking-wider outline-none focus:ring-4 focus:ring-yellow-100 transition-all cursor-text shadow-xl" 
+        class="relative mb-12 flex w-full max-w-5xl flex-col items-center justify-center bg-white px-5 py-10 text-2xl font-sketch tracking-wide outline-none transition-all cursor-text shadow-xl sketch-card min-h-[220px] focus:ring-4 focus:ring-yellow-100 sm:px-8 sm:py-14 sm:text-4xl lg:px-12 lg:py-16 lg:text-5xl" 
         tabindex="0" @click="focusTypingArea" ref="typingArea" @focus="handleFocus" @blur="handleBlur">
         
-        <div class="absolute -top-4 right-8 !bg-zinc-900 !text-white font-hand px-4 py-1 transform rotate-2">Type here!</div>
+        <div class="absolute -top-4 right-4 !bg-zinc-900 !text-white font-hand px-3 py-1 text-sm transform rotate-2 sm:right-8 sm:px-4 sm:text-base">Type here!</div>
 
         <!-- Switch display based on dictation mode -->
         <template v-if="!dictationMode">
-          <div class="flex items-center space-x-6">
+          <div class="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
             <!-- Standard typing display -->
             <span class="leading-relaxed">
               <span v-for="(char, idx) in currentChunk.text.split('')" :key="idx">
@@ -114,7 +114,7 @@
               </span>
             </span>
             <button @click="speakWord(currentChunk.text)" 
-              class="w-12 h-12 flex items-center justify-center rounded-full sketch-border-3 bg-white hover:bg-yellow-50 text-2xl shadow-sm transition-transform hover:scale-110"
+              class="flex h-12 w-12 items-center justify-center rounded-full bg-white text-2xl shadow-sm transition-transform sketch-border-3 hover:bg-yellow-50 hover:scale-110"
               title="Play sound">
               <span>🔊</span>
             </button>
@@ -122,7 +122,7 @@
         </template>
         <template v-else>
           <!-- Dictation mode content -->
-          <div class="flex items-center space-x-8">
+          <div class="flex flex-col items-center gap-4 sm:flex-row sm:gap-8">
             <span class="leading-relaxed">
               <span v-for="(_, idx) in currentChunk.text.split('')" :key="idx" class="dictation-char">
                 <span v-if="idx < typedChars.length" class="text-zinc-800">{{ typedChars[idx].char }}</span>
@@ -130,7 +130,7 @@
               </span>
             </span>
             <button @click="speakWord(currentChunk.text)"
-              class="w-12 h-12 flex items-center justify-center rounded-full sketch-border-3 bg-white hover:bg-yellow-50 text-2xl shadow-sm transition-transform hover:scale-110"
+              class="flex h-12 w-12 items-center justify-center rounded-full bg-white text-2xl shadow-sm transition-transform sketch-border-3 hover:bg-yellow-50 hover:scale-110"
               title="Play sound">
               <span>🔊</span>
             </button>
@@ -165,8 +165,8 @@
       </div>
 
       <!-- Results modal -->
-      <div v-if="showResults" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-6">
-        <div class="sketch-card bg-white p-12 max-w-md w-full text-center relative">
+      <div v-if="showResults" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm sm:p-6">
+        <div class="sketch-card relative w-full max-w-md bg-white p-6 text-center sm:p-12">
           <div class="absolute -top-6 -right-6 text-6xl transform rotate-12">🏁</div>
           <h2 class="text-4xl font-bold mb-8 text-zinc-900 font-hand underline decoration-yellow-400 decoration-8">Practice Done!</h2>
           <div class="space-y-4 mb-10 text-2xl font-hand">
@@ -600,8 +600,6 @@ const resetPractice = () => {
 </script>
 
 <style scoped>
-.min-w-\[800px\] { min-width: 800px; }
-.min-h-\[180px\] { min-height: 180px; }
 .animate-pulse {
   animation: pulse 1s infinite;
 }
@@ -619,5 +617,16 @@ const resetPractice = () => {
   border-bottom: 2.5px solid #222;
   padding: 0 0.18em;
   font-size: 1.2em;
+}
+
+@media (max-width: 640px) {
+  .dictation-char {
+    letter-spacing: 0.22em;
+    font-size: 1em;
+  }
+
+  .dictation-underline {
+    font-size: 1em;
+  }
 }
 </style> 

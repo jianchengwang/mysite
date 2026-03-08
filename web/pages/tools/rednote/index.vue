@@ -1,16 +1,22 @@
 <template>
-  <div class="min-h-screen bg-[#fef2f2] font-hand py-8 px-4">
+  <div class="min-h-screen bg-[#fef2f2] px-4 py-6 font-hand sm:py-8">
     <div class="max-w-6xl mx-auto">
-      <div class="mb-8 text-center">
-        <h1 class="text-5xl font-bold text-zinc-900 mb-2">Rednote Optimizer</h1>
-        <p class="text-zinc-600 italic">Polish your XiaoHongShu posts with AI ✨</p>
+      <div class="mb-6 text-center sm:mb-8">
+        <h1 class="mb-2 text-4xl font-bold text-zinc-900 sm:text-5xl">Rednote Optimizer</h1>
+        <p class="text-sm text-zinc-600 italic sm:text-base">Polish your XiaoHongShu posts with AI ✨</p>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div class="sticky top-20 z-20 mb-4 -mx-1 flex gap-2 overflow-x-auto bg-[#fef2f2]/95 px-1 py-1 backdrop-blur sm:hidden">
+        <a href="#rednote-draft" class="shrink-0 rounded-full border-2 border-zinc-900 bg-white px-4 py-2 text-sm font-bold shadow-[3px_3px_0_0_rgba(0,0,0,1)]">Draft</a>
+        <a href="#rednote-visuals" class="shrink-0 rounded-full border-2 border-zinc-900 bg-white px-4 py-2 text-sm font-bold shadow-[3px_3px_0_0_rgba(0,0,0,1)]">Visuals</a>
+        <a href="#rednote-preview" class="shrink-0 rounded-full border-2 border-zinc-900 bg-white px-4 py-2 text-sm font-bold shadow-[3px_3px_0_0_rgba(0,0,0,1)]">Preview</a>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
         <!-- Left: Editing & Generation (7 columns) -->
         <div class="lg:col-span-7 space-y-6">
           <!-- Text Editing -->
-          <div class="sketch-card bg-white">
+          <div id="rednote-draft" class="sketch-card bg-white scroll-mt-24">
             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
               <h2 class="text-2xl font-bold">1. Draft Copy</h2>
               <div ref="textModelComboboxRef" class="relative w-full sm:w-72 max-w-full">
@@ -65,7 +71,7 @@
           </div>
 
           <!-- Visuals -->
-          <div class="sketch-card bg-white">
+          <div id="rednote-visuals" class="sketch-card bg-white scroll-mt-24">
             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
               <h2 class="text-2xl font-bold">2. Visuals</h2>
               <select v-model="imageModel" class="p-2 text-sm sketch-border bg-white text-black outline-none w-full sm:w-64 max-w-full">
@@ -75,7 +81,7 @@
             
             <div class="space-y-4">
               <!-- Actions -->
-              <div class="flex gap-2">
+              <div class="flex flex-col gap-2 sm:flex-row">
                 <button @click="openWhiteboard" class="flex-1 sketch-button !bg-zinc-900 !text-white text-sm py-2">
                   🎨 Draw
                 </button>
@@ -85,7 +91,7 @@
               </div>
               
               <!-- AI Image -->
-              <div class="flex gap-2">
+              <div class="flex flex-col gap-2 sm:flex-row">
                 <input 
                   v-model="imagePrompt" 
                   placeholder="Describe image to generate..." 
@@ -185,8 +191,8 @@
         </div>
 
         <!-- Right: Mobile Preview (5 columns) -->
-        <div class="lg:col-span-5 flex justify-center">
-          <div class="w-full max-w-[400px] sketch-card bg-white p-0 overflow-hidden flex flex-col relative" style="min-height: 700px; max-height: 800px;">
+        <div id="rednote-preview" class="lg:col-span-5 flex justify-center scroll-mt-24">
+          <div class="w-full max-w-[420px] sketch-card bg-white p-0 overflow-hidden flex flex-col relative min-h-[560px] sm:min-h-[700px] sm:max-h-[800px]">
             <div class="bg-rose-500 text-white text-center py-3 font-bold flex justify-between items-center px-4">
               <span class="text-sm opacity-80">&lt; Back</span>
               <span>Rednote Preview</span>
@@ -231,7 +237,7 @@
               </div>
 
               <!-- Content Area -->
-              <div class="p-5">
+              <div class="p-4 sm:p-5">
                 <article v-if="optimizedText" class="prose prose-zinc max-w-none prose-sm sm:prose-base font-sans" v-html="optimizedHtml"></article>
                 <div v-else class="text-zinc-400 text-center mt-10 font-sans text-sm">
                   <p>No optimized copy yet.<br>Generate text from the left panel.</p>
@@ -246,8 +252,8 @@
 
     <!-- Whiteboard Modal -->
     <Teleport to="body">
-      <div v-if="showWhiteboard" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" @click.self="showWhiteboard = false">
-        <div class="bg-white w-full max-w-6xl h-[92vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl border-4 border-zinc-900">
+        <div v-if="showWhiteboard" class="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-md" @click.self="showWhiteboard = false">
+        <div class="bg-white w-full max-w-6xl h-[96dvh] sm:h-[92vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl border-4 border-zinc-900">
           <div class="px-4 py-3 border-b border-zinc-200 flex items-center justify-between">
             <h3 class="font-bold text-zinc-900">Whiteboard</h3>
             <button

@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex flex-col items-center py-10">
-    <div class="w-[90vw] max-w-7xl bg-white rounded-xl shadow-lg p-8">
-      <h1 class="text-2xl font-bold mb-8 text-center">试卷分割与AI批改工具</h1>
+  <div class="min-h-screen bg-gray-50 flex flex-col items-center px-4 py-6 sm:py-10">
+    <div class="w-full max-w-7xl rounded-xl bg-white p-4 shadow-lg sm:p-8">
+      <h1 class="mb-6 text-center text-xl font-bold sm:mb-8 sm:text-2xl">试卷分割与AI批改工具</h1>
       <!-- 图片上传区 -->
       <div class="mb-12 flex flex-col items-center">
         <label class="flex w-full max-w-md cursor-pointer items-center justify-center rounded-lg border border-dashed border-zinc-400 bg-zinc-50 px-6 py-8 text-center text-sm text-zinc-600 transition hover:border-zinc-900 hover:bg-white">
@@ -19,15 +19,15 @@
 
       <!-- 区域标注区：支持拖拽排序和删除 -->
       <client-only>
-        <draggable v-if="images.length" v-model="images" item-key="id" class="flex flex-row gap-8 overflow-x-auto pb-4" :animation="200">
+        <draggable v-if="images.length" v-model="images" item-key="id" class="flex flex-row gap-4 overflow-x-auto pb-4 sm:gap-8" :animation="200">
           <template #item="{element: img, index: idx}">
-            <div class="bg-gray-50 rounded-lg shadow p-4 flex flex-col items-center min-w-[340px] relative group">
+            <div class="relative flex min-w-[260px] flex-col items-center rounded-lg bg-gray-50 p-4 shadow group sm:min-w-[340px]">
               <div class="mb-2 w-full flex items-center justify-between">
                 <span class="font-semibold">图片{{ idx + 1 }} 区域标注</span>
                 <span class="text-xs text-gray-500">已标注 {{ img.questions.length }} 个区域</span>
                 <button class="absolute top-2 right-2 z-10 bg-white border border-gray-300 rounded-full shadow p-0.5 text-xs text-red-500 hover:bg-red-100 opacity-80 group-hover:opacity-100" @click.stop="removeImage(img.id)">×</button>
               </div>
-              <img :src="img.url" class="w-64 h-80 object-contain border rounded cursor-pointer" @click="openCropper(img)" />
+              <img :src="img.url" class="h-72 w-full max-w-64 cursor-pointer rounded border object-contain sm:h-80" @click="openCropper(img)" />
               <div class="text-xs text-blue-500 mt-2 cursor-pointer" @click="openCropper(img)">点击图片放大标注</div>
             </div>
           </template>
@@ -38,7 +38,7 @@
       <div v-if="questionImages.length" class="mt-10">
         <h2 class="text-lg font-bold mb-4">题目图片列表</h2>
         <div class="space-y-8">
-          <div v-for="(q, idx) in questionImages" :key="q.id" class="bg-gray-50 rounded shadow p-4 space-y-4 w-full">
+          <div v-for="(q, idx) in questionImages" :key="q.id" class="w-full space-y-4 rounded bg-gray-50 p-4 shadow">
             <div class="flex flex-col items-start gap-2">
               <span class="text-sm font-semibold text-gray-700">题目 {{ idx + 1 }}</span>
               <img
@@ -75,12 +75,12 @@
           class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
           @click.self="closeCropper"
         >
-          <div class="flex max-h-[90vh] w-full max-w-[1200px] flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
+          <div class="flex max-h-[96dvh] w-full max-w-[1200px] flex-col overflow-hidden rounded-xl bg-white shadow-2xl sm:max-h-[90vh]">
             <div class="flex items-center justify-between border-b px-5 py-4">
               <div class="font-semibold text-base">图片标注（原图像素级别）</div>
               <button type="button" class="text-2xl leading-none text-zinc-500 hover:text-zinc-900" @click="closeCropper">×</button>
             </div>
-            <div v-if="currentCropImg" class="flex items-center justify-center overflow-auto p-4">
+            <div v-if="currentCropImg" class="flex items-center justify-center overflow-auto p-2 sm:p-4">
               <img ref="cropSrcRef" :src="currentCropImg.url" class="hidden" />
               <MultiCropper
                 :src="currentCropImg.url"
@@ -110,13 +110,13 @@
           class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
           @click.self="previewVisible = false"
         >
-          <div class="flex max-h-[90vh] max-w-[90vw] flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
+          <div class="flex max-h-[96dvh] w-full max-w-[96vw] flex-col overflow-hidden rounded-xl bg-white shadow-2xl sm:max-h-[90vh] sm:max-w-[90vw]">
             <div class="flex items-center justify-between border-b px-5 py-4">
               <div class="font-semibold">图片预览</div>
               <button type="button" class="text-2xl leading-none text-zinc-500 hover:text-zinc-900" @click="previewVisible = false">×</button>
             </div>
             <div class="overflow-auto p-4">
-              <img :src="previewImage" class="max-w-[90vw] max-h-[70vh] object-contain" />
+              <img :src="previewImage" class="max-h-[70vh] max-w-full object-contain sm:max-w-[90vw]" />
             </div>
             <div class="flex justify-end border-t px-5 py-4">
               <button

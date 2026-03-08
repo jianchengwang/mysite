@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen bg-zinc-50">
+  <div class="min-h-[100dvh] bg-zinc-50">
     <WhiteboardCanvas :is-modal="false" />
   </div>
 </template>

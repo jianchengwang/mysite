@@ -3,9 +3,9 @@
     <div class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
       <div>
         <h1 class="text-4xl font-bold text-zinc-900 mb-2">MD to WeChat</h1>
-        <p class="text-zinc-600 italic">Convert Markdown to WeChat official account format with sketch-style polish</p>
+        <p class="text-sm sm:text-base text-zinc-600 italic">Convert Markdown to WeChat official account format with sketch-style polish</p>
       </div>
-      <div class="flex flex-wrap gap-3 items-center">
+      <div class="flex w-full flex-wrap gap-3 items-center md:w-auto">
         <button @click="copyWechatFormat" class="sketch-button bg-white text-zinc-900 font-bold">Copy to WeChat</button>
         <button @click="pasteExample" class="sketch-button bg-white text-zinc-900">Example</button>
         <button @click="clearInput" class="sketch-button bg-white text-red-600">Clear</button>
@@ -16,7 +16,7 @@
       </div>
     </div>
 
-    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[70vh]">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 min-h-[70vh]">
       <div class="flex flex-col gap-3 h-auto lg:h-full">
         <div class="flex justify-between items-center px-2">
           <span class="text-sm font-bold uppercase tracking-wider text-zinc-500">Markdown Editor</span>
@@ -24,7 +24,7 @@
         </div>
         <textarea
           v-model="markdownInput"
-          class="flex-1 min-h-[420px] lg:min-h-0 w-full p-6 sketch-card bg-white resize-none outline-none focus:sketch-shadow-sm font-mono text-sm leading-relaxed"
+          class="flex-1 min-h-[320px] sm:min-h-[420px] lg:min-h-0 w-full p-4 sm:p-6 sketch-card bg-white resize-none outline-none focus:sketch-shadow-sm font-mono text-sm leading-relaxed"
           placeholder="Paste your markdown here..."
         ></textarea>
       </div>
@@ -41,10 +41,10 @@
             </select>
           </div>
         </div>
-        <div class="flex-1 min-h-[420px] sketch-card bg-white overflow-y-auto p-0 border-2 border-zinc-900 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <div class="flex-1 min-h-[320px] sm:min-h-[420px] sketch-card bg-white overflow-y-auto p-0 border-2 border-zinc-900 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
           <div
             ref="previewArea"
-            class="wechat-content p-7 md:p-10"
+            class="wechat-content p-4 sm:p-7 md:p-10"
             :class="[`theme-${currentTheme}`]"
             v-html="htmlOutput"
           ></div>

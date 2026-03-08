@@ -1,8 +1,8 @@
 <template>
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 font-hand">
-    <div class="text-center mb-10">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 font-hand">
+    <div class="text-center mb-8 sm:mb-10">
       <h1 class="text-4xl md:text-5xl font-bold text-zinc-900 mb-3 font-hand">Typing Story Lab</h1>
-      <p class="text-lg text-zinc-600 italic">
+      <p class="text-base sm:text-lg text-zinc-600 italic">
         Generate or paste English text, clean it up, and practice it like a sketchbook typing drill.
       </p>
     </div>
@@ -17,8 +17,8 @@
         </button>
       </div>
 
-      <div class="grid gap-8 xl:grid-cols-[1.4fr_0.9fr]">
-        <div class="sketch-card p-6 bg-white">
+      <div class="grid gap-6 xl:grid-cols-[1.4fr_0.9fr] xl:gap-8">
+        <div class="sketch-card p-4 sm:p-6 bg-white">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
             <div>
               <h2 class="text-2xl font-bold text-zinc-900">Input Text</h2>
@@ -33,10 +33,10 @@
             v-model="inputText"
             rows="14"
             placeholder="Paste custom English text here, or generate a fresh topic-based passage on the right."
-            class="w-full sketch-border bg-white px-4 py-3 outline-none focus:sketch-shadow-sm resize-none text-lg leading-relaxed"
+            class="w-full sketch-border bg-white px-4 py-3 outline-none focus:sketch-shadow-sm resize-none text-base sm:text-lg leading-relaxed"
           ></textarea>
 
-          <div class="flex flex-wrap items-center gap-3 mt-4">
+          <div class="mt-4 flex flex-wrap items-center gap-3">
             <button @click="formatText" :disabled="!inputText.trim()" class="sketch-button bg-yellow-50 py-2 px-5 disabled:opacity-50">
               Format Text
             </button>
@@ -50,11 +50,11 @@
             >
               Start Typing
             </button>
-            <span class="text-sm italic text-zinc-500">Tip: formatting removes fancy punctuation and collapses messy spacing.</span>
+            <span class="text-xs sm:text-sm italic text-zinc-500">Tip: formatting removes fancy punctuation and collapses messy spacing.</span>
           </div>
         </div>
 
-        <div class="sketch-card p-6 bg-white space-y-5">
+        <div class="sketch-card p-4 sm:p-6 bg-white space-y-5">
           <div>
             <h2 class="text-2xl font-bold text-zinc-900">AI Generator</h2>
             <p class="text-zinc-500 italic text-sm">Pick a topic and drop a ready-to-type passage straight into the editor.</p>
@@ -146,9 +146,9 @@
     </div>
 
     <div v-else class="space-y-8">
-      <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+      <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 sm:gap-6">
         <div>
-          <h2 class="text-3xl font-bold text-zinc-900">Typing Mode</h2>
+          <h2 class="text-2xl sm:text-3xl font-bold text-zinc-900">Typing Mode</h2>
           <p class="text-zinc-500 italic mt-1">Current character stays highlighted. Press `Esc` to go back to the editor.</p>
         </div>
         <div class="flex flex-wrap gap-3">
@@ -157,26 +157,26 @@
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-4">
-        <div class="sketch-card p-5 bg-white">
+      <div class="grid gap-4 grid-cols-2 md:grid-cols-4">
+        <div class="sketch-card p-4 sm:p-5 bg-white">
           <p class="text-sm uppercase tracking-wide text-zinc-500 mb-2">WPM</p>
-          <p class="text-4xl font-bold text-zinc-900 font-sketch">{{ stats.wpm }}</p>
+          <p class="text-3xl sm:text-4xl font-bold text-zinc-900 font-sketch">{{ stats.wpm }}</p>
         </div>
-        <div class="sketch-card p-5 bg-white">
+        <div class="sketch-card p-4 sm:p-5 bg-white">
           <p class="text-sm uppercase tracking-wide text-zinc-500 mb-2">Accuracy</p>
-          <p class="text-4xl font-bold text-zinc-900 font-sketch">{{ stats.accuracy }}%</p>
+          <p class="text-3xl sm:text-4xl font-bold text-zinc-900 font-sketch">{{ stats.accuracy }}%</p>
         </div>
-        <div class="sketch-card p-5 bg-white">
+        <div class="sketch-card p-4 sm:p-5 bg-white">
           <p class="text-sm uppercase tracking-wide text-zinc-500 mb-2">Progress</p>
-          <p class="text-4xl font-bold text-zinc-900 font-sketch">{{ stats.progress }}%</p>
+          <p class="text-3xl sm:text-4xl font-bold text-zinc-900 font-sketch">{{ stats.progress }}%</p>
         </div>
-        <div class="sketch-card p-5 bg-white">
+        <div class="sketch-card p-4 sm:p-5 bg-white">
           <p class="text-sm uppercase tracking-wide text-zinc-500 mb-2">Time</p>
-          <p class="text-4xl font-bold text-zinc-900 font-sketch">{{ stats.seconds }}s</p>
+          <p class="text-3xl sm:text-4xl font-bold text-zinc-900 font-sketch">{{ stats.seconds }}s</p>
         </div>
       </div>
 
-      <div class="sketch-card bg-white p-6 md:p-8">
+      <div class="sketch-card bg-white p-4 sm:p-6 md:p-8">
         <div class="mb-5">
           <div class="flex items-center justify-between text-sm text-zinc-500 mb-2">
             <span>{{ typedEntries.length }} / {{ practiceCharacters.length }} characters</span>
@@ -187,7 +187,7 @@
           </div>
         </div>
 
-        <div class="typing-surface sketch-border bg-zinc-50/70 p-5 md:p-8 text-xl md:text-2xl leading-loose text-zinc-700">
+        <div class="typing-surface sketch-border bg-zinc-50/70 p-4 sm:p-5 md:p-8 text-lg sm:text-xl md:text-2xl leading-loose text-zinc-700 break-words">
           <span
             v-for="(char, index) in practiceCharacters"
             :key="`${index}-${char === ' ' ? 'space' : char}`"
@@ -198,7 +198,7 @@
           </span>
         </div>
 
-        <div class="mt-5 flex flex-wrap gap-4 text-sm text-zinc-500 italic">
+        <div class="mt-5 flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-zinc-500 italic">
           <span>Green = correct</span>
           <span>Red = incorrect</span>
           <span>Yellow = current character</span>

@@ -1,9 +1,9 @@
 <template>
-  <div class="min-h-screen bg-[#fcfcfc] font-hand py-4 px-4 md:px-8">
-    <div class="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+  <div class="min-h-screen bg-[#fcfcfc] px-4 py-4 font-hand md:px-8">
+    <div class="mx-auto mb-6 flex max-w-7xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div>
-        <h1 class="text-4xl font-bold text-zinc-900 mb-1">Yuki AI</h1>
-        <p class="text-zinc-600 italic">A minimalist hand-drawn AI companion</p>
+        <h1 class="mb-1 text-3xl font-bold text-zinc-900 sm:text-4xl">Yuki AI</h1>
+        <p class="text-sm text-zinc-600 italic sm:text-base">A minimalist hand-drawn AI companion</p>
       </div>
       <div class="w-full md:w-auto">
         <div class="model-selector-container relative group">
@@ -40,15 +40,20 @@
       </button>
     </div>
 
-    <div v-else class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-      <div class="lg:col-span-5 space-y-5">
+    <div v-else class="mx-auto grid max-w-7xl grid-cols-1 items-start gap-6 lg:grid-cols-12 lg:gap-8">
+      <div class="order-2 space-y-5 lg:order-1 lg:col-span-5">
         <div class="sketch-card bg-white p-4 md:p-5">
           <div class="flex items-center justify-between gap-2 mb-3">
             <h2 class="text-2xl font-bold">{{ currentCharacterName }}</h2>
-            <span class="text-xs uppercase tracking-wide text-zinc-500">Live2D</span>
+            <div class="flex items-center gap-3">
+              <span class="text-xs uppercase tracking-wide text-zinc-500">Live2D</span>
+              <button class="text-xs font-bold uppercase tracking-wide text-zinc-500 lg:hidden" @click="mobileCharacterExpanded = !mobileCharacterExpanded">
+                {{ mobileCharacterExpanded ? 'Hide' : 'Show' }}
+              </button>
+            </div>
           </div>
 
-          <div class="character-container w-full aspect-square max-w-[520px] mx-auto sketch-border-3 p-0 overflow-hidden bg-white relative">
+          <div v-show="mobileCharacterExpanded || isDesktopViewport" class="character-container relative mx-auto aspect-square w-full max-w-[520px] overflow-hidden bg-white p-0 sketch-border-3">
             <ClientOnly>
               <div id="L2dCanvas" class="w-full h-full relative"></div>
               <div v-if="!isModelLoaded" class="absolute inset-0 flex items-center justify-center bg-white/80">
@@ -57,7 +62,7 @@
             </ClientOnly>
           </div>
 
-          <div v-if="characterResponse" class="mt-4 sketch-border-3 p-4 bg-white max-w-[460px] mx-auto relative">
+          <div v-if="characterResponse && (mobileCharacterExpanded || isDesktopViewport)" class="mt-4 sketch-border-3 p-4 bg-white max-w-[460px] mx-auto relative">
             <div class="absolute -top-3 left-10 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[12px] border-b-black"></div>
             <p class="text-sm leading-relaxed">{{ characterResponse }}</p>
           </div>
@@ -66,9 +71,14 @@
         <div class="sketch-card bg-white p-4 md:p-5">
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-2xl font-bold">Model Switch Panel</h3>
-            <span class="text-xs uppercase tracking-wide text-zinc-500">{{ availableLive2dModels.length }} models</span>
+            <div class="flex items-center gap-3">
+              <span class="text-xs uppercase tracking-wide text-zinc-500">{{ availableLive2dModels.length }} models</span>
+              <button class="text-xs font-bold uppercase tracking-wide text-zinc-500 lg:hidden" @click="mobileSwitchExpanded = !mobileSwitchExpanded">
+                {{ mobileSwitchExpanded ? 'Hide' : 'Show' }}
+              </button>
+            </div>
           </div>
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-3">
+          <div v-show="mobileSwitchExpanded || isDesktopViewport" class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2">
             <button
               v-for="model in availableLive2dModels"
               :key="model.id"
@@ -89,13 +99,13 @@
         </div>
       </div>
 
-      <div class="lg:col-span-7 flex flex-col h-auto lg:h-[75vh] min-h-[500px]">
-        <div class="flex-1 flex flex-col sketch-card bg-white p-0 overflow-hidden">
-          <div ref="chatContainer" class="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
+      <div class="order-1 flex min-h-[56vh] flex-col lg:order-2 lg:col-span-7 lg:h-[75vh] lg:min-h-[420px]">
+        <div class="flex flex-1 flex-col overflow-hidden sketch-card bg-white p-0">
+          <div ref="chatContainer" class="flex-1 space-y-5 overflow-y-auto p-4 scroll-smooth sm:p-6 sm:space-y-6">
             <div v-for="(msg, index) in messages" :key="index" :class="['flex', msg.role === 'user' ? 'justify-end' : 'justify-start']">
               <div
                 :class="[
-                  'max-w-[90%] p-4 sketch-border-3 relative group',
+                  'relative group max-w-[94%] p-3 sketch-border-3 sm:max-w-[90%] sm:p-4',
                   msg.role === 'user' ? 'bg-zinc-50' : 'bg-white'
                 ]"
               >
@@ -114,7 +124,7 @@
                 <button 
                   v-if="msg.role === 'assistant'"
                   @click="playVoice(msg.content)"
-                  class="absolute -right-10 top-0 opacity-0 group-hover:opacity-100 transition-opacity p-2 text-zinc-400 hover:text-zinc-800"
+                  class="absolute right-1 top-1 rounded-full bg-white/90 p-2 text-zinc-400 opacity-100 transition-opacity hover:text-zinc-800 sm:-right-10 sm:top-0 sm:bg-transparent sm:opacity-0 sm:group-hover:opacity-100"
                   title="Play message"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
@@ -128,13 +138,13 @@
             </div>
           </div>
 
-          <div class="p-4 border-t-2 border-zinc-200 bg-zinc-50/50">
+          <div class="border-t-2 border-zinc-200 bg-zinc-50/50 p-4">
             <div v-if="selectedImage" class="mb-3 relative inline-block">
               <img :src="selectedImage" class="w-20 h-20 object-cover sketch-border cursor-zoom-in" @click="openImagePreview([selectedImage], 0)" />
               <button @click="selectedImage = null" class="absolute -top-2 -right-2 bg-black text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-zinc-800 transition-colors">×</button>
             </div>
 
-            <div class="flex gap-3 items-end">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
               <div class="flex-1 relative">
                 <textarea
                   v-model="inputMessage"
@@ -152,16 +162,16 @@
                 </button>
                 <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleImageUpload" />
               </div>
-              <div class="flex flex-col gap-2">
+              <div class="flex flex-col gap-2 sm:w-auto">
                 <button
                   @click="sendMessage"
                   :disabled="isLoading || (!inputMessage.trim() && !selectedImage)"
-                  class="sketch-button py-2 min-w-[80px] disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="sketch-button min-w-[80px] py-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Send
                 </button>
-                <div class="flex items-center justify-between mt-1 gap-3">
-                  <div class="flex items-center gap-3">
+                <div class="mt-1 flex flex-wrap items-center justify-between gap-3">
+                  <div class="flex flex-wrap items-center gap-3">
                     <label class="flex items-center cursor-pointer select-none text-xs text-zinc-500 hover:text-zinc-700">
                       <input type="checkbox" v-model="autoPronounce" class="mr-1 w-3 h-3 accent-zinc-900" />
                       Auto-Speak
@@ -216,6 +226,9 @@ const isSpeaking = ref(false)
 const previewOpen = ref(false)
 const previewImages = ref<string[]>([])
 const previewStartIndex = ref(0)
+const mobileCharacterExpanded = ref(false)
+const mobileSwitchExpanded = ref(false)
+const isDesktopViewport = ref(false)
 
 const availableLive2dModels = ref([
   { id: 'xuefeng_3', name: 'Sarah' },
@@ -239,6 +252,14 @@ const availableModels = ref<any[]>([
 ])
 const modelSearch = ref('')
 const showModelDropdown = ref(false)
+
+const syncViewportMode = () => {
+  isDesktopViewport.value = window.innerWidth >= 1024
+  if (isDesktopViewport.value) {
+    mobileCharacterExpanded.value = true
+    mobileSwitchExpanded.value = true
+  }
+}
 
 const filteredModels = computed(() => {
   if (!modelSearch.value) return availableModels.value.slice(0, 50)
@@ -314,6 +335,8 @@ const persistMessages = () => {
 }
 
 onMounted(async () => {
+  syncViewportMode()
+  window.addEventListener('resize', syncViewportMode)
   const savedMessages = localStorage.getItem('yuki_messages')
   if (savedMessages) {
     try {
@@ -367,6 +390,7 @@ onUnmounted(() => {
     speechSynthesis.cancel()
   }
 
+  window.removeEventListener('resize', syncViewportMode)
   window.removeEventListener('click', handleOutsideClick)
 })
 

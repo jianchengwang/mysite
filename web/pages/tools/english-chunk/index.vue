@@ -1,19 +1,19 @@
 <template>
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 font-hand">
-    <div class="text-center mb-12">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 font-hand">
+    <div class="text-center mb-8 sm:mb-12">
       <h1 class="text-4xl font-bold text-zinc-900 mb-4 font-hand">English Chunk Generator</h1>
-      <p class="text-lg text-zinc-600 italic">Generate common English chunks with example sentences and practice scenarios</p>
+      <p class="text-base sm:text-lg text-zinc-600 italic">Generate common English chunks with example sentences and practice scenarios</p>
     </div>
 
     <!-- Generator Form -->
-    <div class="sketch-card p-6 mb-8 bg-white">
+    <div class="sketch-card p-4 sm:p-6 mb-8 bg-white">
       <div class="space-y-6">
         <div v-if="!apiKey" class="bg-red-50 border-2 border-red-200 rounded-lg p-4 text-red-700 text-sm italic">
           <p>Please set your OpenRouter API Key in the Global Settings (top right gear icon) to use this tool.</p>
           <button @click="openGlobalSettings" class="mt-3 sketch-button bg-white text-zinc-900 py-1 px-4 not-italic">Open Settings</button>
         </div>
 
-        <div class="flex flex-col md:flex-row items-start md:items-center md:items-center justify-between gap-4">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div class="flex-1">
             <label class="block text-sm font-bold text-zinc-700 mb-2">Number of chunks</label>
             <select v-model="numChunks" class="w-full sketch-border bg-white px-3 py-2 outline-none focus:sketch-shadow-sm font-hand">
@@ -89,8 +89,8 @@
       <!-- Chunks Section -->
       <div class="space-y-6">
         <h2 class="text-2xl font-bold text-zinc-900 mb-4">English Chunks</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div v-for="(chunk, index) in chunks" :key="index" class="sketch-card p-6 bg-white hover:sketch-shadow transition-all">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          <div v-for="(chunk, index) in chunks" :key="index" class="sketch-card p-4 sm:p-6 bg-white hover:sketch-shadow transition-all">
             <h3 class="text-xl font-bold text-zinc-900 mb-4 border-b-2 border-zinc-100 pb-2">{{ chunk.phrase }}</h3>
             <div class="space-y-4">
               <div v-for="(example, idx) in chunk.examples" :key="idx" class="text-zinc-600">
@@ -103,13 +103,13 @@
       </div>
 
       <!-- Scenario Section -->
-      <div v-if="scenario?.content" class="sketch-card p-8 bg-white border-2 border-zinc-900">
-        <div class="flex flex-col md:flex-row items-start md:items-center justify-between items-start md:items-center gap-4 mb-6">
+      <div v-if="scenario?.content" class="sketch-card p-4 sm:p-6 md:p-8 bg-white border-2 border-zinc-900">
+        <div class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 class="text-2xl font-bold text-zinc-900">{{ scenario.title }}</h2>
             <p class="text-zinc-500 italic mt-1">{{ scenario.context }}</p>
           </div>
-          <div class="flex items-center gap-4 shrink-0">
+          <div class="flex w-full flex-wrap items-center gap-3 md:w-auto md:shrink-0 md:justify-end">
             <button 
               @click="toggleTextToSpeech"
               class="sketch-button py-1 px-4 text-sm flex items-center gap-2"
@@ -127,7 +127,7 @@
           </div>
         </div>
 
-        <div class="bg-zinc-50/50 sketch-border p-6 md:p-8">
+        <div class="bg-zinc-50/50 sketch-border p-4 sm:p-6 md:p-8">
           <div class="mb-6 flex flex-wrap gap-3">
             <div class="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-bold text-zinc-600">
               {{ formattedDialogue.length }} dialogue lines
@@ -144,18 +144,18 @@
             Missing chunks: {{ missingChunks.join(', ') }}
           </div>
 
-          <div class="space-y-6">
+          <div class="space-y-5 sm:space-y-6">
             <div v-for="(message, index) in formattedDialogue" 
                  :key="index" 
                  class="dialogue-line"
             >
-              <div class="flex items-baseline gap-4">
-                <span class="text-sm font-bold uppercase tracking-wider min-w-[60px]" 
+              <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-4">
+                <span class="text-xs sm:text-sm font-bold uppercase tracking-wider sm:min-w-[60px]" 
                       :class="index % 2 === 0 ? 'text-blue-600' : 'text-purple-600'">
                   {{ message.speaker }}:
                 </span>
                 <div v-html="highlightChunks(message.text, chunks)" 
-                     class="text-lg leading-relaxed flex-grow"></div>
+                     class="text-base sm:text-lg leading-relaxed flex-grow break-words"></div>
               </div>
             </div>
           </div>

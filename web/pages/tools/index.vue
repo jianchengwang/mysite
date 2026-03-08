@@ -1,13 +1,13 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
     <!-- Page Header -->
-    <div class="mb-16 text-center">
-      <h1 class="text-5xl font-bold text-zinc-900 mb-4 transform -rotate-1 font-hand">Developer Tools</h1>
-      <p class="text-2xl text-zinc-600 font-hand">A collection of useful tools for developers</p>
+    <div class="mb-12 text-center sm:mb-16">
+      <h1 class="mb-3 text-4xl font-bold text-zinc-900 transform -rotate-1 font-hand sm:mb-4 sm:text-5xl">Developer Tools</h1>
+      <p class="text-lg text-zinc-600 font-hand sm:text-2xl">A collection of useful tools for developers</p>
     </div>
 
     <!-- Tools Grid -->
-    <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+    <div class="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
       <NuxtLink
         v-for="tool in tools"
         :key="tool.to"
@@ -15,12 +15,12 @@
         class="group sketch-card hover:sketch-shadow-hover transition-all duration-300 transform hover:-rotate-1"
       >
         <div class="p-2">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-2xl font-bold text-zinc-800 group-hover:text-zinc-600 font-hand underline decoration-wavy decoration-zinc-200 group-hover:decoration-zinc-800">
+          <div class="mb-4 flex items-center justify-between">
+            <h2 class="text-xl font-bold text-zinc-800 group-hover:text-zinc-600 font-hand underline decoration-wavy decoration-zinc-200 group-hover:decoration-zinc-800 sm:text-2xl">
               {{ tool.title }}
             </h2>
           </div>
-          <p class="text-zinc-600 mb-6 text-lg h-24 overflow-hidden">{{ tool.description }}</p>
+          <p class="mb-6 min-h-[4.5rem] text-base text-zinc-600 sm:min-h-[6rem] sm:text-lg">{{ tool.description }}</p>
           <div class="flex flex-wrap gap-2 mb-4">
             <span
               v-for="tag in tool.tags"

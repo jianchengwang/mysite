@@ -1,12 +1,19 @@
 <template>
   <header class="bg-white border-b-2 border-zinc-900 sticky top-0 z-50">
-    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-      <NuxtLink to="/" class="text-3xl font-bold font-hand text-zinc-900 hover:text-zinc-700 transition-colors">
+    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+      <NuxtLink to="/" class="text-2xl sm:text-3xl font-bold font-hand text-zinc-900 hover:text-zinc-700 transition-colors">
         JianchengWang
       </NuxtLink>
 
-      <!-- Mobile: only show settings button -->
-      <div class="flex items-center space-x-6">
+      <div class="flex items-center gap-3 sm:gap-6">
+        <button
+          @click="showMobileMenu = true"
+          class="flex h-11 w-11 items-center justify-center rounded-[16px_8px_18px_7px/7px_18px_7px_16px] border-2 border-zinc-900 bg-white text-zinc-700 shadow-[2px_2px_0_0_rgba(0,0,0,1)] md:hidden"
+          title="Open navigation"
+          aria-label="Open navigation menu"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+        </button>
         <div class="hidden md:flex items-center space-x-6">
           <NuxtLink to="/tech" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
             Tech
@@ -43,8 +50,39 @@
 
     <!-- Settings Modal -->
     <Teleport to="body">
+      <div v-if="showMobileMenu" class="fixed inset-0 z-50 bg-black/45 backdrop-blur-sm md:hidden" @click.self="showMobileMenu = false">
+        <div class="ml-auto flex h-full w-[86vw] max-w-sm flex-col border-l-2 border-zinc-900 bg-white p-5 shadow-[-8px_0_0_0_rgba(0,0,0,1)]">
+          <div class="mb-5 flex items-center justify-between">
+            <div>
+              <p class="text-xs uppercase tracking-[0.18em] text-zinc-500">Navigation</p>
+              <p class="text-2xl font-bold text-zinc-900 font-hand">Menu</p>
+            </div>
+            <button @click="showMobileMenu = false" class="text-3xl leading-none hover:text-zinc-500">×</button>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <NuxtLink
+              v-for="item in navItems"
+              :key="item.to"
+              :to="item.to"
+              class="rounded-2xl border-2 border-zinc-900 bg-white px-4 py-3 text-lg font-medium text-zinc-800 shadow-[3px_3px_0_0_rgba(0,0,0,1)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+              @click="showMobileMenu = false"
+            >
+              {{ item.label }}
+            </NuxtLink>
+          </div>
+
+          <button
+            @click="openSettings(); showMobileMenu = false"
+            class="mt-auto sketch-button !bg-zinc-900 !text-white py-3"
+          >
+            Global Settings
+          </button>
+        </div>
+      </div>
+
       <div v-if="showSettings" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm font-hand" @click.self="showSettings = false">
-        <div class="sketch-card bg-white w-full max-w-md p-6 space-y-4">
+        <div class="sketch-card bg-white w-full max-w-md p-4 sm:p-6 space-y-4">
           <div class="flex justify-between items-center mb-2">
             <h2 class="text-2xl font-bold">Global Settings</h2>
             <button @click="showSettings = false" class="text-2xl hover:text-zinc-500">×</button>
@@ -61,10 +99,10 @@
             <p class="text-xs text-zinc-500 italic">Used across all AI tools (Yuki, Whiteboard, etc.)</p>
           </div>
           
-          <div class="flex gap-3 pt-4">
+          <div class="flex flex-col gap-3 pt-4 sm:flex-row">
             <button
               @click="clearSettings"
-              class="sketch-button py-2 px-4 bg-white text-red-600"
+              class="sketch-button py-2 px-4 bg-white text-red-600 sm:w-auto"
             >
               Clear
             </button>
@@ -89,12 +127,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
+const route = useRoute()
 
 const showSettings = ref(false)
+const showMobileMenu = ref(false)
 const openRouterKey = ref('')
 const savedHint = ref('')
 const STORAGE_KEY = 'global_openrouter_key'
+const navItems = [
+  { to: '/tech', label: 'Tech' },
+  { to: '/store', label: 'Store' },
+  { to: '/column', label: 'Column' },
+  { to: '/english', label: 'English' },
+  { to: '/tools', label: 'Tools' },
+  { to: '/links', label: 'Links' },
+  { to: '/about', label: 'About' }
+]
 
 const syncKeyFromStorage = () => {
   openRouterKey.value = localStorage.getItem(STORAGE_KEY) || ''
@@ -107,6 +156,10 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('open-global-settings', openSettings as EventListener)
+})
+
+watch(() => route.fullPath, () => {
+  showMobileMenu.value = false
 })
 
 const openSettings = () => {

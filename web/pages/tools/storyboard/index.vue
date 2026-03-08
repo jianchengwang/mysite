@@ -1,9 +1,15 @@
 <template>
-  <div class="min-h-screen bg-[#fff9f1] font-hand py-8 px-4">
+  <div class="min-h-screen bg-[#fff9f1] px-4 py-6 font-hand sm:py-8">
     <div class="max-w-7xl mx-auto">
-      <div class="mb-8 text-center">
-        <h1 class="text-5xl font-bold text-zinc-900 mb-2">Storyboard Generator</h1>
-        <p class="text-zinc-600 italic">Cinematic storyboard scripts with panel-by-panel image generation</p>
+      <div class="mb-6 text-center sm:mb-8">
+        <h1 class="mb-2 text-4xl font-bold text-zinc-900 sm:text-5xl">Storyboard Generator</h1>
+        <p class="text-sm text-zinc-600 italic sm:text-base">Cinematic storyboard scripts with panel-by-panel image generation</p>
+      </div>
+
+      <div v-if="apiKey" class="sticky top-20 z-20 mb-4 -mx-1 flex gap-2 overflow-x-auto bg-[#fff9f1]/95 px-1 py-1 backdrop-blur sm:hidden">
+        <a href="#story-setup" class="shrink-0 rounded-full border-2 border-zinc-900 bg-white px-4 py-2 text-sm font-bold shadow-[3px_3px_0_0_rgba(0,0,0,1)]">Setup</a>
+        <a href="#story-output" class="shrink-0 rounded-full border-2 border-zinc-900 bg-white px-4 py-2 text-sm font-bold shadow-[3px_3px_0_0_rgba(0,0,0,1)]">Output</a>
+        <a href="#story-assets" class="shrink-0 rounded-full border-2 border-zinc-900 bg-white px-4 py-2 text-sm font-bold shadow-[3px_3px_0_0_rgba(0,0,0,1)]">Assets</a>
       </div>
 
       <div v-if="!apiKey" class="max-w-xl mx-auto sketch-card mt-16 text-center bg-white">
@@ -14,9 +20,9 @@
         </button>
       </div>
 
-      <div v-else class="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+      <div v-else class="grid grid-cols-1 items-start gap-6 xl:grid-cols-12 xl:gap-8">
         <div class="xl:col-span-5 space-y-6">
-          <section class="sketch-card bg-white p-5 space-y-4">
+          <section id="story-setup" class="sketch-card bg-white p-4 sm:p-5 space-y-4 scroll-mt-24">
             <div class="flex items-center justify-between gap-3">
               <h2 class="text-2xl font-bold">Story Setup</h2>
               <span class="text-xs uppercase tracking-wide text-zinc-500">OpenRouter</span>
@@ -178,7 +184,7 @@
             </button>
           </section>
 
-          <section class="sketch-card bg-white p-5 space-y-4">
+          <section id="story-assets" class="sketch-card bg-white p-4 sm:p-5 space-y-4 scroll-mt-24">
             <div class="flex items-center justify-between gap-3">
               <div>
                 <h2 class="text-2xl font-bold">Character Consistency</h2>
@@ -215,7 +221,7 @@
             </div>
           </section>
 
-          <section class="sketch-card bg-white p-5 space-y-4">
+          <section class="sketch-card bg-white p-4 sm:p-5 space-y-4">
             <div class="flex items-center justify-between gap-3">
               <div>
                 <h2 class="text-2xl font-bold">Scene Reference Library</h2>
@@ -254,7 +260,7 @@
         </div>
 
         <div class="xl:col-span-7 space-y-6">
-          <section class="sketch-card bg-white p-5">
+          <section id="story-output" class="sketch-card bg-white p-4 sm:p-5 scroll-mt-24">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div class="space-y-2">
                 <h2 class="text-2xl font-bold">Storyboard Output</h2>
@@ -263,7 +269,7 @@
                 </p>
               </div>
 
-              <div class="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
+              <div class="grid w-full grid-cols-2 gap-3 text-sm md:grid-cols-4 lg:w-auto">
                 <div class="rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-2">
                   <p class="text-[11px] uppercase tracking-wide text-zinc-500">Panels</p>
                   <p class="font-bold text-zinc-900">{{ panels.length || panelCount }}</p>
@@ -285,22 +291,22 @@
 
             <div v-if="storyboard.title || storyboard.summary" class="mt-5 rounded-3xl border-2 border-zinc-900 bg-zinc-50 px-5 py-4">
               <p class="text-xs uppercase tracking-[0.2em] text-zinc-500">Project Overview</p>
-              <h3 class="mt-1 text-3xl font-bold text-zinc-900">{{ storyboard.title || 'Untitled Storyboard' }}</h3>
+              <h3 class="mt-1 text-2xl font-bold text-zinc-900 sm:text-3xl">{{ storyboard.title || 'Untitled Storyboard' }}</h3>
               <p class="mt-2 text-sm leading-relaxed text-zinc-600">{{ storyboard.summary }}</p>
             </div>
 
             <div v-if="generatedPanels.length" class="mt-5 space-y-3">
-              <div class="flex items-center justify-between gap-3">
+              <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h3 class="text-xl font-bold text-zinc-900">Generated Frames</h3>
                   <p class="text-sm text-zinc-500">{{ generatedPanels.length }} rendered panels ready for preview or download.</p>
                 </div>
-                <button class="sketch-button py-2 px-3 text-sm" @click="openImagePreview(generatedPanelUrls, 0)">
+                <button class="sketch-button w-full py-2 px-3 text-sm sm:w-auto" @click="openImagePreview(generatedPanelUrls, 0)">
                   Preview All
                 </button>
               </div>
 
-              <div class="grid grid-cols-3 gap-3 md:grid-cols-4 xl:grid-cols-6">
+              <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
                 <button
                   v-for="rendered in generatedPanels"
                   :key="rendered.id"
@@ -321,12 +327,12 @@
             <article
               v-for="(panel, index) in panels"
               :key="panel.id"
-              class="sketch-card bg-white p-5 space-y-4"
+              class="sketch-card bg-white p-4 space-y-4 sm:p-5"
             >
               <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                   <p class="text-xs uppercase tracking-[0.2em] text-zinc-500">Panel {{ index + 1 }}</p>
-                  <h3 class="text-2xl font-bold text-zinc-900">{{ panel.title }}</h3>
+                  <h3 class="text-xl font-bold text-zinc-900 sm:text-2xl">{{ panel.title }}</h3>
                 </div>
                 <div class="flex flex-wrap gap-2 text-xs">
                   <span class="rounded-full border border-amber-200 bg-amber-100 px-2 py-1 text-amber-800">{{ panel.durationSeconds }}s</span>
@@ -353,7 +359,7 @@
                     </div>
                   </div>
 
-                  <div class="grid grid-cols-2 gap-2">
+                  <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <button
                       @click="generatePanelImage(panel.id)"
                       :disabled="panel.isGenerating || !panel.imagePrompt.trim()"
@@ -366,7 +372,7 @@
                     </button>
                   </div>
 
-                  <div class="grid grid-cols-2 gap-2">
+                  <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <button @click="copyText(panel.imagePrompt, 'Prompt copied')" class="sketch-button py-2 text-sm">
                       Copy Prompt
                     </button>
@@ -405,7 +411,7 @@
                   </div>
 
                   <div class="space-y-2">
-                    <div class="flex items-center justify-between gap-3">
+                    <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                       <label class="block text-sm font-bold text-zinc-700">Image Prompt (English only)</label>
                       <span class="text-xs text-zinc-500">Normalized for consistent image generation</span>
                     </div>
@@ -424,7 +430,7 @@
                       </div>
                     </div>
 
-                    <div v-if="sceneReferenceImages.length" class="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                    <div v-if="sceneReferenceImages.length" class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                       <button
                         v-for="image in sceneReferenceImages"
                         :key="`${panel.id}-${image.id}`"
@@ -459,7 +465,7 @@
             </article>
           </section>
 
-          <section v-else class="sketch-card bg-white p-12 text-center text-zinc-500">
+          <section v-else class="sketch-card bg-white p-8 text-center text-zinc-500 sm:p-12">
             <div class="text-5xl mb-4">📝</div>
             <p class="text-lg">Enter a story plot and generate the storyboard first.</p>
           </section>

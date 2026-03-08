@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-[#fcfcfc] font-hand p-4 md:p-8">
     <div class="max-w-7xl mx-auto mb-8 md:mb-10">
       <h1 class="text-4xl font-bold text-zinc-900 mb-2">Prompt Collection</h1>
-      <p class="text-zinc-600 italic">A curated collection of creative prompts for AI models</p>
+      <p class="text-sm sm:text-base text-zinc-600 italic">A curated collection of creative prompts for AI models</p>
     </div>
 
     <div class="max-w-7xl mx-auto">
@@ -13,11 +13,11 @@
             v-model="searchQuery"
             type="text"
             placeholder="Search title, category, or content..."
-            class="w-full min-w-[280px] bg-white px-4 py-2 sketch-border outline-none md:w-80"
+            class="w-full bg-white px-4 py-2 sketch-border outline-none md:w-80"
           />
           <select
             v-model="selectedCategory"
-            class="bg-white px-4 py-2 sketch-border outline-none"
+            class="w-full bg-white px-4 py-2 sketch-border outline-none md:w-auto"
           >
             <option value="all">All Categories</option>
             <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
@@ -29,14 +29,14 @@
           v-for="(prompt, idx) in filteredPrompts"
           :key="idx"
           type="button"
-          class="sketch-card group min-h-[220px] cursor-pointer bg-white p-5 text-left transition-all hover:sketch-shadow md:p-6"
+          class="sketch-card group min-h-[200px] cursor-pointer bg-white p-5 text-left transition-all hover:sketch-shadow md:min-h-[220px] md:p-6"
           @click="openPrompt(prompt)"
         >
           <div class="mb-3 flex items-start justify-between">
             <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-500">{{ prompt.category }}</span>
             <span class="bg-zinc-100 px-2 py-0.5 text-[11px] text-zinc-700 sketch-border transition-colors group-hover:bg-zinc-900 group-hover:text-white">Details</span>
           </div>
-          <h3 class="mb-3 text-2xl font-bold leading-tight text-zinc-900 transition-colors group-hover:text-zinc-600">{{ prompt.title }}</h3>
+          <h3 class="mb-3 text-xl md:text-2xl font-bold leading-tight text-zinc-900 transition-colors group-hover:text-zinc-600">{{ prompt.title }}</h3>
           <p class="line-clamp-4 text-sm italic leading-relaxed text-zinc-500">{{ prompt.preview }}</p>
         </button>
       </div>
@@ -51,19 +51,19 @@
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-3 font-hand backdrop-blur-sm md:p-4"
         @click.self="closePrompt"
       >
-        <div class="sketch-card flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden bg-white p-0 shadow-[10px_10px_0_0_rgba(0,0,0,1)]">
-          <div class="flex items-start justify-between gap-4 border-b-2 border-zinc-900 bg-zinc-50 p-5 md:p-6">
+        <div class="sketch-card flex max-h-[92dvh] w-full max-w-4xl flex-col overflow-hidden bg-white p-0 shadow-[10px_10px_0_0_rgba(0,0,0,1)] md:max-h-[88vh]">
+          <div class="flex items-start justify-between gap-4 border-b-2 border-zinc-900 bg-zinc-50 p-4 md:p-6">
             <div class="min-w-0">
               <span class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">{{ selectedPrompt.category }}</span>
-              <h2 class="mt-1 text-3xl font-bold leading-tight text-zinc-900">{{ selectedPrompt.title }}</h2>
+              <h2 class="mt-1 text-2xl md:text-3xl font-bold leading-tight text-zinc-900">{{ selectedPrompt.title }}</h2>
             </div>
             <button class="text-3xl leading-none hover:text-zinc-500" @click="closePrompt">×</button>
           </div>
 
-          <div class="flex items-center justify-between border-b border-zinc-200 bg-white px-5 py-3 md:px-6">
+          <div class="flex flex-col gap-3 border-b border-zinc-200 bg-white px-4 py-3 md:flex-row md:items-center md:justify-between md:px-6">
             <div class="text-xs uppercase tracking-[0.14em] text-zinc-500">Prompt Content</div>
             <button
-              class="sketch-button py-1 px-4 text-sm !bg-zinc-900 !text-white"
+              class="sketch-button w-full py-1 px-4 text-sm !bg-zinc-900 !text-white md:w-auto"
               :class="copied ? 'bg-green-700 border-green-700' : ''"
               @click="copyPrompt"
             >
@@ -71,7 +71,7 @@
             </button>
           </div>
 
-          <div class="prompt-content flex-1 overflow-y-auto px-5 py-5 md:px-8 md:py-6" v-html="selectedPromptHtml"></div>
+          <div class="prompt-content flex-1 overflow-y-auto px-4 py-5 md:px-8 md:py-6" v-html="selectedPromptHtml"></div>
 
           <div class="flex justify-end border-t-2 border-zinc-900 bg-zinc-50 p-4">
             <button class="sketch-button bg-white py-1 px-6 text-zinc-900" @click="closePrompt">Close</button>
