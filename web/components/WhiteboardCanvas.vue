@@ -212,6 +212,8 @@ type ConnectableObject = ShapeObject | ImageObject
 type ToolId = 'pencil' | 'rect' | 'circle' | 'diamond' | 'arrow' | 'eraser' | 'image' | 'select' | 'crop'
 
 const GUIDE_THRESHOLD = 10
+const MIN_IMAGE_DIMENSION = 24
+const MAX_IMAGE_DIMENSION = 4096
 
 const canvas = ref<HTMLCanvasElement | null>(null)
 const canvasWrapper = ref<HTMLElement | null>(null)
@@ -242,6 +244,7 @@ const isGenerating = ref(false)
 const showGenerateModal = ref(false)
 const aiModels = ref<any[]>([])
 let wheelHistoryCommitTimer: ReturnType<typeof setTimeout> | null = null
+let wheelHistoryDirty = false
 
 const selectedObjectIds = ref<string[]>([])
 const objects = ref<WbObject[]>([])
@@ -296,6 +299,63 @@ const cloneObject = (obj: WbObject): WbObject => {
 }
 
 const cloneObjects = (source: WbObject[]) => source.map(cloneObject)
+
+const roundHistoryNumber = (value: number) => Math.round(value * 100) / 100
+
+const buildHistorySignature = (source: WbObject[]) => JSON.stringify(source.map((obj) => {
+  if (obj.type === 'path') {
+    return {
+      type: obj.type,
+      id: obj.id,
+      color: obj.color,
+      size: obj.size,
+      isEraser: obj.isEraser,
+      points: obj.points.map(point => ({
+        x: roundHistoryNumber(point.x),
+        y: roundHistoryNumber(point.y)
+      }))
+    }
+  }
+
+  if (obj.type === 'image') {
+    return {
+      type: obj.type,
+      id: obj.id,
+      x: roundHistoryNumber(obj.pos.x),
+      y: roundHistoryNumber(obj.pos.y),
+      width: roundHistoryNumber(obj.width),
+      height: roundHistoryNumber(obj.height),
+      prompt: obj.prompt || '',
+      sourceIds: obj.sourceIds || [],
+      src: obj.img?.src || ''
+    }
+  }
+
+  if (obj.type === 'link') {
+    return {
+      type: obj.type,
+      id: obj.id,
+      fromId: obj.fromId,
+      toId: obj.toId,
+      color: obj.color
+    }
+  }
+
+  return {
+    type: obj.type,
+    id: obj.id,
+    color: obj.color,
+    size: obj.size,
+    start: {
+      x: roundHistoryNumber(obj.start.x),
+      y: roundHistoryNumber(obj.start.y)
+    },
+    end: {
+      x: roundHistoryNumber(obj.end.x),
+      y: roundHistoryNumber(obj.end.y)
+    }
+  }
+}))
 
 const isConnectableObject = (obj: WbObject): obj is ConnectableObject =>
   obj.type === 'image' || obj.type === 'rect' || obj.type === 'circle' || obj.type === 'diamond'
@@ -389,10 +449,18 @@ const handleWheel = (e: WheelEvent) => {
   const zoomFactor = e.deltaY > 0 ? 0.95 : 1.05
   const oldWidth = obj.width
   const oldHeight = obj.height
-  obj.width *= zoomFactor
-  obj.height *= zoomFactor
+  const nextWidth = Math.min(MAX_IMAGE_DIMENSION, Math.max(MIN_IMAGE_DIMENSION, obj.width * zoomFactor))
+  const nextHeight = Math.min(MAX_IMAGE_DIMENSION, Math.max(MIN_IMAGE_DIMENSION, obj.height * zoomFactor))
+
+  if (Math.abs(nextWidth - oldWidth) < 0.01 && Math.abs(nextHeight - oldHeight) < 0.01) {
+    return
+  }
+
+  obj.width = nextWidth
+  obj.height = nextHeight
   obj.pos.x -= (obj.width - oldWidth) / 2
   obj.pos.y -= (obj.height - oldHeight) / 2
+  wheelHistoryDirty = true
   scheduleWheelHistoryCommit()
   render()
 }
@@ -1158,27 +1226,42 @@ const drawCropSelection = (ctx: CanvasRenderingContext2D, targetCanvas: HTMLCanv
 }
 
 const commitSnapshot = () => {
+  const currentSnapshot = cloneObjects(objects.value)
+  const previousSnapshot = history.value[historyIndex.value]
+
+  if (previousSnapshot && buildHistorySignature(previousSnapshot) === buildHistorySignature(currentSnapshot)) {
+    return
+  }
+
   const nextHistory = history.value.slice(0, historyIndex.value + 1)
-  nextHistory.push(cloneObjects(objects.value))
+  nextHistory.push(currentSnapshot)
   history.value = nextHistory
   historyIndex.value = history.value.length - 1
 }
 
 const scheduleWheelHistoryCommit = () => {
+  if (!wheelHistoryDirty) return
+
   if (wheelHistoryCommitTimer) {
     clearTimeout(wheelHistoryCommitTimer)
   }
 
   wheelHistoryCommitTimer = window.setTimeout(() => {
     wheelHistoryCommitTimer = null
+    if (!wheelHistoryDirty) return
+    wheelHistoryDirty = false
     commitSnapshot()
   }, 180)
 }
 
 const flushPendingWheelHistoryCommit = () => {
-  if (!wheelHistoryCommitTimer) return
-  clearTimeout(wheelHistoryCommitTimer)
-  wheelHistoryCommitTimer = null
+  if (wheelHistoryCommitTimer) {
+    clearTimeout(wheelHistoryCommitTimer)
+    wheelHistoryCommitTimer = null
+  }
+
+  if (!wheelHistoryDirty) return
+  wheelHistoryDirty = false
   commitSnapshot()
 }
 
