@@ -4,16 +4,17 @@
       <h1 class="text-2xl font-bold mb-8 text-center">试卷分割与AI批改工具</h1>
       <!-- 图片上传区 -->
       <div class="mb-12 flex flex-col items-center">
-        <FileUpload
-          mode="basic"
-          name="papers"
-          :multiple="true"
-          accept="image/*"
-          :auto="false"
-          customUpload
-          @select="onSelect"
-          class="w-full max-w-md p-button-outlined"
-        />
+        <label class="flex w-full max-w-md cursor-pointer items-center justify-center rounded-lg border border-dashed border-zinc-400 bg-zinc-50 px-6 py-8 text-center text-sm text-zinc-600 transition hover:border-zinc-900 hover:bg-white">
+          <input
+            type="file"
+            name="papers"
+            multiple
+            accept="image/*"
+            class="hidden"
+            @change="onSelect"
+          />
+          <span>点击上传试卷图片</span>
+        </label>
       </div>
 
       <!-- 区域标注区：支持拖拽排序和删除 -->
@@ -56,47 +57,85 @@
           </div>
         </div>
         <div class="flex justify-end mt-8">
-          <Button label="AI批改" icon="pi pi-send" class="px-6 py-2" :disabled="!questionImages.length || grading" :loading="grading" @click="onBatchGrade" />
+          <button
+            type="button"
+            class="rounded-lg bg-zinc-900 px-6 py-2 text-white transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-400"
+            :disabled="!questionImages.length || grading"
+            @click="onBatchGrade"
+          >
+            {{ grading ? '批改中...' : 'AI批改' }}
+          </button>
         </div>
       </div>
 
       <!-- 放大标注弹窗 -->
-      <Dialog v-model:visible="cropperDialogVisible" modal :closable="true" @hide="closeCropper" :style="dialogStyle" contentClass="flex items-center justify-center p-0">
-        <template #header>
-          <div class="w-full flex items-center justify-center py-2 font-semibold text-base">图片标注（原图像素级别）</div>
-        </template>
-        <div v-if="currentCropImg" class="flex items-center justify-center w-full h-full" style="padding:0;">
-          <!-- 隐藏图片用于裁剪源 -->
-          <img ref="cropSrcRef" :src="currentCropImg.url" class="hidden" />
-          <MultiCropper
-            :src="currentCropImg.url"
-            v-model="currentCropImg.questions"
-            :useOriginalSize="true"
-            class="border rounded bg-white"
-            style="max-width:1200px; max-height:90vh; overflow:auto;"
-          />
+      <Teleport to="body">
+        <div
+          v-if="cropperDialogVisible"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          @click.self="closeCropper"
+        >
+          <div class="flex max-h-[90vh] w-full max-w-[1200px] flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
+            <div class="flex items-center justify-between border-b px-5 py-4">
+              <div class="font-semibold text-base">图片标注（原图像素级别）</div>
+              <button type="button" class="text-2xl leading-none text-zinc-500 hover:text-zinc-900" @click="closeCropper">×</button>
+            </div>
+            <div v-if="currentCropImg" class="flex items-center justify-center overflow-auto p-4">
+              <img ref="cropSrcRef" :src="currentCropImg.url" class="hidden" />
+              <MultiCropper
+                :src="currentCropImg.url"
+                v-model="currentCropImg.questions"
+                :useOriginalSize="true"
+                class="border rounded bg-white"
+                style="max-width:1200px; max-height:90vh; overflow:auto;"
+              />
+            </div>
+            <div class="flex justify-end border-t px-5 py-4">
+              <button
+                type="button"
+                class="rounded-lg bg-zinc-900 px-5 py-2 text-white transition hover:bg-zinc-700"
+                @click="closeCropper"
+              >
+                完成标注
+              </button>
+            </div>
+          </div>
         </div>
-        <template #footer>
-          <Button label="完成标注" @click="closeCropper" />
-        </template>
-      </Dialog>
+      </Teleport>
 
       <!-- 预览弹窗 -->
-      <Dialog v-model:visible="previewVisible" modal :closable="true" contentClass="flex items-center justify-center p-0">
-        <template #header>
-          <div class="w-full flex justify-center py-2 font-semibold">图片预览</div>
-        </template>
-        <img :src="previewImage" class="max-w-[90vw] max-h-[90vh] object-contain" />
-        <template #footer>
-          <Button label="关闭" @click="previewVisible = false" />
-        </template>
-      </Dialog>
+      <Teleport to="body">
+        <div
+          v-if="previewVisible"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          @click.self="previewVisible = false"
+        >
+          <div class="flex max-h-[90vh] max-w-[90vw] flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
+            <div class="flex items-center justify-between border-b px-5 py-4">
+              <div class="font-semibold">图片预览</div>
+              <button type="button" class="text-2xl leading-none text-zinc-500 hover:text-zinc-900" @click="previewVisible = false">×</button>
+            </div>
+            <div class="overflow-auto p-4">
+              <img :src="previewImage" class="max-w-[90vw] max-h-[70vh] object-contain" />
+            </div>
+            <div class="flex justify-end border-t px-5 py-4">
+              <button
+                type="button"
+                class="rounded-lg border border-zinc-300 bg-white px-5 py-2 text-zinc-900 transition hover:border-zinc-900"
+                @click="previewVisible = false"
+              >
+                关闭
+              </button>
+            </div>
+          </div>
+        </div>
+      </Teleport>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 // @ts-ignore: no type declarations for vuedraggable
 import draggable from 'vuedraggable'
 import MultiCropper from '~/components/MultiCropper.vue'
@@ -136,19 +175,24 @@ const previewVisible = ref(false)
 const previewImage = ref<string>("")
 const grading = ref(false)
 
-const dialogStyle = computed(() => ({
-  maxWidth: '1200px',
-  width: 'auto',
-  minWidth: 'auto',
-  minHeight: 'auto',
-  maxHeight: '90vh',
-  padding: '0',
-  overflow: 'visible',
-  background: '#fff'
-}))
+const syncQuestionImages = () => {
+  questionImages.value = images.value.flatMap((img) =>
+    img.questions
+      .filter(area => area.croppedUrl)
+      .map((area) => ({
+        id: `${img.id}-${area.id}`,
+        croppedUrl: area.croppedUrl as string,
+        fromImgId: img.id,
+        area: { id: area.id, x: area.x, y: area.y, width: area.width, height: area.height }
+      }))
+  )
+}
 
-function onSelect(event: any) {
-  const files = event.files as File[]
+function onSelect(event: Event) {
+  const target = event.target as HTMLInputElement | null
+  const files = target?.files ? Array.from(target.files) : []
+  if (!files.length) return
+
   for (const file of files) {
     const reader = new FileReader()
     reader.onload = (e) => {
@@ -162,11 +206,14 @@ function onSelect(event: any) {
     }
     reader.readAsDataURL(file)
   }
+
+  target.value = ''
   questionImages.value = []
 }
 
 function removeImage(id: string) {
   images.value = images.value.filter(img => img.id !== id)
+  syncQuestionImages()
 }
 
 function openCropper(img: PaperImage) {
@@ -175,17 +222,7 @@ function openCropper(img: PaperImage) {
 }
 
 async function closeCropper() {
-  if (currentCropImg.value) {
-    for (const area of currentCropImg.value.questions) {
-      // 直接使用 MultiCropper 中保存的 croppedUrl
-      questionImages.value.push({
-        id: `${currentCropImg.value.id}-${area.id}`,
-        croppedUrl: area.croppedUrl as string,
-        fromImgId: currentCropImg.value.id,
-        area: { id: area.id, x: area.x, y: area.y, width: area.width, height: area.height }
-      })
-    }
-  }
+  syncQuestionImages()
   cropperDialogVisible.value = false
   currentCropImg.value = null
 }

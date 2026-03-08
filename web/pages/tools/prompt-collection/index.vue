@@ -84,10 +84,9 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { marked } from 'marked'
-import hljs from 'highlight.js'
+import { Marked } from 'marked'
+import { highlightCode } from '~/utils/codeHighlight'
 import promptCollectionSource from '~/content/tools/prompt-collection.md?raw'
-import 'highlight.js/styles/github.css'
 
 definePageMeta({ layout: 'default' })
 
@@ -98,14 +97,11 @@ type PromptItem = {
   preview: string
 }
 
-marked.setOptions({
+const markdownRenderer = new Marked({
   gfm: true,
   breaks: true,
   highlight: (code, lang) => {
-    if (lang && hljs.getLanguage(lang)) {
-      return hljs.highlight(code, { language: lang }).value
-    }
-    return hljs.highlightAuto(code).value
+    return highlightCode(code, lang)
   }
 })
 
@@ -196,7 +192,7 @@ const filteredPrompts = computed(() => {
 
 const selectedPromptHtml = computed(() => {
   if (!selectedPrompt.value) return ''
-  return marked.parse(selectedPrompt.value.content || '') as string
+  return markdownRenderer.parse(selectedPrompt.value.content || '') as string
 })
 
 const openPrompt = (prompt: PromptItem) => {

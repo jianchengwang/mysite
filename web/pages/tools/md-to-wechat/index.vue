@@ -56,9 +56,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import { marked } from 'marked'
-import hljs from 'highlight.js'
-import 'highlight.js/styles/github.css'
+import { Marked } from 'marked'
+import { highlightCode } from '~/utils/codeHighlight'
 
 definePageMeta({ layout: 'default' })
 
@@ -67,12 +66,9 @@ const currentTheme = ref('sketch')
 const previewArea = ref<HTMLElement | null>(null)
 const copyStatus = ref<'idle' | 'success' | 'error'>('idle')
 
-marked.setOptions({
+const markdownRenderer = new Marked({
   highlight(code, lang) {
-    if (lang && hljs.getLanguage(lang)) {
-      return hljs.highlight(code, { language: lang }).value
-    }
-    return hljs.highlightAuto(code).value
+    return highlightCode(code, lang)
   },
   breaks: true,
   gfm: true
@@ -80,7 +76,7 @@ marked.setOptions({
 
 const htmlOutput = computed(() => {
   if (!markdownInput.value) return '<p class="italic text-zinc-400 text-center mt-20">Preview will appear here...</p>'
-  return marked.parse(markdownInput.value) as string
+  return markdownRenderer.parse(markdownInput.value) as string
 })
 
 const clearInput = () => {

@@ -9,15 +9,18 @@ import 'highlight.js/styles/atom-one-dark.css';
 // import 'highlight.js/lib/styles/monokai.css';
 // import 'highlight.js/lib/styles/solarized-light.css';
 
-// 代码高亮插件
-import hljs from 'highlight.js'
-
 export default defineNuxtPlugin((nuxtApp) => {
-  nuxtApp.hook('page:finish', () => {
+  nuxtApp.hook('page:finish', async () => {
+    const codeBlocks = document.querySelectorAll('pre code')
+
     // 高亮所有代码块
-    document.querySelectorAll('pre code').forEach((block) => {
-      hljs.highlightElement(block)
-    })
+    if (codeBlocks.length > 0) {
+      const { highlightElement } = await import('~/utils/codeHighlight')
+      codeBlocks.forEach((block) => {
+        highlightElement(block)
+      })
+    }
+
     // 添加复制按钮
     document.querySelectorAll('pre').forEach((pre) => {
       // 避免重复添加

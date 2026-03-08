@@ -4,8 +4,7 @@ export default defineNuxtConfig({
 
   modules: [
     '@nuxtjs/tailwindcss',
-    '@nuxt/content',
-    '@primevue/nuxt-module'
+    '@nuxt/content'
   ],
 
   css: [
@@ -15,14 +14,6 @@ export default defineNuxtConfig({
     '~/assets/css/markdown-theme-notion.css',
     '~/assets/css/markdown-theme-jianshu.css'
   ],
-
-  primevue: {
-    options: {
-      theme: {
-        preset: 'Aura'
-      }
-    }
-  },
 
   content: {
     build: {
@@ -138,6 +129,26 @@ export default defineNuxtConfig({
         },
       },
     },
+  },
+
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return
+
+            if (id.includes('highlight.js') || id.includes('marked')) {
+              return 'vendor-markdown'
+            }
+
+            if (id.includes('vuedraggable') || id.includes('sortablejs')) {
+              return 'vendor-dnd'
+            }
+          }
+        }
+      }
+    }
   },
 
   compatibilityDate: '2025-03-29',
