@@ -249,6 +249,7 @@ let wheelHistoryDirty = false
 const selectedObjectIds = ref<string[]>([])
 const objects = ref<WbObject[]>([])
 const history = ref<WbObject[][]>([[]])
+const historySignatures = ref<string[]>(['[]'])
 const historyIndex = ref(0)
 
 const canUndo = computed(() => historyIndex.value > 0)
@@ -421,10 +422,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (wheelHistoryCommitTimer) {
-    clearTimeout(wheelHistoryCommitTimer)
-    wheelHistoryCommitTimer = null
-  }
+  flushPendingWheelHistoryCommit()
   window.removeEventListener('storage', syncApiKey)
   window.removeEventListener('resize', handleResize)
   if (canvas.value) {
@@ -1227,15 +1225,19 @@ const drawCropSelection = (ctx: CanvasRenderingContext2D, targetCanvas: HTMLCanv
 
 const commitSnapshot = () => {
   const currentSnapshot = cloneObjects(objects.value)
-  const previousSnapshot = history.value[historyIndex.value]
+  const currentSignature = buildHistorySignature(currentSnapshot)
+  const previousSignature = historySignatures.value[historyIndex.value]
 
-  if (previousSnapshot && buildHistorySignature(previousSnapshot) === buildHistorySignature(currentSnapshot)) {
+  if (previousSignature === currentSignature) {
     return
   }
 
   const nextHistory = history.value.slice(0, historyIndex.value + 1)
+  const nextSignatures = historySignatures.value.slice(0, historyIndex.value + 1)
   nextHistory.push(currentSnapshot)
+  nextSignatures.push(currentSignature)
   history.value = nextHistory
+  historySignatures.value = nextSignatures
   historyIndex.value = history.value.length - 1
 }
 
