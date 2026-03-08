@@ -134,6 +134,15 @@ const tools = [
       { label: 'Social Media', color: 'green' }
     ]
   },
+  {
+    to: '/tools/storyboard',
+    title: 'Storyboard Generator',
+    description: 'Generate storyboard panels, editable comic-style image prompts, and per-panel reference-based renders.',
+    tags: [
+      { label: 'Storyboard', color: 'indigo' },
+      { label: 'AI Visuals', color: 'green' }
+    ]
+  },
 ]
 </script>
 

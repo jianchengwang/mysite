@@ -213,10 +213,10 @@ const currentCharacterName = computed(() => {
 })
 
 const availableModels = ref<any[]>([
-  { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash (Fast)' },
-  { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini (Smart)' },
-  { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet' },
-  { id: 'deepseek/deepseek-chat', name: 'DeepSeek Chat' }
+  { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash (Fast)', outputModalities: ['text'] },
+  { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini (Smart)', outputModalities: ['text'] },
+  { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', outputModalities: ['text'] },
+  { id: 'deepseek/deepseek-chat', name: 'DeepSeek Chat', outputModalities: ['text'] }
 ])
 const modelSearch = ref('')
 const showModelDropdown = ref(false)
@@ -227,6 +227,16 @@ const filteredModels = computed(() => {
   return availableModels.value.filter(
     (m) => (m.name?.toLowerCase().includes(search)) || (m.id?.toLowerCase().includes(search))
   )
+})
+
+const currentModelSupportsImages = computed(() => {
+  const model = availableModels.value.find((m) => m.id === currentModel.value)
+  const outputModalities = model?.outputModalities || []
+  return outputModalities.includes('image') ||
+    currentModel.value.includes('flux') ||
+    currentModel.value.includes('dall-e') ||
+    currentModel.value.includes('stable-diffusion') ||
+    currentModel.value.includes('imagen')
 })
 
 const selectModel = (m: any) => {
@@ -341,13 +351,59 @@ const fetchModels = async () => {
     if (data.data) {
       availableModels.value = data.data.map((m: any) => ({
         id: m.id,
-        name: m.name
+        name: m.name,
+        outputModalities: m.architecture?.output_modalities || []
       }))
       localStorage.setItem('yuki_available_models', JSON.stringify(availableModels.value))
     }
   } catch (error) {
     console.error('Failed to fetch models:', error)
   }
+}
+
+const extractImageUrls = (message: any) => {
+  const urls: string[] = []
+  const pushUrl = (value?: string) => {
+    if (!value) return
+    const cleanUrl = value.trim().split(')')[0].split('"')[0].split("'")[0]
+    if (cleanUrl && !urls.includes(cleanUrl)) {
+      urls.push(cleanUrl)
+    }
+  }
+
+  if (Array.isArray(message?.content)) {
+    message.content.forEach((entry: any) => {
+      if (entry?.type === 'image_url') {
+        pushUrl(entry.image_url?.url)
+      }
+    })
+  }
+
+  if (Array.isArray(message?.images)) {
+    message.images.forEach((entry: any) => {
+      if (typeof entry === 'string') {
+        pushUrl(entry)
+      } else {
+        pushUrl(entry?.image_url?.url || entry?.url)
+      }
+    })
+  }
+
+  if (typeof message?.content === 'string') {
+    if (message.content.startsWith('http') || message.content.startsWith('data:image')) {
+      pushUrl(message.content)
+    }
+
+    const markdownMatches = message.content.matchAll(/!\[[^\]]*]\(([^)\s]+)[^)]*\)/g)
+    for (const match of markdownMatches) {
+      pushUrl(match[1])
+    }
+
+    const urlMatches = message.content.match(/https?:\/\/[^\s)"']+/gi) || []
+    urlMatches.forEach((match: string) => pushUrl(match))
+  }
+
+  return urls
 }
 
 const handleImageUpload = (event: Event) => {
@@ -427,7 +483,8 @@ const sendMessage = async () => {
         messages: [
           { role: 'system', content: `You are ${currentCharacterName.value}, a friendly hand-drawn AI companion. Keep answers concise, natural, and helpful.` },
           ...apiMessages
-        ]
+        ],
+        ...(currentModelSupportsImages.value ? { modalities: ['text', 'image'] } : {})
       })
     })
 
@@ -439,36 +496,14 @@ const sendMessage = async () => {
     const data = await response.json()
     const message = data.choices[0].message
     let aiText = ''
-    const imageUrls: string[] = []
+    const imageUrls = extractImageUrls(message)
 
     if (Array.isArray(message.content)) {
       message.content.forEach((c: any) => {
-        if (c.type === 'text') aiText += c.text
-        if (c.type === 'image_url') imageUrls.push(c.image_url.url)
+        if (c.type === 'text' && typeof c.text === 'string') aiText += c.text
       })
     } else {
       aiText = message.content || ''
-    }
-
-    if (message.images && Array.isArray(message.images)) {
-      message.images.forEach((imgObj: any) => {
-        if (typeof imgObj === 'string') {
-          if (!imageUrls.includes(imgObj)) imageUrls.push(imgObj)
-        } else if (imgObj.image_url && imgObj.image_url.url) {
-          if (!imageUrls.includes(imgObj.image_url.url)) imageUrls.push(imgObj.image_url.url)
-        }
-      })
-    }
-
-    if (imageUrls.length === 0) {
-      const urlRegex = /https?:\/\/\S+\.(?:png|jpg|jpeg|gif|webp)(?:\?\S+)?/gi
-      const matches = aiText.match(urlRegex)
-      if (matches) {
-        matches.forEach((url: string) => {
-          const cleanUrl = url.split(')')[0].split('"')[0].split("'")[0]
-          if (!imageUrls.includes(cleanUrl)) imageUrls.push(cleanUrl)
-        })
-      }
     }
 
     messages.value.push({
