@@ -3,7 +3,6 @@ import sys
 from pathlib import Path
 from loguru import logger
 import json
-from datetime import datetime
 
 # 创建日志目录
 LOG_DIR = Path("logs")

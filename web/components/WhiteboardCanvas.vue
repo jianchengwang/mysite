@@ -241,6 +241,7 @@ const aiPrompt = ref('')
 const isGenerating = ref(false)
 const showGenerateModal = ref(false)
 const aiModels = ref<any[]>([])
+let wheelHistoryCommitTimer: ReturnType<typeof setTimeout> | null = null
 
 const selectedObjectIds = ref<string[]>([])
 const objects = ref<WbObject[]>([])
@@ -360,6 +361,10 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  if (wheelHistoryCommitTimer) {
+    clearTimeout(wheelHistoryCommitTimer)
+    wheelHistoryCommitTimer = null
+  }
   window.removeEventListener('storage', syncApiKey)
   window.removeEventListener('resize', handleResize)
   if (canvas.value) {
@@ -388,7 +393,7 @@ const handleWheel = (e: WheelEvent) => {
   obj.height *= zoomFactor
   obj.pos.x -= (obj.width - oldWidth) / 2
   obj.pos.y -= (obj.height - oldHeight) / 2
-  commitToHistory()
+  scheduleWheelHistoryCommit()
   render()
 }
 
@@ -516,6 +521,7 @@ const moveObjectFromOrigin = (origin: ShapeObject | ImageObject, target: ShapeOb
 }
 
 const handleMouseDown = (e: MouseEvent) => {
+  flushPendingWheelHistoryCommit()
   const pos = getMousePos(e)
 
   if (currentTool.value === 'select') {
@@ -829,6 +835,7 @@ const generateAIImage = async () => {
     return
   }
 
+  flushPendingWheelHistoryCommit()
   isGenerating.value = true
   showGenerateModal.value = false
 
@@ -1150,14 +1157,38 @@ const drawCropSelection = (ctx: CanvasRenderingContext2D, targetCanvas: HTMLCanv
   ctx.restore()
 }
 
-const commitToHistory = () => {
+const commitSnapshot = () => {
   const nextHistory = history.value.slice(0, historyIndex.value + 1)
   nextHistory.push(cloneObjects(objects.value))
   history.value = nextHistory
   historyIndex.value = history.value.length - 1
 }
 
+const scheduleWheelHistoryCommit = () => {
+  if (wheelHistoryCommitTimer) {
+    clearTimeout(wheelHistoryCommitTimer)
+  }
+
+  wheelHistoryCommitTimer = window.setTimeout(() => {
+    wheelHistoryCommitTimer = null
+    commitSnapshot()
+  }, 180)
+}
+
+const flushPendingWheelHistoryCommit = () => {
+  if (!wheelHistoryCommitTimer) return
+  clearTimeout(wheelHistoryCommitTimer)
+  wheelHistoryCommitTimer = null
+  commitSnapshot()
+}
+
+const commitToHistory = () => {
+  flushPendingWheelHistoryCommit()
+  commitSnapshot()
+}
+
 const undo = () => {
+  flushPendingWheelHistoryCommit()
   if (!canUndo.value) return
   historyIndex.value--
   objects.value = cloneObjects(history.value[historyIndex.value])
@@ -1165,6 +1196,7 @@ const undo = () => {
 }
 
 const redo = () => {
+  flushPendingWheelHistoryCommit()
   if (!canRedo.value) return
   historyIndex.value++
   objects.value = cloneObjects(history.value[historyIndex.value])
@@ -1173,6 +1205,7 @@ const redo = () => {
 
 const clear = () => {
   if (!confirm('Clear everything?')) return
+  flushPendingWheelHistoryCommit()
   objects.value = []
   cropSelection.value = null
   selectedObjectIds.value = []

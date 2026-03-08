@@ -100,7 +100,13 @@
                 ]"
               >
                 <div v-if="msg.images && msg.images.length" class="mb-3 flex flex-wrap gap-2">
-                  <img v-for="(img, i) in msg.images" :key="i" :src="img" class="max-w-[200px] max-h-[200px] object-contain sketch-border" />
+                  <img
+                    v-for="(img, i) in msg.images"
+                    :key="i"
+                    :src="img"
+                    class="max-w-[200px] max-h-[200px] object-contain sketch-border cursor-zoom-in"
+                    @click="openImagePreview(msg.images, i)"
+                  />
                 </div>
                 <div class="prose prose-zinc max-w-none prose-sm sm:prose-base" v-html="renderMarkdown(msg.content)"></div>
                 
@@ -124,7 +130,7 @@
 
           <div class="p-4 border-t-2 border-zinc-200 bg-zinc-50/50">
             <div v-if="selectedImage" class="mb-3 relative inline-block">
-              <img :src="selectedImage" class="w-20 h-20 object-cover sketch-border" />
+              <img :src="selectedImage" class="w-20 h-20 object-cover sketch-border cursor-zoom-in" @click="openImagePreview([selectedImage], 0)" />
               <button @click="selectedImage = null" class="absolute -top-2 -right-2 bg-black text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-zinc-800 transition-colors">×</button>
             </div>
 
@@ -176,20 +182,30 @@
         </div>
       </div>
     </div>
+
+    <ImageLightbox v-model="previewOpen" :images="previewImages" :start-index="previewStartIndex" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
-import { marked } from 'marked'
+import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue'
+import ImageLightbox from '~/components/ImageLightbox.vue'
+import { useGlobalOpenRouterKey } from '~/composables/useGlobalOpenRouterKey'
+import { renderSafeMarkdown } from '~/utils/safeRichText'
 
 definePageMeta({ layout: 'default' })
 
-const GLOBAL_KEY_STORAGE = 'global_openrouter_key'
+type ChatMessage = {
+  role: 'user' | 'assistant'
+  content: string
+  images?: string[]
+}
 
-const apiKey = ref('')
+const REMOTE_IMAGE_URL_PATTERN = /^https?:\/\//i
+
+const { apiKey, openGlobalSettings } = useGlobalOpenRouterKey()
 const currentModel = ref('google/gemini-2.0-flash-001')
-const messages = ref<any[]>([])
+const messages = ref<ChatMessage[]>([])
 const inputMessage = ref('')
 const isLoading = ref(false)
 const chatContainer = ref<HTMLElement | null>(null)
@@ -197,6 +213,9 @@ const selectedImage = ref<string | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 const autoPronounce = ref(true)
 const isSpeaking = ref(false)
+const previewOpen = ref(false)
+const previewImages = ref<string[]>([])
+const previewStartIndex = ref(0)
 
 const availableLive2dModels = ref([
   { id: 'xuefeng_3', name: 'Sarah' },
@@ -253,33 +272,62 @@ let speechSynthesis: SpeechSynthesis | null = null
 
 const defaultMessage = computed(() => `Hi there! I'm ${currentCharacterName.value}, your hand-drawn AI companion. How can I help you today?`)
 
-const syncGlobalKey = () => {
-  apiKey.value = localStorage.getItem(GLOBAL_KEY_STORAGE) || ''
+const createDefaultMessages = (): ChatMessage[] => [{ role: 'assistant', content: defaultMessage.value }]
+
+const normalizeStoredMessages = (value: unknown): ChatMessage[] => {
+  if (!Array.isArray(value)) return []
+
+  return value
+    .map((entry): ChatMessage | null => {
+      const role = entry?.role === 'user' ? 'user' : entry?.role === 'assistant' ? 'assistant' : null
+      const content = typeof entry?.content === 'string' ? entry.content : ''
+      const images = Array.isArray(entry?.images)
+        ? entry.images.filter((image): image is string => typeof image === 'string' && REMOTE_IMAGE_URL_PATTERN.test(image))
+        : undefined
+
+      if (!role) return null
+      if (!content.trim() && (!images || images.length === 0)) return null
+
+      return {
+        role,
+        content,
+        images: images?.length ? images : undefined
+      }
+    })
+    .filter((entry): entry is ChatMessage => Boolean(entry))
 }
 
-const handleGlobalKeyChange = () => {
-  syncGlobalKey()
-  if (apiKey.value && !l2dv) {
-    initLive2D()
+const persistMessages = () => {
+  try {
+    const persistableMessages = messages.value
+      .map((message) => ({
+        role: message.role,
+        content: message.content,
+        images: message.images?.filter((image) => REMOTE_IMAGE_URL_PATTERN.test(image))
+      }))
+      .filter((message) => message.content.trim() || message.images?.length)
+
+    localStorage.setItem('yuki_messages', JSON.stringify(persistableMessages))
+  } catch (error) {
+    console.error('Failed to persist messages:', error)
   }
 }
 
 onMounted(async () => {
-  syncGlobalKey()
-
-  window.addEventListener('storage', handleGlobalKeyChange)
-  window.addEventListener('global-openrouter-key-updated', handleGlobalKeyChange as EventListener)
-
   const savedMessages = localStorage.getItem('yuki_messages')
   if (savedMessages) {
     try {
-      messages.value = JSON.parse(savedMessages)
+      messages.value = normalizeStoredMessages(JSON.parse(savedMessages))
     } catch (e) {
       console.error('Failed to load messages:', e)
-      messages.value = [{ role: 'assistant', content: defaultMessage.value }]
+      messages.value = createDefaultMessages()
     }
   } else {
-    messages.value = [{ role: 'assistant', content: defaultMessage.value }]
+    messages.value = createDefaultMessages()
+  }
+
+  if (messages.value.length === 0) {
+    messages.value = createDefaultMessages()
   }
 
   characterResponse.value = defaultMessage.value
@@ -320,13 +368,13 @@ onUnmounted(() => {
   }
 
   window.removeEventListener('click', handleOutsideClick)
-  window.removeEventListener('storage', handleGlobalKeyChange)
-  window.removeEventListener('global-openrouter-key-updated', handleGlobalKeyChange as EventListener)
 })
 
-const openGlobalSettings = () => {
-  window.dispatchEvent(new Event('open-global-settings'))
-}
+watch(apiKey, (value) => {
+  if (value && !l2dv) {
+    initLive2D()
+  }
+})
 
 const handleOutsideClick = (e: MouseEvent) => {
   const target = e.target as HTMLElement
@@ -423,7 +471,7 @@ const handleEnter = (e: KeyboardEvent) => {
 }
 
 const renderMarkdown = (text: string) => {
-  return marked(text) as string
+  return renderSafeMarkdown(text)
 }
 
 const scrollToBottom = () => {
@@ -434,6 +482,13 @@ const scrollToBottom = () => {
   })
 }
 
+const openImagePreview = (images: string[], startIndex = 0) => {
+  if (!images?.length) return
+  previewImages.value = images.filter(Boolean)
+  previewStartIndex.value = startIndex
+  previewOpen.value = true
+}
+
 const sendMessage = async () => {
   if (isLoading.value || (!inputMessage.value.trim() && !selectedImage.value)) return
   if (!apiKey.value) return
@@ -441,12 +496,13 @@ const sendMessage = async () => {
   const userText = inputMessage.value.trim()
   const userImage = selectedImage.value
 
-  const newMessage: any = { role: 'user', content: userText }
+  const newMessage: ChatMessage = { role: 'user', content: userText }
   if (userImage) {
     newMessage.images = [userImage]
   }
 
   messages.value.push(newMessage)
+  persistMessages()
   inputMessage.value = ''
   selectedImage.value = null
   if (fileInput.value) fileInput.value.value = ''
@@ -513,7 +569,7 @@ const sendMessage = async () => {
     })
     characterResponse.value = aiText.length > 200 ? `${aiText.substring(0, 200)}...` : aiText
 
-    localStorage.setItem('yuki_messages', JSON.stringify(messages.value))
+    persistMessages()
 
     if (l2dv) {
       l2dv.startMotion('tap_body')
@@ -524,6 +580,7 @@ const sendMessage = async () => {
   } catch (error: any) {
     console.error('AI Error:', error)
     messages.value.push({ role: 'assistant', content: `Error: ${error.message}` })
+    persistMessages()
   } finally {
     isLoading.value = false
     scrollToBottom()

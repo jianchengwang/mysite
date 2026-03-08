@@ -269,15 +269,16 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { marked } from 'marked'
 import WhiteboardCanvas from '~/components/WhiteboardCanvas.vue'
+import { useGlobalOpenRouterKey } from '~/composables/useGlobalOpenRouterKey'
+import { renderSafeMarkdown } from '~/utils/safeRichText'
 
 definePageMeta({ layout: 'default' })
 
 type ModelOption = { id: string; name: string }
 type GalleryImage = { id: string; src: string; source: 'draw' | 'upload' | 'gen' | 'edit' }
 
-const apiKey = ref('')
+const { apiKey } = useGlobalOpenRouterKey()
 const rawText = ref('')
 const optimizedText = ref('')
 const isOptimizing = ref(false)
@@ -328,7 +329,7 @@ const previewImages = computed(() =>
 
 const optimizedHtml = computed(() => {
   if (!optimizedText.value) return ''
-  return marked.parse(optimizedText.value) as string
+  return renderSafeMarkdown(optimizedText.value)
 })
 
 const normalize = (value: string) => value.toLowerCase().trim()
@@ -414,7 +415,6 @@ watch(
 )
 
 onMounted(() => {
-  apiKey.value = localStorage.getItem('global_openrouter_key') || ''
   syncTextModelQuery()
   fetchModels()
   document.addEventListener('mousedown', handleOutsideClick)

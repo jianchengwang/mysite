@@ -1,5 +1,4 @@
-from fastapi import APIRouter, HTTPException
-from fastapi.concurrency import run_in_threadpool
+from fastapi import APIRouter
 from .models import EvaluateRequest, EvaluateResponse
 from .service import openrouter_gemini_evaluate
 

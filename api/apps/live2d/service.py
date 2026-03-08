@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Optional
 from agents.google_agent import genai_generate
 from loguru import logger
 from .models import ChatRequest, ChatResponse
@@ -16,31 +16,6 @@ safety_settings = [
     {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
     {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
 ]
-
-# Default responses
-DEFAULT_RESPONSES = {
-    "Sarah": [
-        "Hi there! The weather is beautiful today!",
-        "What interesting things would you like to share?",
-        "I really enjoy our conversations!",
-        "Let's make today great!",
-        "Would you like to practice some English together?"
-    ],
-    "Emma": [
-        "I'm a bit tired, but I'll do my best to help you!",
-        "What would you like to work on?",
-        "I'm here to support your learning journey.",
-        "I'm feeling a bit sleepy, but let's continue.",
-        "You're very kind and patient!"
-    ],
-    "Sophie": [
-        "Let's create wonderful memories together!",
-        "What makes you happy today?",
-        "Keep that smile on your face!",
-        "Let's do something fun and educational!",
-        "Every day with you is a great learning experience!"
-    ]
-}
 
 # Character settings
 CHARACTER_PROMPTS = {
@@ -87,12 +62,6 @@ def detect_emotion(text: str) -> Optional[str]:
         if any(keyword in text.lower() for keyword in keywords):
             return emotion
     return None
-
-def get_default_response(character: str) -> str:
-    """Get a default response for the character"""
-    responses = DEFAULT_RESPONSES.get(character, DEFAULT_RESPONSES["Sarah"])
-    import random
-    return random.choice(responses)
 
 def generate_prompt(message: str, character: str) -> str:
     """Generate a prompt for the AI model"""

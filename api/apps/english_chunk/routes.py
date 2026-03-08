@@ -1,7 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from .models import ChunkRequest, ChunkResponse, Chunk, Scenario
 from .service import generate_chunks
-from core.logger import logger
 
 router = APIRouter()
 

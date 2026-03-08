@@ -1,6 +1,3 @@
-import hashlib
-import xml.etree.ElementTree as ET
-import requests
 import time
 from core.config import get_settings
 from wechatpy.crypto import WeChatCrypto

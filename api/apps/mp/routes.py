@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Request, Query, Response
 from .service import handle_wechat_message, check_wechat_signature
-from wechatpy.exceptions import InvalidSignatureException
 
 router = APIRouter()
 

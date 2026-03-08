@@ -1,5 +1,5 @@
 from agents.google_agent import genai_generate
-from typing import List, Dict
+from typing import Dict
 import json
 import random
 from core.logger import logger

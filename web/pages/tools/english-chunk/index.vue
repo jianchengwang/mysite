@@ -22,7 +22,7 @@
           </div>
           <div class="flex-1">
             <label class="block text-sm font-bold text-zinc-700 mb-2">Model</label>
-            <div class="model-selector-container relative group">
+            <div ref="modelSelectorRef" class="model-selector-container relative group">
               <input
                 v-model="modelSearch"
                 @focus="showModelDropdown = true"
@@ -128,6 +128,22 @@
         </div>
 
         <div class="bg-zinc-50/50 sketch-border p-6 md:p-8">
+          <div class="mb-6 flex flex-wrap gap-3">
+            <div class="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-bold text-zinc-600">
+              {{ formattedDialogue.length }} dialogue lines
+            </div>
+            <div
+              class="rounded-full border px-3 py-1 text-xs font-bold"
+              :class="missingChunks.length === 0 ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-amber-200 bg-amber-50 text-amber-700'"
+            >
+              {{ missingChunks.length === 0 ? 'All chunks covered' : `${missingChunks.length} chunks missing in dialogue` }}
+            </div>
+          </div>
+
+          <div v-if="missingChunks.length > 0" class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Missing chunks: {{ missingChunks.join(', ') }}
+          </div>
+
           <div class="space-y-6">
             <div v-for="(message, index) in formattedDialogue" 
                  :key="index" 
@@ -157,7 +173,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useGlobalOpenRouterKey } from '~/composables/useGlobalOpenRouterKey'
 import { useTTS } from '~/composables/useTTS'
+import { escapeHtml } from '~/utils/safeRichText'
 
 definePageMeta({ layout: 'default' })
 
@@ -197,6 +215,7 @@ const selectedModel = ref('google/gemini-2.0-flash-001')
 const aiModels = ref<{id: string, name: string}[]>([])
 const modelSearch = ref('')
 const showModelDropdown = ref(false)
+const modelSelectorRef = ref<HTMLElement | null>(null)
 const customSystemPrompt = ref('')
 const systemPromptMode = ref<'append' | 'override'>('append')
 const chunks = ref<Array<{ phrase: string; examples: string[] }>>([])
@@ -204,14 +223,17 @@ const scenario = ref<{ title: string; context: string; content: string } | null>
 const loading = ref(false)
 const error = ref('')
 const copied = ref(false)
-const apiKey = ref('')
-const GLOBAL_KEY_STORAGE = 'global_openrouter_key'
+const { apiKey, openGlobalSettings } = useGlobalOpenRouterKey()
 
 const { isPlaying, speak, stop } = useTTS()
 
 const selectedTopicLabel = computed(() =>
   topics.find(item => item.value === topic.value)?.label || topic.value.replace(/_/g, ' ')
 )
+
+const recommendedDialogueTurns = computed(() => Math.max(8, numChunks.value * 2 + 2))
+
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 const filteredModels = computed(() => {
   if (!modelSearch.value) return aiModels.value.slice(0, 50)
@@ -228,8 +250,11 @@ const selectModel = (m: any) => {
   localStorage.setItem('english_chunk_current_model', m.id)
 }
 
-const syncGlobalKey = () => {
-  apiKey.value = localStorage.getItem(GLOBAL_KEY_STORAGE) || ''
+const handleOutsideClick = (event: MouseEvent) => {
+  const target = event.target as Node
+  if (modelSelectorRef.value && !modelSelectorRef.value.contains(target)) {
+    showModelDropdown.value = false
+  }
 }
 
 const fetchModels = async () => {
@@ -267,20 +292,13 @@ const fetchModels = async () => {
 }
 
 onMounted(() => {
-  syncGlobalKey()
   fetchModels()
-  window.addEventListener('storage', syncGlobalKey)
-  window.addEventListener('global-openrouter-key-updated', syncGlobalKey as EventListener)
+  document.addEventListener('mousedown', handleOutsideClick)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('storage', syncGlobalKey)
-  window.removeEventListener('global-openrouter-key-updated', syncGlobalKey as EventListener)
+  document.removeEventListener('mousedown', handleOutsideClick)
 })
-
-const openGlobalSettings = () => {
-  window.dispatchEvent(new Event('open-global-settings'))
-}
 
 const formattedDialogue = computed(() => {
   if (!scenario.value?.content) return []
@@ -295,11 +313,19 @@ const formattedDialogue = computed(() => {
     })
 })
 
+const missingChunks = computed(() => {
+  const content = scenario.value?.content?.toLowerCase() || ''
+  return chunks.value
+    .map(chunk => chunk.phrase)
+    .filter(phrase => phrase && !new RegExp(`\\b${escapeRegExp(phrase.toLowerCase())}\\b`, 'i').test(content))
+})
+
 const highlightChunks = (text: string, chunksList: any[]) => {
-  let highlighted = text
+  let highlighted = escapeHtml(text)
   chunksList.forEach(chunk => {
-    const phrase = chunk.phrase
-    const regex = new RegExp(`\\b(${phrase})\\b`, 'gi')
+    const phrase = escapeHtml(chunk.phrase || '')
+    if (!phrase) return
+    const regex = new RegExp(`\\b(${escapeRegExp(phrase)})\\b`, 'gi')
     highlighted = highlighted.replace(regex, '<span class="chunk-highlight">$1</span>')
   })
   return highlighted
@@ -323,7 +349,7 @@ const generateChunks = async () => {
   scenario.value = null
   
   try {
-    const prompt = `Generate ${numChunks.value} English chunks and a practice scenario for the topic '${selectedTopicLabel.value}'. 
+    const prompt = `Generate ${numChunks.value} English chunks and a practice scenario for the topic '${selectedTopicLabel.value}'.
 Return strictly a JSON object with this structure:
 {
   "chunks": [
@@ -334,7 +360,17 @@ Return strictly a JSON object with this structure:
     "context": "brief context",
     "content": "Speaker A: ...\\nSpeaker B: ..."
   }
-}`
+}
+
+Requirements:
+- Return exactly ${numChunks.value} chunks.
+- Make every chunk practical, natural, and distinct.
+- The scenario must feel like one complete scene with a clear beginning, development, and ending.
+- The scenario content must contain at least ${recommendedDialogueTurns.value} dialogue lines.
+- Use enough dialogue to naturally cover all ${numChunks.value} chunks.
+- Every chunk phrase must appear at least once somewhere in the scenario dialogue.
+- Keep the dialogue realistic for the chosen topic, not just a random list of lines.
+- Prefer two named speakers unless a third speaker is necessary for the scene.`
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',

@@ -1,4 +1,3 @@
-import os
 from openai import AsyncOpenAI, BadRequestError
 from core.config import get_settings
 from core.logger import logger

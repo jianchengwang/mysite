@@ -5,60 +5,76 @@
       <p class="text-zinc-600 italic">A curated collection of creative prompts for AI models</p>
     </div>
 
-    <div v-if="pending" class="flex justify-center py-20">
-      <div class="animate-pulse italic">Loading prompts...</div>
-    </div>
-
-    <div v-else class="max-w-7xl mx-auto">
-      <div class="mb-4 text-xs uppercase tracking-[0.2em] text-zinc-500">{{ prompts.length }} prompts</div>
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6">
+    <div class="max-w-7xl mx-auto">
+      <div class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div class="text-xs uppercase tracking-[0.2em] text-zinc-500">{{ filteredPrompts.length }} / {{ prompts.length }} prompts</div>
+        <div class="flex w-full flex-col gap-3 md:w-auto md:flex-row">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search title, category, or content..."
+            class="w-full min-w-[280px] bg-white px-4 py-2 sketch-border outline-none md:w-80"
+          />
+          <select
+            v-model="selectedCategory"
+            class="bg-white px-4 py-2 sketch-border outline-none"
+          >
+            <option value="all">All Categories</option>
+            <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
         <button
-          v-for="(prompt, idx) in prompts"
+          v-for="(prompt, idx) in filteredPrompts"
           :key="idx"
           type="button"
+          class="sketch-card group min-h-[220px] cursor-pointer bg-white p-5 text-left transition-all hover:sketch-shadow md:p-6"
           @click="openPrompt(prompt)"
-          class="sketch-card p-5 md:p-6 bg-white hover:sketch-shadow transition-all cursor-pointer group text-left min-h-[220px]"
         >
-          <div class="flex justify-between items-start mb-3">
+          <div class="mb-3 flex items-start justify-between">
             <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-500">{{ prompt.category }}</span>
-            <span class="text-[11px] sketch-border px-2 py-0.5 bg-zinc-100 text-zinc-700 group-hover:bg-zinc-900 group-hover:text-white transition-colors">Details</span>
+            <span class="bg-zinc-100 px-2 py-0.5 text-[11px] text-zinc-700 sketch-border transition-colors group-hover:bg-zinc-900 group-hover:text-white">Details</span>
           </div>
-          <h3 class="text-2xl font-bold text-zinc-900 mb-3 leading-tight group-hover:text-zinc-600 transition-colors">{{ prompt.title }}</h3>
-          <p class="text-sm text-zinc-500 line-clamp-4 italic leading-relaxed">{{ prompt.preview }}</p>
+          <h3 class="mb-3 text-2xl font-bold leading-tight text-zinc-900 transition-colors group-hover:text-zinc-600">{{ prompt.title }}</h3>
+          <p class="line-clamp-4 text-sm italic leading-relaxed text-zinc-500">{{ prompt.preview }}</p>
         </button>
+      </div>
+      <div v-if="filteredPrompts.length === 0" class="sketch-card mt-6 bg-white px-6 py-10 text-center text-zinc-500">
+        No prompts match the current search.
       </div>
     </div>
 
     <Teleport to="body">
       <div
         v-if="selectedPrompt"
-        class="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 bg-black/55 backdrop-blur-sm font-hand"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-3 font-hand backdrop-blur-sm md:p-4"
         @click.self="closePrompt"
       >
-        <div class="sketch-card bg-white w-full max-w-4xl max-h-[88vh] flex flex-col p-0 overflow-hidden shadow-[10px_10px_0_0_rgba(0,0,0,1)]">
-          <div class="p-5 md:p-6 border-b-2 border-zinc-900 flex justify-between items-start gap-4 bg-zinc-50">
+        <div class="sketch-card flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden bg-white p-0 shadow-[10px_10px_0_0_rgba(0,0,0,1)]">
+          <div class="flex items-start justify-between gap-4 border-b-2 border-zinc-900 bg-zinc-50 p-5 md:p-6">
             <div class="min-w-0">
               <span class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">{{ selectedPrompt.category }}</span>
-              <h2 class="text-3xl font-bold text-zinc-900 mt-1 leading-tight">{{ selectedPrompt.title }}</h2>
+              <h2 class="mt-1 text-3xl font-bold leading-tight text-zinc-900">{{ selectedPrompt.title }}</h2>
             </div>
-            <button @click="closePrompt" class="text-3xl hover:text-zinc-500 leading-none">×</button>
+            <button class="text-3xl leading-none hover:text-zinc-500" @click="closePrompt">×</button>
           </div>
 
-          <div class="flex items-center justify-between px-5 md:px-6 py-3 border-b border-zinc-200 bg-white">
-            <div class="text-xs text-zinc-500 uppercase tracking-[0.14em]">Prompt Content</div>
+          <div class="flex items-center justify-between border-b border-zinc-200 bg-white px-5 py-3 md:px-6">
+            <div class="text-xs uppercase tracking-[0.14em] text-zinc-500">Prompt Content</div>
             <button
-              @click="copyPrompt"
-              class="sketch-button !bg-zinc-900 !text-white py-1 px-4 text-sm"
+              class="sketch-button py-1 px-4 text-sm !bg-zinc-900 !text-white"
               :class="copied ? 'bg-green-700 border-green-700' : ''"
+              @click="copyPrompt"
             >
               {{ copied ? 'Copied' : 'Copy Prompt' }}
             </button>
           </div>
 
-          <div class="flex-1 overflow-y-auto px-5 py-5 md:px-8 md:py-6 prompt-content" v-html="selectedPromptHtml"></div>
+          <div class="prompt-content flex-1 overflow-y-auto px-5 py-5 md:px-8 md:py-6" v-html="selectedPromptHtml"></div>
 
-          <div class="p-4 bg-zinc-50 border-t-2 border-zinc-900 flex justify-end">
-            <button @click="closePrompt" class="sketch-button bg-white text-zinc-900 py-1 px-6">Close</button>
+          <div class="flex justify-end border-t-2 border-zinc-900 bg-zinc-50 p-4">
+            <button class="sketch-button bg-white py-1 px-6 text-zinc-900" @click="closePrompt">Close</button>
           </div>
         </div>
       </div>
@@ -67,12 +83,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { computed, ref } from 'vue'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
+import promptCollectionSource from '~/content/tools/prompt-collection.md?raw'
 import 'highlight.js/styles/github.css'
 
 definePageMeta({ layout: 'default' })
+
+type PromptItem = {
+  category: string
+  title: string
+  content: string
+  preview: string
+}
 
 marked.setOptions({
   gfm: true,
@@ -85,71 +109,89 @@ marked.setOptions({
   }
 })
 
-const { data: page, pending } = await useAsyncData('prompt-collection-data', () => queryContent('/tools/prompt-collection').findOne())
-
-const prompts = ref<any[]>([])
-const selectedPrompt = ref<any>(null)
+const selectedPrompt = ref<PromptItem | null>(null)
 const copied = ref(false)
+const searchQuery = ref('')
+const selectedCategory = ref('all')
 
-const extractText = (node: any): string => {
-  if (!node) return ''
-  if (typeof node.value === 'string') return node.value
-  if (!Array.isArray(node.children)) return ''
-  return node.children.map((child: any) => extractText(child)).join('')
+const stripFrontmatter = (source: string) => {
+  if (!source.startsWith('---')) return source
+  const parts = source.split('\n')
+  const endIndex = parts.findIndex((line, index) => index > 0 && line.trim() === '---')
+  return endIndex === -1 ? source : parts.slice(endIndex + 1).join('\n')
 }
 
-const inferCodeLang = (text: string): string => {
-  const trimmed = text.trim()
-  if (!trimmed) return ''
-  if (trimmed.startsWith('{') || trimmed.startsWith('[')) return 'json'
-  return ''
+const buildPreview = (content: string) => {
+  const previewText = content
+    .replace(/```[\s\S]*?```/g, '[code block]')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  if (!previewText) return 'No preview available.'
+  return previewText.length > 180 ? `${previewText.slice(0, 180)}...` : previewText
 }
 
-onMounted(() => {
-  if (page.value?.body?.children) {
-    const list: any[] = []
-    let currentCategory = 'General'
+const parsePromptMarkdown = (source: string): PromptItem[] => {
+  const lines = stripFrontmatter(source).replace(/\r\n/g, '\n').split('\n')
+  const list: PromptItem[] = []
+  let currentCategory = 'General'
+  let currentTitle = ''
+  let currentLines: string[] = []
 
-    page.value.body.children.forEach((node: any, nodeIdx: number) => {
-      if (node.tag === 'h2') {
-        currentCategory = extractText(node).trim() || 'General'
-        return
-      }
-
-      if (node.tag !== 'h3') return
-
-      const title = extractText(node).trim() || 'Untitled'
-      let content = ''
-
-      for (let i = nodeIdx + 1; i < page.value.body.children.length; i++) {
-        const nextNode = page.value.body.children[i]
-        if (nextNode.tag === 'h2' || nextNode.tag === 'h3') break
-
-        if (nextNode.tag === 'pre') {
-          const rawCode = nextNode.props?.code || nextNode.children?.[0]?.children?.[0]?.value || extractText(nextNode) || ''
-          const langClass = nextNode.props?.className?.find((cls: string) => cls.startsWith('language-')) || nextNode.props?.language || ''
-          const codeLang = langClass.replace('language-', '') || inferCodeLang(rawCode)
-          content += `\n\`\`\`${codeLang}\n${rawCode}\n\`\`\`\n`
-          continue
-        }
-
-        const plainText = extractText(nextNode).trim()
-        if (plainText) {
-          content += `${plainText}\n\n`
-        }
-      }
-
-      const cleaned = content.trim()
-      list.push({
-        category: currentCategory,
-        title,
-        content: cleaned,
-        preview: cleaned.substring(0, 180) + (cleaned.length > 180 ? '...' : '')
-      })
+  const flushPrompt = () => {
+    if (!currentTitle) return
+    const content = currentLines.join('\n').trim()
+    list.push({
+      category: currentCategory,
+      title: currentTitle,
+      content,
+      preview: buildPreview(content)
     })
-
-    prompts.value = list
+    currentTitle = ''
+    currentLines = []
   }
+
+  lines.forEach(line => {
+    if (/^##\s+/.test(line)) {
+      flushPrompt()
+      currentCategory = line.replace(/^##\s+/, '').trim() || 'General'
+      return
+    }
+
+    if (/^###\s+/.test(line)) {
+      flushPrompt()
+      currentTitle = line.replace(/^###\s+/, '').trim() || 'Untitled'
+      return
+    }
+
+    if (currentTitle) {
+      currentLines.push(line)
+    }
+  })
+
+  flushPrompt()
+  return list
+}
+
+const prompts = parsePromptMarkdown(promptCollectionSource)
+
+const categories = computed(() =>
+  [...new Set(prompts.map(prompt => prompt.category))].sort((a, b) => a.localeCompare(b))
+)
+
+const filteredPrompts = computed(() => {
+  const category = selectedCategory.value
+  const query = searchQuery.value.trim().toLowerCase()
+
+  return prompts.filter(prompt => {
+    const categoryMatch = category === 'all' || prompt.category === category
+    if (!categoryMatch) return false
+    if (!query) return true
+
+    const haystack = `${prompt.category}\n${prompt.title}\n${prompt.content}`.toLowerCase()
+    return haystack.includes(query)
+  })
 })
 
 const selectedPromptHtml = computed(() => {
@@ -157,7 +199,7 @@ const selectedPromptHtml = computed(() => {
   return marked.parse(selectedPrompt.value.content || '') as string
 })
 
-const openPrompt = (prompt: any) => {
+const openPrompt = (prompt: PromptItem) => {
   copied.value = false
   selectedPrompt.value = prompt
 }
@@ -175,8 +217,8 @@ const copyPrompt = async () => {
     setTimeout(() => {
       copied.value = false
     }, 1600)
-  } catch (err) {
-    console.error('Failed to copy:', err)
+  } catch (error) {
+    console.error('Failed to copy:', error)
   }
 }
 </script>

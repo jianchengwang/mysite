@@ -1,5 +1,4 @@
-from fastapi import APIRouter, HTTPException
-from fastapi.concurrency import run_in_threadpool
+from fastapi import APIRouter
 from typing import List
 from .models import ChatRequest, ChatResponse, ImageGenRequest, ImageGenResponse
 from .service import chat_service, image_service

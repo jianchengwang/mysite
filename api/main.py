@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import get_settings
-from core.logger import setup_logging, logger
+from core.logger import setup_logging
 from apps.english_chunk.routes import router as english_chunk_router
 from apps.live2d.routes import router as live2d_router
 from apps.paper_split.routes import router as paper_split_router
@@ -10,16 +10,7 @@ from apps.xai.routes import router as xai_router
 from apps.openrouter.routes import router as openrouter_router
 from apps.mp.routes import router as mp_router
 from loguru import logger as loguru_logger
-import sys
 import traceback
-
-# Configure logging
-loguru_logger.remove()  # Remove default handler
-loguru_logger.add(
-    sys.stderr,
-    format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
-    level="INFO"
-)
 
 # Set up logging
 setup_logging()
