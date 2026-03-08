@@ -1,5 +1,6 @@
 .idea
 .DS_Store
+.playwright-cli/
 *.suo
 *.ntvs*
 *.njsproj
