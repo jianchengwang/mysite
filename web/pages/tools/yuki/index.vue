@@ -53,7 +53,7 @@
             </div>
           </div>
 
-          <div v-show="mobileCharacterExpanded || isDesktopViewport" class="character-container relative mx-auto aspect-square w-full max-w-[520px] overflow-hidden bg-white p-0 sketch-border-3">
+          <div v-show="mobileCharacterExpanded || isDesktopViewport" class="character-container relative mx-auto aspect-[4/5] w-full max-w-[620px] overflow-hidden bg-[radial-gradient(circle_at_top,_#ffffff_0%,_#f4f4f5_58%,_#e4e4e7_100%)] p-0 sketch-border-3">
             <ClientOnly>
               <div id="L2dCanvas" class="w-full h-full relative"></div>
               <div v-if="!isModelLoaded" class="absolute inset-0 flex items-center justify-center bg-white/80">
@@ -72,15 +72,22 @@
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-2xl font-bold">Model Switch Panel</h3>
             <div class="flex items-center gap-3">
-              <span class="text-xs uppercase tracking-wide text-zinc-500">{{ availableLive2dModels.length }} models</span>
+              <span class="text-xs uppercase tracking-wide text-zinc-500">{{ filteredLive2dModels.length }} / {{ availableLive2dModels.length }} models</span>
               <button class="text-xs font-bold uppercase tracking-wide text-zinc-500 lg:hidden" @click="mobileSwitchExpanded = !mobileSwitchExpanded">
                 {{ mobileSwitchExpanded ? 'Hide' : 'Show' }}
               </button>
             </div>
           </div>
-          <div v-show="mobileSwitchExpanded || isDesktopViewport" class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2">
+          <div v-show="mobileSwitchExpanded || isDesktopViewport" class="space-y-3">
+            <input
+              v-model="live2dSearch"
+              type="text"
+              placeholder="Search Live2D model..."
+              class="w-full bg-white px-3 py-2 sketch-border outline-none focus:sketch-shadow-sm text-sm"
+            />
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
             <button
-              v-for="model in availableLive2dModels"
+              v-for="model in filteredLive2dModels"
               :key="model.id"
               type="button"
               @click="handleLive2dModelChange(model.id)"
@@ -90,11 +97,15 @@
               ]"
             >
               <div class="thumbnail-box mb-2" :class="currentLive2dModel === model.id ? 'thumbnail-active' : ''">
-                <span class="text-xl font-bold">{{ model.name.slice(0, 1) }}</span>
+                <span class="text-xl font-bold">{{ model.badge || model.name.slice(0, 1) }}</span>
               </div>
               <p class="text-sm font-bold leading-tight">{{ model.name }}</p>
               <p class="text-[10px] opacity-70 truncate">{{ model.id }}</p>
             </button>
+            </div>
+            <div v-if="filteredLive2dModels.length === 0" class="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-6 text-center text-sm text-zinc-500">
+              No Live2D models match the current search.
+            </div>
           </div>
         </div>
       </div>
@@ -211,6 +222,13 @@ type ChatMessage = {
   images?: string[]
 }
 
+type Live2dModelOption = {
+  id: string
+  name: string
+  path: string
+  badge?: string
+}
+
 const REMOTE_IMAGE_URL_PATTERN = /^https?:\/\//i
 
 const { apiKey, openGlobalSettings } = useGlobalOpenRouterKey()
@@ -229,19 +247,33 @@ const previewStartIndex = ref(0)
 const mobileCharacterExpanded = ref(false)
 const mobileSwitchExpanded = ref(false)
 const isDesktopViewport = ref(false)
+const live2dSearch = ref('')
 
-const availableLive2dModels = ref([
-  { id: 'xuefeng_3', name: 'Sarah' },
-  { id: 'xuefeng', name: 'Emma' },
-  { id: 'lafei_4', name: 'Sophie' },
-  { id: 'lafei', name: 'Lafei' },
-  { id: 'chuixue_3', name: 'Chuixue' }
+const availableLive2dModels = ref<Live2dModelOption[]>([
+  { id: 'xuefeng_3', name: 'Sarah', path: 'xuefeng_3', badge: 'S' },
+  { id: 'xuefeng', name: 'Emma', path: 'xuefeng', badge: 'E' },
+  { id: 'lafei_4', name: 'Sophie', path: 'lafei_4', badge: 'So' },
+  { id: 'lafei', name: 'Lafei', path: 'lafei', badge: 'L' },
+  { id: 'chuixue_3', name: 'Chuixue', path: 'chuixue_3', badge: 'C' },
+  { id: 'ariu', name: 'Ariu', path: 'ariu', badge: 'Ar' },
+  { id: '6xb', name: '6XB', path: '6xb', badge: '6X' }
 ])
 const currentLive2dModel = ref('xuefeng_3')
 
-const currentCharacterName = computed(() => {
-  const model = availableLive2dModels.value.find((m) => m.id === currentLive2dModel.value)
-  return model ? model.name : 'Sarah'
+const currentLive2dModelConfig = computed(() =>
+  availableLive2dModels.value.find((model) => model.id === currentLive2dModel.value) || availableLive2dModels.value[0]
+)
+
+const currentCharacterName = computed(() => currentLive2dModelConfig.value?.name || 'Sarah')
+const currentLive2dRuntimeModel = computed(() => currentLive2dModelConfig.value?.path || currentLive2dModel.value)
+
+const filteredLive2dModels = computed(() => {
+  const query = live2dSearch.value.trim().toLowerCase()
+  if (!query) return availableLive2dModels.value
+
+  return availableLive2dModels.value.filter((model) =>
+    `${model.name}\n${model.id}\n${model.path}`.toLowerCase().includes(query)
+  )
 })
 
 const availableModels = ref<any[]>([
@@ -478,6 +510,20 @@ const extractImageUrls = (message: any) => {
   return urls
 }
 
+const sanitizeSpeechText = (text: string) => {
+  return text
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/!\[[^\]]*]\(([^)]+)\)/g, ' ')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1')
+    .replace(/https?:\/\/\S+/g, ' ')
+    .replace(/[*_~`#>\[\]\(\){}]/g, ' ')
+    .replace(/[\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]/g, ' ')
+    .replace(/[^\x20-\x7E]/g, ' ')
+    .replace(/[^A-Za-z0-9\s.,!?;:'"()-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 const handleImageUpload = (event: Event) => {
   const file = (event.target as HTMLInputElement).files?.[0]
   if (file) {
@@ -638,9 +684,9 @@ const initLive2D = async () => {
       window.l2dv = new window.L2dViewer({
         el: canvas,
         modelHomePath: 'https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/model/moc3/',
-        model: currentLive2dModel.value,
-        width: canvas.clientWidth || 500,
-        height: canvas.clientHeight || 500,
+        model: currentLive2dRuntimeModel.value,
+        width: Math.round((canvas.clientWidth || 520) * Math.min(window.devicePixelRatio || 1, 2)),
+        height: Math.round((canvas.clientHeight || 640) * Math.min(window.devicePixelRatio || 1, 2)),
         autoMotion: true
       })
 
@@ -659,7 +705,7 @@ const handleLive2dModelChange = (modelId: string) => {
   localStorage.setItem('yuki_live2d_model', modelId)
 
   if (l2dv) {
-    l2dv.loadModel(modelId)
+    l2dv.loadModel(currentLive2dRuntimeModel.value)
   }
 
   characterResponse.value = `Hi there! I'm ${currentCharacterName.value}.`
@@ -680,16 +726,13 @@ const playVoice = (text: string) => {
 
   try {
     speechSynthesis.cancel()
-    
-    // Strip markdown syntax, emojis, and special characters
-    const cleanText = text
-      .replace(/https?:\/\/\S+/g, '') // Remove URLs
-      .replace(/[*_~`#>\[\]\(\)]/g, '') // Remove markdown syntax
-      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '') // Remove emojis
-      .replace(/[^\p{L}\p{N}\s.,!?'"-\u4e00-\u9fa5]/gu, '') // Remove other special chars, keep unicode letters/numbers and Chinese
-      .replace(/\s+/g, ' ')
-      .trim()
-      
+
+    const cleanText = sanitizeSpeechText(text)
+    if (!cleanText) {
+      isSpeaking.value = false
+      return
+    }
+
     const utterance = new SpeechSynthesisUtterance(cleanText)
     utterance.lang = 'en-US'
     utterance.pitch = 1.0
@@ -779,6 +822,7 @@ h1, h2, h3 {
 
 .model-card {
   border-radius: 18px 10px 14px 9px / 9px 14px 10px 18px;
+  min-height: 120px;
 }
 
 ::-webkit-scrollbar {
@@ -802,6 +846,14 @@ h1, h2, h3 {
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
+}
+
+:deep(#L2dCanvas canvas) {
+  width: 100% !important;
+  height: 100% !important;
+  image-rendering: auto;
+  transform-origin: center bottom;
 }
 
 .model-selector-container .sketch-border {

@@ -50,6 +50,10 @@
             >
               Start Typing
             </button>
+            <label class="inline-flex items-center gap-2 text-xs sm:text-sm italic text-zinc-500">
+              <input v-model="ignoreCase" type="checkbox" class="h-4 w-4 accent-zinc-900" />
+              Ignore letter case
+            </label>
             <span class="text-xs sm:text-sm italic text-zinc-500">Tip: formatting removes fancy punctuation and collapses messy spacing.</span>
           </div>
         </div>
@@ -149,7 +153,10 @@
       <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 sm:gap-6">
         <div>
           <h2 class="text-2xl sm:text-3xl font-bold text-zinc-900">Typing Mode</h2>
-          <p class="text-zinc-500 italic mt-1">Current character stays highlighted. Press `Esc` to go back to the editor.</p>
+          <p class="text-zinc-500 italic mt-1">
+            Current character stays highlighted. Press `Esc` to go back to the editor.
+            <span v-if="ignoreCase">Case-insensitive matching is on.</span>
+          </p>
         </div>
         <div class="flex flex-wrap gap-3">
           <button @click="restartTyping" class="sketch-button bg-white py-2 px-5">Restart</button>
@@ -222,6 +229,7 @@ type ModelOption = { id: string; name: string }
 const GLOBAL_KEY_STORAGE = 'global_openrouter_key'
 const MODEL_STORAGE_KEY = 'typing_generator_model'
 const MODEL_CACHE_KEY = 'typing_available_models'
+const IGNORE_CASE_STORAGE_KEY = 'typing_ignore_case'
 const DEFAULT_MODEL = 'google/gemini-2.0-flash-001'
 const DEFAULT_SYSTEM_PROMPT = `You write English typing practice passages.
 Always return valid JSON only.
@@ -264,6 +272,7 @@ const generatorPrompt = ref('')
 const loading = ref(false)
 const statusMessage = ref('')
 const statusTone = ref<'success' | 'error'>('success')
+const ignoreCase = ref(false)
 
 const typedEntries = ref<TypedEntry[]>([])
 const startedAt = ref<number | null>(null)
@@ -387,6 +396,18 @@ const restartTyping = () => {
 const renderCharacter = (char: string) => {
   if (char === ' ') return '\u00A0'
   return char
+}
+
+const isCharacterMatch = (expected: string, typed: string) => {
+  if (!ignoreCase.value) return typed === expected
+
+  const expectedIsLetter = /[A-Za-z]/.test(expected)
+  const typedIsLetter = /[A-Za-z]/.test(typed)
+  if (expectedIsLetter && typedIsLetter) {
+    return expected.toLowerCase() === typed.toLowerCase()
+  }
+
+  return typed === expected
 }
 
 const characterClass = (index: number) => {
@@ -626,7 +647,7 @@ const handleKeydown = (event: KeyboardEvent) => {
 
   typedEntries.value.push({
     char: typedChar,
-    correct: typedChar === expected
+    correct: isCharacterMatch(expected, typedChar)
   })
 
   if (typedEntries.value.length >= practiceCharacters.value.length) {
@@ -654,6 +675,11 @@ watch(selectedModel, (value) => {
   syncModelSearch()
 })
 
+watch(ignoreCase, (value) => {
+  if (!process.client) return
+  localStorage.setItem(IGNORE_CASE_STORAGE_KEY, value ? '1' : '0')
+})
+
 watch(mode, (value) => {
   if (!process.client) return
   if (value === 'typing') {
@@ -666,6 +692,7 @@ watch(mode, (value) => {
 onMounted(() => {
   syncGlobalKey()
   selectedModel.value = localStorage.getItem(MODEL_STORAGE_KEY) || DEFAULT_MODEL
+  ignoreCase.value = localStorage.getItem(IGNORE_CASE_STORAGE_KEY) === '1'
   syncModelSearch()
   fetchModels()
   window.addEventListener('storage', syncGlobalKey)

@@ -29,6 +29,14 @@
             </div>
 
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div class="space-y-2">
+                <label class="block text-sm font-bold text-zinc-700">Output Mode</label>
+                <select v-model="storyMode" class="w-full p-3 sketch-border bg-white text-sm outline-none">
+                  <option value="storyboard">Storyboard + Images</option>
+                  <option value="text">Text Expansion</option>
+                </select>
+              </div>
+
               <div ref="textModelComboboxRef" class="space-y-2 relative">
                 <label class="block text-sm font-bold text-zinc-700">Text Model</label>
                 <input
@@ -64,7 +72,7 @@
                 </div>
               </div>
 
-              <div ref="imageModelComboboxRef" class="space-y-2 relative">
+              <div v-if="storyMode === 'storyboard'" ref="imageModelComboboxRef" class="space-y-2 relative">
                 <label class="block text-sm font-bold text-zinc-700">Image Model</label>
                 <input
                   v-model="imageModelQuery"
@@ -135,7 +143,7 @@
                 />
               </div>
               <div class="space-y-2">
-                <label class="block text-sm font-bold text-zinc-700">Target Panels</label>
+                <label class="block text-sm font-bold text-zinc-700">{{ storyMode === 'storyboard' ? 'Target Panels' : 'Target Sections' }}</label>
                 <input
                   v-model.number="panelCount"
                   type="number"
@@ -175,12 +183,17 @@
               ></textarea>
             </div>
 
+            <label v-if="storyMode === 'storyboard'" class="flex items-start gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
+              <input v-model="usePreviousPanelReference" type="checkbox" class="mt-0.5 h-4 w-4 accent-zinc-900" />
+              <span>Feed the previous generated panel image into the next panel render to improve sequence continuity.</span>
+            </label>
+
             <button
               @click="generateStoryboard"
               :disabled="isGeneratingStoryboard || !storyPlot.trim()"
               class="w-full sketch-button py-3 !bg-zinc-900 !text-white disabled:opacity-50"
             >
-              {{ isGeneratingStoryboard ? 'Generating Storyboard...' : 'Generate Storyboard' }}
+              {{ isGeneratingStoryboard ? (storyMode === 'storyboard' ? 'Generating Storyboard...' : 'Expanding Text...') : (storyMode === 'storyboard' ? 'Generate Storyboard' : 'Expand Text') }}
             </button>
           </section>
 
@@ -188,7 +201,11 @@
             <div class="flex items-center justify-between gap-3">
               <div>
                 <h2 class="text-2xl font-bold">Character Consistency</h2>
-                <p class="text-sm text-zinc-500">These images are attached to every image generation request.</p>
+                <p class="text-sm text-zinc-500">
+                  {{ storyMode === 'storyboard'
+                    ? 'These images are attached to every image generation request.'
+                    : 'These images are also sent during text expansion when the selected text model supports image input.' }}
+                </p>
               </div>
               <button @click="triggerUpload('character')" class="sketch-button py-2 px-3 text-sm">Upload</button>
             </div>
@@ -221,7 +238,7 @@
             </div>
           </section>
 
-          <section class="sketch-card bg-white p-4 sm:p-5 space-y-4">
+          <section v-if="storyMode === 'storyboard'" class="sketch-card bg-white p-4 sm:p-5 space-y-4">
             <div class="flex items-center justify-between gap-3">
               <div>
                 <h2 class="text-2xl font-bold">Scene Reference Library</h2>
@@ -265,22 +282,27 @@
               <div class="space-y-2">
                 <h2 class="text-2xl font-bold">Storyboard Output</h2>
                 <p class="text-sm text-zinc-500">
-                  {{ sceneFormatLabel }} in {{ storyLanguageLabel }}. Image prompts are normalized to English to avoid mixed-language generations.
+                  <template v-if="storyMode === 'storyboard'">
+                    {{ sceneFormatLabel }} in {{ storyLanguageLabel }}. Image prompts are normalized to English to avoid mixed-language generations.
+                  </template>
+                  <template v-else>
+                    Expanded text in {{ storyLanguageLabel }} with structure tuned to your story setup.
+                  </template>
                 </p>
               </div>
 
               <div class="grid w-full grid-cols-2 gap-3 text-sm md:grid-cols-4 lg:w-auto">
                 <div class="rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-2">
-                  <p class="text-[11px] uppercase tracking-wide text-zinc-500">Panels</p>
-                  <p class="font-bold text-zinc-900">{{ panels.length || panelCount }}</p>
+                  <p class="text-[11px] uppercase tracking-wide text-zinc-500">{{ storyMode === 'storyboard' ? 'Panels' : 'Sections' }}</p>
+                  <p class="font-bold text-zinc-900">{{ storyMode === 'storyboard' ? (panels.length || panelCount) : panelCount }}</p>
                 </div>
                 <div class="rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-2">
                   <p class="text-[11px] uppercase tracking-wide text-zinc-500">Character Refs</p>
                   <p class="font-bold text-zinc-900">{{ characterImages.length }}</p>
                 </div>
                 <div class="rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-2">
-                  <p class="text-[11px] uppercase tracking-wide text-zinc-500">Scene Refs</p>
-                  <p class="font-bold text-zinc-900">{{ sceneReferenceImages.length }}</p>
+                  <p class="text-[11px] uppercase tracking-wide text-zinc-500">{{ storyMode === 'storyboard' ? 'Scene Refs' : 'Mode' }}</p>
+                  <p class="font-bold text-zinc-900">{{ storyMode === 'storyboard' ? sceneReferenceImages.length : 'Text' }}</p>
                 </div>
                 <div class="rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-2">
                   <p class="text-[11px] uppercase tracking-wide text-zinc-500">Style</p>
@@ -295,7 +317,20 @@
               <p class="mt-2 text-sm leading-relaxed text-zinc-600">{{ storyboard.summary }}</p>
             </div>
 
-            <div v-if="generatedPanels.length" class="mt-5 space-y-3">
+            <div v-if="storyMode === 'text' && textOutput" class="mt-5 rounded-3xl border-2 border-zinc-900 bg-white px-5 py-5">
+              <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 class="text-xl font-bold text-zinc-900">Expanded Text</h3>
+                  <p class="text-sm text-zinc-500">Structured long-form output generated from the current setup.</p>
+                </div>
+                <button class="sketch-button w-full py-2 px-3 text-sm sm:w-auto" @click="copyText(textOutput, 'Expanded text copied')">
+                  Copy Text
+                </button>
+              </div>
+              <div class="story-text-output prose prose-zinc max-w-none" v-html="textOutputHtml"></div>
+            </div>
+
+            <div v-if="storyMode === 'storyboard' && generatedPanels.length" class="mt-5 space-y-3">
               <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h3 class="text-xl font-bold text-zinc-900">Generated Frames</h3>
@@ -323,7 +358,7 @@
             </div>
           </section>
 
-          <section v-if="panels.length" class="space-y-6">
+          <section v-if="storyMode === 'storyboard' && panels.length" class="space-y-6">
             <article
               v-for="(panel, index) in panels"
               :key="panel.id"
@@ -465,9 +500,11 @@
             </article>
           </section>
 
-          <section v-else class="sketch-card bg-white p-8 text-center text-zinc-500 sm:p-12">
+          <section v-else-if="storyMode === 'storyboard' || !textOutput" class="sketch-card bg-white p-8 text-center text-zinc-500 sm:p-12">
             <div class="text-5xl mb-4">📝</div>
-            <p class="text-lg">Enter a story plot and generate the storyboard first.</p>
+            <p class="text-lg">
+              {{ storyMode === 'storyboard' ? 'Enter a story plot and generate the storyboard first.' : 'Enter a story plot and expand the text first.' }}
+            </p>
           </section>
         </div>
       </div>
@@ -482,14 +519,16 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import ImageLightbox from '~/components/ImageLightbox.vue'
+import { renderSafeMarkdown } from '~/utils/safeRichText'
 
 definePageMeta({ layout: 'default' })
 
-type ModelOption = { id: string; name: string }
+type ModelOption = { id: string; name: string; inputModalities?: string[]; outputModalities?: string[] }
 type AssetKind = 'character' | 'scene'
 type AssetImage = { id: string; src: string; kind: AssetKind }
 type StoryLanguage = 'en' | 'zh'
 type SceneFormat = 'video' | 'comic'
+type StoryMode = 'storyboard' | 'text'
 type StoryboardMeta = { title: string; summary: string }
 type StoryboardPanel = {
   id: string
@@ -527,6 +566,7 @@ const languageOptions = [
   { value: 'zh', label: '中文' }
 ] as const
 
+const storyMode = ref<StoryMode>('storyboard')
 const sceneFormatOptions = [
   { value: 'video', label: 'Video Storyboard' },
   { value: 'comic', label: 'Comic Storyboard' }
@@ -540,9 +580,11 @@ const panelCount = ref(4)
 const styleName = ref('Crayon Shin-chan')
 const characterNotes = ref('')
 const styleInstructions = ref('rough crayon hand-drawn, high saturation, simple backgrounds, clean subject silhouette.')
+const usePreviousPanelReference = ref(true)
 const isGeneratingStoryboard = ref(false)
 const storyboard = ref<StoryboardMeta>({ title: '', summary: '' })
 const panels = ref<StoryboardPanel[]>([])
+const textOutput = ref('')
 
 const characterImages = ref<AssetImage[]>([])
 const sceneReferenceImages = ref<AssetImage[]>([])
@@ -562,7 +604,7 @@ const previewStartIndex = ref(0)
 
 const TEXT_MODELS_CACHE_KEY = 'storyboard_text_models_v2'
 const IMAGE_MODELS_CACHE_KEY = 'storyboard_image_models_v2'
-const STORYBOARD_SETUP_STORAGE_KEY = 'storyboard_setup_v1'
+const STORYBOARD_SETUP_STORAGE_KEY = 'storyboard_setup_v2'
 
 const storyLanguageLabel = computed(() =>
   languageOptions.find(option => option.value === storyLanguage.value)?.label || 'English'
@@ -576,6 +618,13 @@ const characterImageUrls = computed(() => characterImages.value.map(image => ima
 const sceneReferenceUrls = computed(() => sceneReferenceImages.value.map(image => image.src))
 const generatedPanels = computed(() => panels.value.filter((panel): panel is StoryboardPanel & { imageSrc: string } => Boolean(panel.imageSrc)))
 const generatedPanelUrls = computed(() => generatedPanels.value.map(panel => panel.imageSrc))
+const textOutputHtml = computed(() => renderSafeMarkdown(textOutput.value))
+const selectedTextModelSupportsVision = computed(() => {
+  const model = textModels.value.find(item => item.id === textModel.value)
+  const modalities = model?.inputModalities || []
+  if (modalities.includes('image')) return true
+  return /gemini|gpt-4o|claude|qwen-vl|llava|pixtral/i.test(textModel.value)
+})
 const normalize = (value: string) => value.toLowerCase().trim()
 
 const fuzzyMatch = (query: string, target: string) => {
@@ -634,6 +683,7 @@ const saveStoryboardSetup = () => {
   localStorage.setItem(STORYBOARD_SETUP_STORAGE_KEY, JSON.stringify({
     textModel: textModel.value,
     imageModel: imageModel.value,
+    storyMode: storyMode.value,
     storyLanguage: storyLanguage.value,
     sceneFormat: sceneFormat.value,
     storyPlot: storyPlot.value,
@@ -641,7 +691,8 @@ const saveStoryboardSetup = () => {
     panelCount: panelCount.value,
     styleName: styleName.value,
     characterNotes: characterNotes.value,
-    styleInstructions: styleInstructions.value
+    styleInstructions: styleInstructions.value,
+    usePreviousPanelReference: usePreviousPanelReference.value
   }))
 }
 
@@ -655,6 +706,7 @@ const restoreStoryboardSetup = () => {
     const parsed = JSON.parse(raw)
     if (typeof parsed.textModel === 'string') textModel.value = parsed.textModel
     if (typeof parsed.imageModel === 'string') imageModel.value = parsed.imageModel
+    if (parsed.storyMode === 'storyboard' || parsed.storyMode === 'text') storyMode.value = parsed.storyMode
     if (parsed.storyLanguage === 'en' || parsed.storyLanguage === 'zh') storyLanguage.value = parsed.storyLanguage
     if (parsed.sceneFormat === 'video' || parsed.sceneFormat === 'comic') sceneFormat.value = parsed.sceneFormat
     if (typeof parsed.storyPlot === 'string') storyPlot.value = parsed.storyPlot
@@ -663,6 +715,9 @@ const restoreStoryboardSetup = () => {
     if (typeof parsed.styleName === 'string') styleName.value = parsed.styleName
     if (typeof parsed.characterNotes === 'string') characterNotes.value = parsed.characterNotes
     if (typeof parsed.styleInstructions === 'string') styleInstructions.value = parsed.styleInstructions
+    if (typeof parsed.usePreviousPanelReference === 'boolean') {
+      usePreviousPanelReference.value = parsed.usePreviousPanelReference
+    }
   } catch {
     // no-op
   }
@@ -739,7 +794,9 @@ const fetchModels = async () => {
 
     const fetchedTextModels = data.data.map((model: any) => ({
       id: model.id,
-      name: model.name
+      name: model.name,
+      inputModalities: Array.isArray(model.architecture?.input_modalities) ? model.architecture.input_modalities : [],
+      outputModalities: Array.isArray(model.architecture?.output_modalities) ? model.architecture.output_modalities : []
     }))
 
     const fetchedImageModels = data.data
@@ -753,7 +810,9 @@ const fetchModels = async () => {
       })
       .map((model: any) => ({
         id: model.id,
-        name: model.name
+        name: model.name,
+        inputModalities: Array.isArray(model.architecture?.input_modalities) ? model.architecture.input_modalities : [],
+        outputModalities: Array.isArray(model.architecture?.output_modalities) ? model.architecture.output_modalities : []
       }))
 
     if (fetchedTextModels.length) {
@@ -863,6 +922,7 @@ const triggerUpload = (kind: AssetKind, panelId: string | null = null) => {
 const handleUpload = (event: Event) => {
   const files = (event.target as HTMLInputElement).files
   if (!files?.length) return
+  const target = { ...uploadTarget.value }
 
   Array.from(files).forEach(file => {
     const reader = new FileReader()
@@ -871,15 +931,15 @@ const handleUpload = (event: Event) => {
       const image = {
         id: createId(),
         src: loadEvent.target.result as string,
-        kind: uploadTarget.value.kind
+        kind: target.kind
       } satisfies AssetImage
 
-      if (uploadTarget.value.kind === 'character') {
+      if (target.kind === 'character') {
         characterImages.value.push(image)
       } else {
         sceneReferenceImages.value.push(image)
-        if (uploadTarget.value.panelId) {
-          togglePanelReference(uploadTarget.value.panelId, image.id, true)
+        if (target.panelId) {
+          togglePanelReference(target.panelId, image.id, true)
         }
       }
     }
@@ -976,6 +1036,8 @@ const buildStoryboardPrompt = () => {
     `Preferred style direction: ${styleName.value}`,
     characterNotes.value.trim() ? `Character notes: ${characterNotes.value.trim()}` : '',
     styleInstructions.value.trim() ? `Style instructions: ${styleInstructions.value.trim()}` : '',
+    characterImages.value.length ? 'Study the attached character reference images first and preserve the same identity, hairstyle, face shape, costume logic, and silhouette across every panel.' : '',
+    sceneReferenceImages.value.length ? 'Use attached scene reference images only for environment, composition, or prop cues when they help continuity.' : '',
     languageInstruction,
     formatInstruction,
     'Return JSON with this exact schema:',
@@ -997,6 +1059,8 @@ const buildStoryboardPrompt = () => {
     'Rules:',
     `- Create exactly ${panelCount.value} panels.`,
     '- Keep every panel vivid, practical to draw, and strongly connected to the full story arc.',
+    '- Maintain strong continuity between adjacent panels: same character identity, costume logic, environment geography, time of day, and emotional momentum unless the plot explicitly changes them.',
+    '- Each panel should clearly inherit from the previous panel and set up the next panel.',
     '- Dialogue should be short enough for a speech bubble or subtitle card.',
     '- Duration seconds should roughly add up to the requested length.',
     '- image_prompt_en must be English only.',
@@ -1005,6 +1069,63 @@ const buildStoryboardPrompt = () => {
     '- image_prompt_en should mention composition, subject, motion, camera framing, environment, and style.',
     '- Keep character appearance consistent across all panels.'
   ].filter(Boolean).join('\n')
+}
+
+const buildTextExpansionPrompt = () => {
+  const languageInstruction = storyLanguage.value === 'zh'
+    ? 'Return title, summary, and expanded_text_markdown in Simplified Chinese.'
+    : 'Return title, summary, and expanded_text_markdown in English.'
+
+  return [
+    'Expand the following story idea into a polished long-form text.',
+    `Story plot: ${storyPlot.value}`,
+    `Target length or reading time: ${storyLength.value}`,
+    `Target section count: ${panelCount.value}`,
+    `Preferred style direction: ${styleName.value}`,
+    characterNotes.value.trim() ? `Character notes: ${characterNotes.value.trim()}` : '',
+    styleInstructions.value.trim() ? `Tone or style instructions: ${styleInstructions.value.trim()}` : '',
+    characterImages.value.length ? 'Study the attached character reference images first and preserve the same identity details in the written expansion.' : '',
+    languageInstruction,
+    'Return JSON with this exact schema:',
+    '{',
+    '  "title": "string",',
+    '  "summary": "string",',
+    '  "expanded_text_markdown": "string"',
+    '}',
+    'Rules:',
+    `- Write ${panelCount.value} clearly separated sections or beats.`,
+    '- Make the prose cohesive, vivid, and continuous from beginning to end.',
+    '- Use markdown headings and paragraphs in expanded_text_markdown.',
+    '- Do not include image prompts.',
+    '- Do not include markdown code fences.',
+    '- Keep character identity and emotional progression consistent.'
+  ].filter(Boolean).join('\n')
+}
+
+const buildTextModelRequestContent = (prompt: string) => {
+  if (!selectedTextModelSupportsVision.value) {
+    return prompt
+  }
+
+  const content: Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }> = [
+    { type: 'text', text: prompt }
+  ]
+
+  characterImages.value.forEach(image => {
+    content.push({
+      type: 'image_url',
+      image_url: { url: image.src }
+    })
+  })
+
+  sceneReferenceImages.value.forEach(image => {
+    content.push({
+      type: 'image_url',
+      image_url: { url: image.src }
+    })
+  })
+
+  return content
 }
 
 const generateStoryboard = async () => {
@@ -1016,6 +1137,10 @@ const generateStoryboard = async () => {
   isGeneratingStoryboard.value = true
 
   try {
+    const requestPrompt = storyMode.value === 'storyboard'
+      ? buildStoryboardPrompt()
+      : buildTextExpansionPrompt()
+
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -1033,7 +1158,7 @@ const generateStoryboard = async () => {
           },
           {
             role: 'user',
-            content: buildStoryboardPrompt()
+            content: buildTextModelRequestContent(requestPrompt)
           }
         ]
       })
@@ -1047,42 +1172,56 @@ const generateStoryboard = async () => {
     const data = await response.json()
     const text = extractAssistantText(data.choices?.[0]?.message)
     const parsed = JSON.parse(extractJsonBlock(text))
-    const rawPanels = Array.isArray(parsed.panels) ? parsed.panels : []
-
-    const mappedPanels = rawPanels.slice(0, panelCount.value).map((panel: any, index: number) => ({
-      id: createId(),
-      title: panel.title || `Panel ${index + 1}`,
-      durationSeconds: Number(panel.duration_seconds) || Math.max(3, Math.round(60 / panelCount.value)),
-      action: panel.action || 'Describe the action.',
-      dialogue: panel.dialogue || '',
-      camera: panel.camera || 'Medium shot',
-      mood: panel.mood || 'Warm and lively',
-      imagePrompt: typeof panel.image_prompt_en === 'string' && panel.image_prompt_en.trim()
-        ? panel.image_prompt_en.trim()
-        : '',
-      referenceIds: []
-    })) as StoryboardPanel[]
-
-    mappedPanels.forEach((panel, index) => {
-      if (!panel.imagePrompt) {
-        panel.imagePrompt = buildFallbackPanelPrompt(panel, index, mappedPanels.length)
-      }
-    })
 
     storyboard.value = {
-      title: parsed.title || 'Untitled Storyboard',
+      title: parsed.title || (storyMode.value === 'storyboard' ? 'Untitled Storyboard' : 'Untitled Text Expansion'),
       summary: parsed.summary || ''
     }
-    panels.value = mappedPanels
+
+    if (storyMode.value === 'storyboard') {
+      const rawPanels = Array.isArray(parsed.panels) ? parsed.panels : []
+      const mappedPanels = rawPanels.slice(0, panelCount.value).map((panel: any, index: number) => ({
+        id: createId(),
+        title: panel.title || `Panel ${index + 1}`,
+        durationSeconds: Number(panel.duration_seconds) || Math.max(3, Math.round(60 / panelCount.value)),
+        action: panel.action || 'Describe the action.',
+        dialogue: panel.dialogue || '',
+        camera: panel.camera || 'Medium shot',
+        mood: panel.mood || 'Warm and lively',
+        imagePrompt: typeof panel.image_prompt_en === 'string' && panel.image_prompt_en.trim()
+          ? panel.image_prompt_en.trim()
+          : '',
+        referenceIds: []
+      })) as StoryboardPanel[]
+
+      mappedPanels.forEach((panel, index) => {
+        if (!panel.imagePrompt) {
+          panel.imagePrompt = buildFallbackPanelPrompt(panel, index, mappedPanels.length)
+        }
+      })
+
+      panels.value = mappedPanels
+      textOutput.value = ''
+    } else {
+      panels.value = []
+      textOutput.value = typeof parsed.expanded_text_markdown === 'string'
+        ? parsed.expanded_text_markdown.trim()
+        : ''
+
+      if (!textOutput.value) {
+        throw new Error('The model did not return expanded_text_markdown.')
+      }
+    }
   } catch (error: any) {
-    alert(`Storyboard generation failed: ${error.message}`)
+    alert(`${storyMode.value === 'storyboard' ? 'Storyboard' : 'Text expansion'} generation failed: ${error.message}`)
   } finally {
     isGeneratingStoryboard.value = false
   }
 }
 
-const buildImageGenerationText = (panel: StoryboardPanel) => {
+const buildImageGenerationText = (panel: StoryboardPanel, panelIndex: number) => {
   const notes: string[] = [panel.imagePrompt]
+  const previousPanel = panelIndex > 0 ? panels.value[panelIndex - 1] : null
 
   if (characterImages.value.length > 0) {
     notes.push('Use all attached character reference images to preserve identity, hairstyle, face shape, outfit language, and overall subject consistency.')
@@ -1092,6 +1231,13 @@ const buildImageGenerationText = (panel: StoryboardPanel) => {
     notes.push('Use the attached scene reference images only for environment, composition, props, or mood cues.')
   }
 
+  if (previousPanel) {
+    notes.push(`Previous panel continuity: ${previousPanel.action} Camera: ${previousPanel.camera}. Keep the same subject identity, outfit logic, scene geography, color rhythm, and story momentum while progressing into this panel.`)
+    if (usePreviousPanelReference.value && previousPanel.imageSrc) {
+      notes.push('The final attached image is the previous generated panel. Use it only as a continuity anchor for pose, lighting, costume, and scene progression.')
+    }
+  }
+
   notes.push('Do not generate visible text, subtitles, speech bubbles, logos, watermarks, or random characters.')
   return notes.join('\n')
 }
@@ -1099,6 +1245,8 @@ const buildImageGenerationText = (panel: StoryboardPanel) => {
 const generatePanelImage = async (panelId: string) => {
   const panel = panels.value.find(item => item.id === panelId)
   if (!panel || !panel.imagePrompt.trim() || !apiKey.value || panel.isGenerating) return
+  const panelIndex = panels.value.findIndex(item => item.id === panelId)
+  const previousPanel = panelIndex > 0 ? panels.value[panelIndex - 1] : null
 
   panel.isGenerating = true
 
@@ -1106,7 +1254,7 @@ const generatePanelImage = async (panelId: string) => {
     const content: any[] = [
       {
         type: 'text',
-        text: buildImageGenerationText(panel)
+        text: buildImageGenerationText(panel, panelIndex)
       }
     ]
 
@@ -1126,6 +1274,13 @@ const generatePanelImage = async (panelId: string) => {
           image_url: { url: image.src }
         })
       })
+
+    if (usePreviousPanelReference.value && previousPanel?.imageSrc) {
+      content.push({
+        type: 'image_url',
+        image_url: { url: previousPanel.imageSrc }
+      })
+    }
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -1170,7 +1325,7 @@ watch(imageModel, () => {
 })
 
 watch(
-  [textModel, imageModel, storyLanguage, sceneFormat, storyPlot, storyLength, panelCount, styleName, characterNotes, styleInstructions],
+  [textModel, imageModel, storyMode, storyLanguage, sceneFormat, storyPlot, storyLength, panelCount, styleName, characterNotes, styleInstructions, usePreviousPanelReference],
   () => {
     saveStoryboardSetup()
   }
