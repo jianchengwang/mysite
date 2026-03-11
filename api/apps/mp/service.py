@@ -137,39 +137,14 @@ def get_wechat_access_token(force_refresh: bool = False) -> str:
     return client.access_token
 
 
-def _resolve_mp_credentials(app_id: Optional[str], app_secret: Optional[str]) -> Tuple[str, str]:
-    resolved_app_id = (app_id or MP_APPID or "").strip()
-    resolved_app_secret = (app_secret or MP_APPSECRET or "").strip()
-
-    if not resolved_app_id or not resolved_app_secret:
-        raise HTTPException(status_code=400, detail="Missing WeChat MP AppID or AppSecret.")
-
-    return resolved_app_id, resolved_app_secret
+def _resolve_access_token(access_token: Optional[str]) -> str:
+    resolved_access_token = (access_token or "").strip()
+    if not resolved_access_token:
+        raise HTTPException(status_code=400, detail="Missing WeChat access_token.")
+    return resolved_access_token
 
 
-async def _request_wechat_access_token(app_id: str, app_secret: str) -> str:
-    async with httpx.AsyncClient(timeout=30.0) as http_client:
-        response = await http_client.get(
-            "https://api.weixin.qq.com/cgi-bin/token",
-            params={
-                "grant_type": "client_credential",
-                "appid": app_id,
-                "secret": app_secret
-            }
-        )
-
-    data = response.json()
-    if response.status_code >= 400 or data.get("errcode"):
-        raise HTTPException(status_code=400, detail=data.get("errmsg") or "Failed to fetch WeChat access token.")
-
-    access_token = data.get("access_token")
-    if not access_token:
-        raise HTTPException(status_code=400, detail="WeChat access token is missing in the response.")
-
-    return access_token
-
-
-async def _download_image_bytes(image_ref: str) -> tuple[bytes, str, str]:
+async def _download_image_bytes(image_ref: str) -> Tuple[bytes, str, str]:
     if not image_ref:
         raise HTTPException(status_code=400, detail="Image source is empty.")
 
@@ -263,8 +238,7 @@ async def _replace_inline_images(access_token: str, html: str) -> str:
 
 
 async def save_wechat_draft(payload: SaveWechatDraftRequest) -> SaveWechatDraftResponse:
-    app_id, app_secret = _resolve_mp_credentials(payload.app_id, payload.app_secret)
-    access_token = await _request_wechat_access_token(app_id, app_secret)
+    access_token = _resolve_access_token(payload.access_token)
     processed_content = await _replace_inline_images(access_token, payload.content)
 
     cover_source = payload.cover_image_data_url or payload.cover_image_url or _extract_first_image_source(payload.content)

@@ -26,13 +26,13 @@
             <h2 class="text-2xl font-bold text-zinc-900">Draft Metadata</h2>
             <p class="text-sm text-zinc-500">Used when saving directly to your WeChat official account draft box.</p>
           </div>
-          <button v-if="!hasWechatMpConfig" class="sketch-button py-2 px-3 text-sm" @click="openGlobalSettings">
+          <button v-if="!hasWechatAccessToken" class="sketch-button py-2 px-3 text-sm" @click="openGlobalSettings">
             Open Settings
           </button>
         </div>
 
-        <div v-if="!hasWechatMpConfig" class="sketch-border bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Missing WeChat MP AppID / AppSecret in global settings. Copy still works, but direct draft save will fail.
+        <div v-if="!hasWechatAccessToken" class="sketch-border bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Missing WeChat access_token in global settings. Copy still works, but direct draft save will fail.
         </div>
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -158,7 +158,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { Marked } from 'marked'
 import { highlightCode } from '~/utils/codeHighlight'
-import { useGlobalWechatMpConfig } from '~/composables/useGlobalWechatMpConfig'
+import { useGlobalWechatDraftAccess } from '~/composables/useGlobalWechatDraftAccess'
 
 definePageMeta({ layout: 'default' })
 
@@ -198,7 +198,7 @@ const showCoverPic = ref(true)
 const needOpenComment = ref(false)
 const onlyFansCanComment = ref(false)
 
-const { appId, appSecret, hasConfig: hasWechatMpConfig, openGlobalSettings } = useGlobalWechatMpConfig()
+const { accessToken, backendKey, hasAccessToken: hasWechatAccessToken, openGlobalSettings } = useGlobalWechatDraftAccess()
 
 const markdownRenderer = new Marked({
   highlight(code, lang) {
@@ -441,8 +441,8 @@ const removeCoverImage = () => {
 }
 
 const saveWechatDraft = async () => {
-  if (!hasWechatMpConfig.value) {
-    setTransientStatus('save', 'error', 'Set WeChat MP AppID/AppSecret first')
+  if (!hasWechatAccessToken.value) {
+    setTransientStatus('save', 'error', 'Set WeChat access_token first')
     return
   }
 
@@ -457,11 +457,11 @@ const saveWechatDraft = async () => {
     const response = await fetch(`${config.public.apiBase}/api/mp/draft`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        ...(backendKey.value.trim() ? { 'X-Backend-Key': backendKey.value.trim() } : {})
       },
       body: JSON.stringify({
-        app_id: appId.value.trim(),
-        app_secret: appSecret.value.trim(),
+        access_token: accessToken.value.trim(),
         title: resolvedArticleTitle.value,
         author: articleAuthor.value.trim(),
         digest: articleDigest.value.trim(),

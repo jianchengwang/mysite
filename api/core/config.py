@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     GOOGLE_API_KEY: Optional[str] = None
     OPENROUTER_API_KEY: Optional[str] = None
     XAI_API_KEY: Optional[str] = None
+    BACKEND_ACCESS_KEY: Optional[str] = None
     
     # MP API Settings
     MP_APPID: Optional[str] = None

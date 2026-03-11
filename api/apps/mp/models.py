@@ -1,10 +1,7 @@
 from pydantic import BaseModel, Field
-from typing import Optional
-
 
 class SaveWechatDraftRequest(BaseModel):
-    app_id: Optional[str] = None
-    app_secret: Optional[str] = None
+    access_token: str = Field(..., min_length=1)
     title: str = Field(..., min_length=1, max_length=64)
     author: str = Field(default="", max_length=64)
     digest: str = Field(default="", max_length=120)

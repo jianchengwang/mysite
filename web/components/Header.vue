@@ -100,24 +100,25 @@
           </div>
 
           <div class="space-y-2">
-            <label class="block font-bold">WeChat MP AppID</label>
+            <label class="block font-bold">WeChat Access Token</label>
             <input
-              v-model="wechatMpAppId"
-              type="text"
-              placeholder="wx1234567890abcdef"
+              v-model="wechatAccessToken"
+              type="password"
+              placeholder="公众号 access_token"
               class="w-full p-3 sketch-border bg-white outline-none"
             />
-            <p class="text-xs text-zinc-500 italic">Used by MD to WeChat when saving drafts to your official account.</p>
+            <p class="text-xs text-zinc-500 italic">Used by MD to WeChat when saving drafts. This is stored only in your browser.</p>
           </div>
 
           <div class="space-y-2">
-            <label class="block font-bold">WeChat MP AppSecret</label>
+            <label class="block font-bold">Backend Key</label>
             <input
-              v-model="wechatMpAppSecret"
+              v-model="backendAccessKey"
               type="password"
-              placeholder="公众号 AppSecret"
+              placeholder="后端接口校验 key"
               class="w-full p-3 sketch-border bg-white outline-none"
             />
+            <p class="text-xs text-zinc-500 italic">Only needed for protected backend endpoints.</p>
           </div>
           
           <div class="flex flex-col gap-3 pt-4 sm:flex-row">
@@ -154,12 +155,12 @@ const route = useRoute()
 const showSettings = ref(false)
 const showMobileMenu = ref(false)
 const openRouterKey = ref('')
-const wechatMpAppId = ref('')
-const wechatMpAppSecret = ref('')
+const wechatAccessToken = ref('')
+const backendAccessKey = ref('')
 const savedHint = ref('')
 const STORAGE_KEY = 'global_openrouter_key'
-const WECHAT_MP_APP_ID_STORAGE_KEY = 'global_wechat_mp_app_id'
-const WECHAT_MP_APP_SECRET_STORAGE_KEY = 'global_wechat_mp_app_secret'
+const WECHAT_ACCESS_TOKEN_STORAGE_KEY = 'global_wechat_access_token'
+const BACKEND_ACCESS_KEY_STORAGE_KEY = 'global_backend_access_key'
 const navItems = [
   { to: '/tech', label: 'Tech' },
   { to: '/store', label: 'Store' },
@@ -172,8 +173,8 @@ const navItems = [
 
 const syncKeyFromStorage = () => {
   openRouterKey.value = localStorage.getItem(STORAGE_KEY) || ''
-  wechatMpAppId.value = localStorage.getItem(WECHAT_MP_APP_ID_STORAGE_KEY) || ''
-  wechatMpAppSecret.value = localStorage.getItem(WECHAT_MP_APP_SECRET_STORAGE_KEY) || ''
+  wechatAccessToken.value = localStorage.getItem(WECHAT_ACCESS_TOKEN_STORAGE_KEY) || ''
+  backendAccessKey.value = localStorage.getItem(BACKEND_ACCESS_KEY_STORAGE_KEY) || ''
 }
 
 onMounted(() => {
@@ -197,13 +198,13 @@ const openSettings = () => {
 
 const saveSettings = () => {
   const key = openRouterKey.value.trim()
-  const appId = wechatMpAppId.value.trim()
-  const appSecret = wechatMpAppSecret.value.trim()
+  const accessToken = wechatAccessToken.value.trim()
+  const backendKey = backendAccessKey.value.trim()
   localStorage.setItem(STORAGE_KEY, key)
-  localStorage.setItem(WECHAT_MP_APP_ID_STORAGE_KEY, appId)
-  localStorage.setItem(WECHAT_MP_APP_SECRET_STORAGE_KEY, appSecret)
+  localStorage.setItem(WECHAT_ACCESS_TOKEN_STORAGE_KEY, accessToken)
+  localStorage.setItem(BACKEND_ACCESS_KEY_STORAGE_KEY, backendKey)
   window.dispatchEvent(new CustomEvent('global-openrouter-key-updated', { detail: { key } }))
-  window.dispatchEvent(new CustomEvent('global-wechat-mp-settings-updated', { detail: { appId, appSecret } }))
+  window.dispatchEvent(new CustomEvent('global-wechat-draft-access-updated', { detail: { accessToken, backendKey } }))
   window.dispatchEvent(new Event('storage'))
   savedHint.value = 'Saved'
   setTimeout(() => {
@@ -214,13 +215,13 @@ const saveSettings = () => {
 
 const clearSettings = () => {
   openRouterKey.value = ''
-  wechatMpAppId.value = ''
-  wechatMpAppSecret.value = ''
+  wechatAccessToken.value = ''
+  backendAccessKey.value = ''
   localStorage.removeItem(STORAGE_KEY)
-  localStorage.removeItem(WECHAT_MP_APP_ID_STORAGE_KEY)
-  localStorage.removeItem(WECHAT_MP_APP_SECRET_STORAGE_KEY)
+  localStorage.removeItem(WECHAT_ACCESS_TOKEN_STORAGE_KEY)
+  localStorage.removeItem(BACKEND_ACCESS_KEY_STORAGE_KEY)
   window.dispatchEvent(new CustomEvent('global-openrouter-key-updated', { detail: { key: '' } }))
-  window.dispatchEvent(new CustomEvent('global-wechat-mp-settings-updated', { detail: { appId: '', appSecret: '' } }))
+  window.dispatchEvent(new CustomEvent('global-wechat-draft-access-updated', { detail: { accessToken: '', backendKey: '' } }))
   showSettings.value = false
   window.dispatchEvent(new Event('storage'))
 }
