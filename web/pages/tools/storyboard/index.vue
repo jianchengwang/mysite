@@ -336,9 +336,18 @@
                   <h3 class="text-xl font-bold text-zinc-900">Generated Frames</h3>
                   <p class="text-sm text-zinc-500">{{ generatedPanels.length }} rendered panels ready for preview or download.</p>
                 </div>
-                <button class="sketch-button w-full py-2 px-3 text-sm sm:w-auto" @click="openImagePreview(generatedPanelUrls, 0)">
-                  Preview All
-                </button>
+                <div class="flex flex-col gap-2 sm:flex-row">
+                  <button
+                    class="sketch-button w-full py-2 px-3 text-sm sm:w-auto"
+                    :disabled="isGeneratingAllPanels || !panels.length"
+                    @click="generateAllPanelImages"
+                  >
+                    {{ isGeneratingAllPanels ? 'Rendering Missing...' : 'Render Missing Images' }}
+                  </button>
+                  <button class="sketch-button w-full py-2 px-3 text-sm sm:w-auto" @click="openImagePreview(generatedPanelUrls, 0)">
+                    Preview All
+                  </button>
+                </div>
               </div>
 
               <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
@@ -359,6 +368,20 @@
           </section>
 
           <section v-if="storyMode === 'storyboard' && panels.length" class="space-y-6">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-3xl border-2 border-zinc-900 bg-white px-5 py-4">
+              <div>
+                <h3 class="text-xl font-bold text-zinc-900">Panel Rendering Queue</h3>
+                <p class="text-sm text-zinc-500">Run missing panel images in order to keep shot-to-shot continuity stable.</p>
+              </div>
+              <button
+                class="sketch-button w-full py-2 px-3 text-sm !bg-zinc-900 !text-white sm:w-auto disabled:opacity-50"
+                :disabled="isGeneratingAllPanels"
+                @click="generateAllPanelImages"
+              >
+                {{ isGeneratingAllPanels ? 'Rendering Missing...' : 'Render Missing Images' }}
+              </button>
+            </div>
+
             <article
               v-for="(panel, index) in panels"
               :key="panel.id"
@@ -582,6 +605,7 @@ const characterNotes = ref('')
 const styleInstructions = ref('rough crayon hand-drawn, high saturation, simple backgrounds, clean subject silhouette.')
 const usePreviousPanelReference = ref(true)
 const isGeneratingStoryboard = ref(false)
+const isGeneratingAllPanels = ref(false)
 const storyboard = ref<StoryboardMeta>({ title: '', summary: '' })
 const panels = ref<StoryboardPanel[]>([])
 const textOutput = ref('')
@@ -1313,6 +1337,22 @@ const generatePanelImage = async (panelId: string) => {
     alert(`Panel image generation failed: ${error.message}`)
   } finally {
     panel.isGenerating = false
+  }
+}
+
+const generateAllPanelImages = async () => {
+  if (!panels.value.length || isGeneratingAllPanels.value) return
+
+  isGeneratingAllPanels.value = true
+
+  try {
+    for (const panel of panels.value) {
+      if (!panel.imageSrc && panel.imagePrompt.trim()) {
+        await generatePanelImage(panel.id)
+      }
+    }
+  } finally {
+    isGeneratingAllPanels.value = false
   }
 }
 

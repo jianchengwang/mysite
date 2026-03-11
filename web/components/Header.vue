@@ -98,6 +98,27 @@
             />
             <p class="text-xs text-zinc-500 italic">Used across all AI tools (Yuki, Whiteboard, etc.)</p>
           </div>
+
+          <div class="space-y-2">
+            <label class="block font-bold">WeChat MP AppID</label>
+            <input
+              v-model="wechatMpAppId"
+              type="text"
+              placeholder="wx1234567890abcdef"
+              class="w-full p-3 sketch-border bg-white outline-none"
+            />
+            <p class="text-xs text-zinc-500 italic">Used by MD to WeChat when saving drafts to your official account.</p>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block font-bold">WeChat MP AppSecret</label>
+            <input
+              v-model="wechatMpAppSecret"
+              type="password"
+              placeholder="公众号 AppSecret"
+              class="w-full p-3 sketch-border bg-white outline-none"
+            />
+          </div>
           
           <div class="flex flex-col gap-3 pt-4 sm:flex-row">
             <button
@@ -133,8 +154,12 @@ const route = useRoute()
 const showSettings = ref(false)
 const showMobileMenu = ref(false)
 const openRouterKey = ref('')
+const wechatMpAppId = ref('')
+const wechatMpAppSecret = ref('')
 const savedHint = ref('')
 const STORAGE_KEY = 'global_openrouter_key'
+const WECHAT_MP_APP_ID_STORAGE_KEY = 'global_wechat_mp_app_id'
+const WECHAT_MP_APP_SECRET_STORAGE_KEY = 'global_wechat_mp_app_secret'
 const navItems = [
   { to: '/tech', label: 'Tech' },
   { to: '/store', label: 'Store' },
@@ -147,6 +172,8 @@ const navItems = [
 
 const syncKeyFromStorage = () => {
   openRouterKey.value = localStorage.getItem(STORAGE_KEY) || ''
+  wechatMpAppId.value = localStorage.getItem(WECHAT_MP_APP_ID_STORAGE_KEY) || ''
+  wechatMpAppSecret.value = localStorage.getItem(WECHAT_MP_APP_SECRET_STORAGE_KEY) || ''
 }
 
 onMounted(() => {
@@ -170,8 +197,13 @@ const openSettings = () => {
 
 const saveSettings = () => {
   const key = openRouterKey.value.trim()
+  const appId = wechatMpAppId.value.trim()
+  const appSecret = wechatMpAppSecret.value.trim()
   localStorage.setItem(STORAGE_KEY, key)
+  localStorage.setItem(WECHAT_MP_APP_ID_STORAGE_KEY, appId)
+  localStorage.setItem(WECHAT_MP_APP_SECRET_STORAGE_KEY, appSecret)
   window.dispatchEvent(new CustomEvent('global-openrouter-key-updated', { detail: { key } }))
+  window.dispatchEvent(new CustomEvent('global-wechat-mp-settings-updated', { detail: { appId, appSecret } }))
   window.dispatchEvent(new Event('storage'))
   savedHint.value = 'Saved'
   setTimeout(() => {
@@ -182,8 +214,13 @@ const saveSettings = () => {
 
 const clearSettings = () => {
   openRouterKey.value = ''
+  wechatMpAppId.value = ''
+  wechatMpAppSecret.value = ''
   localStorage.removeItem(STORAGE_KEY)
+  localStorage.removeItem(WECHAT_MP_APP_ID_STORAGE_KEY)
+  localStorage.removeItem(WECHAT_MP_APP_SECRET_STORAGE_KEY)
   window.dispatchEvent(new CustomEvent('global-openrouter-key-updated', { detail: { key: '' } }))
+  window.dispatchEvent(new CustomEvent('global-wechat-mp-settings-updated', { detail: { appId: '', appSecret: '' } }))
   showSettings.value = false
   window.dispatchEvent(new Event('storage'))
 }

@@ -6,6 +6,14 @@
         <p class="text-sm text-zinc-600 italic sm:text-base">Polish your XiaoHongShu posts with AI ✨</p>
       </div>
 
+      <div v-if="!apiKey" class="mb-6 sketch-card bg-white text-center">
+        <h2 class="mb-3 text-xl font-bold text-red-600">Missing API Key</h2>
+        <p class="mb-4 text-zinc-600">Set your global OpenRouter key first so text and image generation work without runtime errors.</p>
+        <button class="sketch-button !bg-zinc-900 !text-white" @click="openGlobalSettings">
+          Open Global Settings
+        </button>
+      </div>
+
       <div class="sticky top-20 z-20 mb-4 -mx-1 flex gap-2 overflow-x-auto bg-[#fef2f2]/95 px-1 py-1 backdrop-blur sm:hidden">
         <a href="#rednote-draft" class="shrink-0 rounded-full border-2 border-zinc-900 bg-white px-4 py-2 text-sm font-bold shadow-[3px_3px_0_0_rgba(0,0,0,1)]">Draft</a>
         <a href="#rednote-visuals" class="shrink-0 rounded-full border-2 border-zinc-900 bg-white px-4 py-2 text-sm font-bold shadow-[3px_3px_0_0_rgba(0,0,0,1)]">Visuals</a>
@@ -284,7 +292,7 @@ definePageMeta({ layout: 'default' })
 type ModelOption = { id: string; name: string }
 type GalleryImage = { id: string; src: string; source: 'draw' | 'upload' | 'gen' | 'edit' }
 
-const { apiKey } = useGlobalOpenRouterKey()
+const { apiKey, openGlobalSettings } = useGlobalOpenRouterKey()
 const rawText = ref('')
 const optimizedText = ref('')
 const isOptimizing = ref(false)
@@ -326,6 +334,7 @@ const fileInput = ref<HTMLInputElement | null>(null)
 
 const TEXT_MODELS_CACHE_KEY = 'rednote_text_models_v2'
 const IMAGE_MODELS_CACHE_KEY = 'rednote_image_models_v2'
+const REDNOTE_WORKSPACE_STORAGE_KEY = 'rednote_workspace_v1'
 
 const previewImages = computed(() =>
   previewGalleryIds.value
@@ -421,6 +430,7 @@ watch(
 )
 
 onMounted(() => {
+  restoreWorkspace()
   syncTextModelQuery()
   fetchModels()
   document.addEventListener('mousedown', handleOutsideClick)
@@ -486,6 +496,48 @@ const fetchModels = async () => {
   }
 }
 
+const saveWorkspace = () => {
+  if (!import.meta.client) return
+
+  localStorage.setItem(REDNOTE_WORKSPACE_STORAGE_KEY, JSON.stringify({
+    rawText: rawText.value,
+    optimizedText: optimizedText.value,
+    textModel: textModel.value,
+    imageModel: imageModel.value,
+    textModelQuery: textModelQuery.value,
+    galleryImages: galleryImages.value,
+    selectedGalleryIds: selectedGalleryIds.value,
+    previewGalleryIds: previewGalleryIds.value,
+    currentImageIdx: currentImageIdx.value,
+    imagePrompt: imagePrompt.value,
+    galleryEditPrompt: galleryEditPrompt.value
+  }))
+}
+
+const restoreWorkspace = () => {
+  if (!import.meta.client) return
+
+  const raw = localStorage.getItem(REDNOTE_WORKSPACE_STORAGE_KEY)
+  if (!raw) return
+
+  try {
+    const parsed = JSON.parse(raw)
+    if (typeof parsed.rawText === 'string') rawText.value = parsed.rawText
+    if (typeof parsed.optimizedText === 'string') optimizedText.value = parsed.optimizedText
+    if (typeof parsed.textModel === 'string') textModel.value = parsed.textModel
+    if (typeof parsed.imageModel === 'string') imageModel.value = parsed.imageModel
+    if (typeof parsed.textModelQuery === 'string') textModelQuery.value = parsed.textModelQuery
+    if (Array.isArray(parsed.galleryImages)) galleryImages.value = parsed.galleryImages
+    if (Array.isArray(parsed.selectedGalleryIds)) selectedGalleryIds.value = parsed.selectedGalleryIds
+    if (Array.isArray(parsed.previewGalleryIds)) previewGalleryIds.value = parsed.previewGalleryIds
+    if (typeof parsed.currentImageIdx === 'number') currentImageIdx.value = parsed.currentImageIdx
+    if (typeof parsed.imagePrompt === 'string') imagePrompt.value = parsed.imagePrompt
+    if (typeof parsed.galleryEditPrompt === 'string') galleryEditPrompt.value = parsed.galleryEditPrompt
+  } catch {
+    // no-op
+  }
+}
+
 const prevImage = () => {
   if (previewImages.value.length > 0) {
     currentImageIdx.value = (currentImageIdx.value - 1 + previewImages.value.length) % previewImages.value.length
@@ -539,6 +591,7 @@ const createGalleryId = () => `${Date.now()}-${Math.random().toString(36).slice(
 const addToGallery = (src: string, source: GalleryImage['source']) => {
   const id = createGalleryId()
   galleryImages.value.push({ id, src, source })
+  addToPreview(id)
   return id
 }
 
@@ -785,6 +838,14 @@ const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text)
   alert('Copied to clipboard!')
 }
+
+watch(
+  [rawText, optimizedText, textModel, imageModel, textModelQuery, galleryImages, selectedGalleryIds, previewGalleryIds, currentImageIdx, imagePrompt, galleryEditPrompt],
+  () => {
+    saveWorkspace()
+  },
+  { deep: true }
+)
 </script>
 
 <style scoped>

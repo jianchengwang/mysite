@@ -78,11 +78,27 @@
             <input type="range" v-model.number="currentSize" min="1" max="20" class="w-full accent-zinc-700" />
           </div>
 
+          <div v-if="currentTool === 'text'" class="pt-4 space-y-2">
+            <h3 class="font-bold border-b border-zinc-200 pb-2 mb-2">Text</h3>
+            <textarea
+              v-model="textDraft"
+              rows="4"
+              placeholder="Type text, then click the canvas to place it."
+              class="w-full resize-none sketch-border bg-white p-3 text-sm outline-none"
+            ></textarea>
+            <p class="text-xs text-zinc-500 italic">
+              Click once to place the text. Switch to Select to move it.
+            </p>
+          </div>
+
           <p v-if="currentTool === 'crop'" class="text-xs text-zinc-500 italic">
             Drag on the canvas to define the crop area, then save only that selection.
           </p>
           <p v-else-if="currentTool === 'arrow'" class="text-xs text-zinc-500 italic">
             Drag from one shape or image to another to connect them with arrows.
+          </p>
+          <p v-else-if="currentTool === 'text'" class="text-xs text-zinc-500 italic">
+            Text is rendered with a handwritten font and can be moved later.
           </p>
           </div>
         </div>
@@ -213,6 +229,15 @@ type ImageObject = {
   sourceIds?: string[]
 }
 
+type TextObject = {
+  type: 'text'
+  id: string
+  pos: Point
+  text: string
+  color: string
+  size: number
+}
+
 type LinkObject = {
   type: 'link'
   id: string
@@ -221,9 +246,10 @@ type LinkObject = {
   color: string
 }
 
-type WbObject = PathObject | ShapeObject | ImageObject | LinkObject
+type WbObject = PathObject | ShapeObject | ImageObject | TextObject | LinkObject
 type ConnectableObject = ShapeObject | ImageObject
-type ToolId = 'pencil' | 'rect' | 'circle' | 'diamond' | 'arrow' | 'eraser' | 'image' | 'select' | 'crop'
+type MoveableObject = ShapeObject | ImageObject | TextObject
+type ToolId = 'pencil' | 'rect' | 'circle' | 'diamond' | 'text' | 'arrow' | 'eraser' | 'image' | 'select' | 'crop'
 
 const GUIDE_THRESHOLD = 10
 const MIN_IMAGE_DIMENSION = 24
@@ -236,6 +262,7 @@ const ctx = ref<CanvasRenderingContext2D | null>(null)
 const currentTool = ref<ToolId>('pencil')
 const currentColor = ref('#000000')
 const currentSize = ref(3)
+const textDraft = ref('Handwritten note')
 const mobileToolsExpanded = ref(true)
 const mobileAiExpanded = ref(false)
 
@@ -244,6 +271,7 @@ const tools = [
   { id: 'rect', name: 'Rectangle', icon: '▭' },
   { id: 'circle', name: 'Circle', icon: '◯' },
   { id: 'diamond', name: 'Diamond', icon: '♢' },
+  { id: 'text', name: 'Text', icon: 'T' },
   { id: 'arrow', name: 'Arrow', icon: '➜' },
   { id: 'image', name: 'Add Image', icon: '🖼' },
   { id: 'eraser', name: 'Eraser', icon: '⌫' },
@@ -281,7 +309,7 @@ const alignmentGuides = ref<AlignmentGuide[]>([])
 const dragStartPoint = ref<Point | null>(null)
 const dragPrimaryId = ref<string | null>(null)
 const dragObjectIds = ref<string[]>([])
-const dragOrigins = ref<Record<string, ShapeObject | ImageObject>>({})
+const dragOrigins = ref<Record<string, MoveableObject>>({})
 
 const hasCropSelection = computed(() =>
   Boolean(cropSelection.value && cropSelection.value.width > 0 && cropSelection.value.height > 0)
@@ -303,6 +331,12 @@ const cloneObject = (obj: WbObject): WbObject => {
       ...obj,
       pos: clonePoint(obj.pos),
       sourceIds: obj.sourceIds ? [...obj.sourceIds] : undefined
+    }
+  }
+  if (obj.type === 'text') {
+    return {
+      ...obj,
+      pos: clonePoint(obj.pos)
     }
   }
   if (obj.type === 'link') {
@@ -348,6 +382,18 @@ const buildHistorySignature = (source: WbObject[]) => JSON.stringify(source.map(
     }
   }
 
+  if (obj.type === 'text') {
+    return {
+      type: obj.type,
+      id: obj.id,
+      x: roundHistoryNumber(obj.pos.x),
+      y: roundHistoryNumber(obj.pos.y),
+      text: obj.text,
+      color: obj.color,
+      size: obj.size
+    }
+  }
+
   if (obj.type === 'link') {
     return {
       type: obj.type,
@@ -377,7 +423,39 @@ const buildHistorySignature = (source: WbObject[]) => JSON.stringify(source.map(
 const isConnectableObject = (obj: WbObject): obj is ConnectableObject =>
   obj.type === 'image' || obj.type === 'rect' || obj.type === 'circle' || obj.type === 'diamond'
 
+const isMoveableObject = (obj: WbObject): obj is MoveableObject =>
+  isConnectableObject(obj) || obj.type === 'text'
+
 const getObjectById = (id: string) => objects.value.find(obj => obj.id === id)
+
+const getTextFontSize = (size: number) => Math.max(20, size * 8)
+const getTextLineHeight = (fontSize: number) => Math.round(fontSize * 1.28)
+const getTextFont = (size: number) => `${getTextFontSize(size)}px "Patrick Hand", "Indie Flower", cursive`
+
+const getTextMetrics = (obj: TextObject, customCtx?: CanvasRenderingContext2D | null) => {
+  const fontSize = getTextFontSize(obj.size)
+  const lineHeight = getTextLineHeight(fontSize)
+  const lines = obj.text.split(/\r?\n/)
+  const safeLines = lines.length > 0 ? lines : ['']
+  const targetCtx = customCtx || ctx.value
+
+  let width = safeLines.reduce((max, line) => Math.max(max, line.length * fontSize * 0.62), 0)
+
+  if (targetCtx) {
+    targetCtx.save()
+    targetCtx.font = getTextFont(obj.size)
+    width = safeLines.reduce((max, line) => Math.max(max, targetCtx.measureText(line || ' ').width), 0)
+    targetCtx.restore()
+  }
+
+  return {
+    fontSize,
+    lineHeight,
+    width: Math.max(width, fontSize * 0.6),
+    height: Math.max(lineHeight * safeLines.length, lineHeight),
+    lines: safeLines
+  }
+}
 
 const fetchModels = async () => {
   try {
@@ -495,13 +573,22 @@ const normalizeRect = (start: Point, end: Point): CropRect => ({
   height: Math.abs(end.y - start.y)
 })
 
-const getObjectBounds = (obj: ConnectableObject): CropRect => {
+const getObjectBounds = (obj: MoveableObject): CropRect => {
   if (obj.type === 'image') {
     return {
       x: obj.pos.x,
       y: obj.pos.y,
       width: obj.width,
       height: obj.height
+    }
+  }
+  if (obj.type === 'text') {
+    const metrics = getTextMetrics(obj)
+    return {
+      x: obj.pos.x,
+      y: obj.pos.y,
+      width: metrics.width,
+      height: metrics.height
     }
   }
   return normalizeRect(obj.start, obj.end)
@@ -522,6 +609,11 @@ const pointInRect = (point: Point, rect: CropRect) =>
   point.y <= rect.y + rect.height
 
 const findSelectableObjectAt = (pos: Point) =>
+  [...objects.value]
+    .reverse()
+    .find((obj): obj is MoveableObject => isMoveableObject(obj) && pointInRect(pos, getObjectBounds(obj)))
+
+const findConnectableObjectAt = (pos: Point) =>
   [...objects.value]
     .reverse()
     .find((obj): obj is ConnectableObject => isConnectableObject(obj) && pointInRect(pos, getObjectBounds(obj)))
@@ -578,17 +670,23 @@ const resetTransientState = () => {
 
 const snapshotSelectionForDrag = (ids: string[]) => {
   dragObjectIds.value = [...ids]
-  dragOrigins.value = ids.reduce<Record<string, ShapeObject | ImageObject>>((acc, id) => {
+  dragOrigins.value = ids.reduce<Record<string, MoveableObject>>((acc, id) => {
     const obj = getObjectById(id)
-    if (obj && isConnectableObject(obj)) {
-      acc[id] = cloneObject(obj) as ShapeObject | ImageObject
+    if (obj && isMoveableObject(obj)) {
+      acc[id] = cloneObject(obj) as MoveableObject
     }
     return acc
   }, {})
 }
 
-const moveObjectFromOrigin = (origin: ShapeObject | ImageObject, target: ShapeObject | ImageObject, delta: Point) => {
+const moveObjectFromOrigin = (origin: MoveableObject, target: MoveableObject, delta: Point) => {
   if (target.type === 'image' && origin.type === 'image') {
+    target.pos.x = origin.pos.x + delta.x
+    target.pos.y = origin.pos.y + delta.y
+    return
+  }
+
+  if (target.type === 'text' && origin.type === 'text') {
     target.pos.x = origin.pos.x + delta.x
     target.pos.y = origin.pos.y + delta.y
     return
@@ -641,10 +739,30 @@ const handleMouseDown = (e: MouseEvent) => {
   }
 
   if (currentTool.value === 'arrow') {
-    const clicked = findSelectableObjectAt(pos)
+    const clicked = findConnectableObjectAt(pos)
     selectedObjectIds.value = clicked ? [clicked.id] : []
     activeLink.value = clicked ? { fromId: clicked.id, current: pos } : null
     isDrawing.value = Boolean(clicked)
+    render()
+    return
+  }
+
+  if (currentTool.value === 'text') {
+    const text = textDraft.value.trim()
+    if (!text) return
+
+    const id = createId()
+    objects.value.push({
+      type: 'text',
+      id,
+      pos,
+      text,
+      color: currentColor.value,
+      size: currentSize.value
+    })
+    selectedObjectIds.value = [id]
+    currentTool.value = 'select'
+    commitToHistory()
     render()
     return
   }
@@ -710,12 +828,12 @@ const handleMouseMove = (e: MouseEvent) => {
     dragObjectIds.value.forEach((id) => {
       const obj = getObjectById(id)
       const origin = dragOrigins.value[id]
-      if (!obj || !origin || !isConnectableObject(obj)) return
+      if (!obj || !origin || !isMoveableObject(obj)) return
       moveObjectFromOrigin(origin, obj, delta)
     })
 
     const primary = dragPrimaryId.value ? getObjectById(dragPrimaryId.value) : null
-    alignmentGuides.value = primary && isConnectableObject(primary)
+    alignmentGuides.value = primary && isMoveableObject(primary)
       ? computeAlignmentGuides(getObjectBounds(primary), dragObjectIds.value)
       : []
     render()
@@ -1025,6 +1143,10 @@ const renderScene = (
     if (obj.type === 'image') drawImage(targetCtx, obj)
   })
 
+  objects.value.forEach((obj) => {
+    if (obj.type === 'text') drawText(targetCtx, obj)
+  })
+
   drawAlignmentGuides(targetCtx, targetCanvas)
 
   if (activeLink.value) {
@@ -1120,6 +1242,29 @@ const drawImage = (ctx: CanvasRenderingContext2D, obj: ImageObject) => {
   ctx.drawImage(img, pos.x, pos.y, width, height)
 
   if (selectedObjectIds.value.includes(id)) {
+    drawSelectionBounds(ctx, getObjectBounds(obj))
+  }
+}
+
+const drawText = (ctx: CanvasRenderingContext2D, obj: TextObject) => {
+  const metrics = getTextMetrics(obj, ctx)
+
+  ctx.save()
+  ctx.font = getTextFont(obj.size)
+  ctx.textBaseline = 'top'
+
+  metrics.lines.forEach((line, index) => {
+    const y = obj.pos.y + index * metrics.lineHeight
+    ctx.fillStyle = obj.color
+    ctx.globalAlpha = 0.95
+    ctx.fillText(line, obj.pos.x, y)
+    ctx.globalAlpha = 0.55
+    ctx.fillText(line, obj.pos.x + 0.8, y + 0.5)
+  })
+
+  ctx.restore()
+
+  if (selectedObjectIds.value.includes(obj.id)) {
     drawSelectionBounds(ctx, getObjectBounds(obj))
   }
 }

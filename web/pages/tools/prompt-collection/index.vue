@@ -279,10 +279,23 @@ const buildPreview = (content: string) => {
   return previewText.length > 180 ? `${previewText.slice(0, 180)}...` : previewText
 }
 
+const classifyPromptCategory = (title: string, content: string) => {
+  const source = `${title}\n${content}`.toLowerCase()
+
+  if (/(video|shot|scene|storyboard|trailer|clip|camera|cinematic)/i.test(source)) {
+    return 'video'
+  }
+
+  if (/(image|illustration|logo|icon|render|photo|png|visual|nft|3d|card|poster|background)/i.test(source)) {
+    return 'image'
+  }
+
+  return 'text'
+}
+
 const parsePromptMarkdown = (source: string): PromptItem[] => {
   const lines = stripFrontmatter(source).replace(/\r\n/g, '\n').split('\n')
   const list: PromptItem[] = []
-  let currentCategory = 'General'
   let currentTitle = ''
   let currentLines: string[] = []
 
@@ -290,7 +303,7 @@ const parsePromptMarkdown = (source: string): PromptItem[] => {
     if (!currentTitle) return
     const content = currentLines.join('\n').trim()
     list.push({
-      category: currentCategory,
+      category: classifyPromptCategory(currentTitle, content),
       title: currentTitle,
       content,
       preview: buildPreview(content)
@@ -302,7 +315,6 @@ const parsePromptMarkdown = (source: string): PromptItem[] => {
   lines.forEach(line => {
     if (/^##\s+/.test(line)) {
       flushPrompt()
-      currentCategory = line.replace(/^##\s+/, '').trim() || 'General'
       return
     }
 
@@ -324,7 +336,7 @@ const parsePromptMarkdown = (source: string): PromptItem[] => {
 const prompts = parsePromptMarkdown(promptCollectionSource)
 
 const categories = computed(() =>
-  [...new Set(prompts.map(prompt => prompt.category))].sort((a, b) => a.localeCompare(b))
+  ['text', 'image', 'video'].filter(category => prompts.some(prompt => prompt.category === category))
 )
 
 const filteredPrompts = computed(() => {
