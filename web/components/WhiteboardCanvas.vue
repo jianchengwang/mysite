@@ -59,7 +59,7 @@
             </button>
           </div>
 
-          <div class="pt-4" v-if="!['eraser', 'select', 'image', 'crop'].includes(currentTool)">
+          <div class="pt-4" v-if="showStyleControls">
             <h3 class="font-bold border-b border-zinc-200 pb-2 mb-2">Color</h3>
             <div class="grid grid-cols-4 gap-1">
               <button
@@ -78,16 +78,35 @@
             <input type="range" v-model.number="currentSize" min="1" max="20" class="w-full accent-zinc-700" />
           </div>
 
-          <div v-if="currentTool === 'text'" class="pt-4 space-y-2">
-            <h3 class="font-bold border-b border-zinc-200 pb-2 mb-2">Text</h3>
+          <div v-if="showTextEditor" class="pt-4 space-y-2">
+            <div class="flex items-center justify-between gap-3 border-b border-zinc-200 pb-2">
+              <h3 class="font-bold">{{ selectedTextObject ? 'Edit Text' : 'Text' }}</h3>
+              <button
+                v-if="selectedTextObject"
+                class="text-[11px] font-bold uppercase tracking-wide text-zinc-500 hover:text-zinc-900"
+                @click="startNewTextPlacement"
+              >
+                New Text
+              </button>
+            </div>
             <textarea
               v-model="textDraft"
               rows="4"
-              placeholder="Type text, then click the canvas to place it."
+              :placeholder="selectedTextObject ? 'Edit the selected note here.' : 'Type text, then click the canvas to place it.'"
               class="w-full resize-none sketch-border bg-white p-3 text-sm outline-none"
             ></textarea>
+            <button
+              v-if="selectedTextObject"
+              class="sketch-button w-full py-2 text-sm !bg-zinc-900 !text-white disabled:opacity-50"
+              :disabled="!textDraft.trim()"
+              @click="applyTextEdits"
+            >
+              Update Selected Text
+            </button>
             <p class="text-xs text-zinc-500 italic">
-              Click once to place the text. Switch to Select to move it.
+              {{ selectedTextObject
+                ? 'Update the selected note here. You can still drag it with Select.'
+                : 'Click once to place the text. Switch to Select to move it.' }}
             </p>
           </div>
 
@@ -97,8 +116,8 @@
           <p v-else-if="currentTool === 'arrow'" class="text-xs text-zinc-500 italic">
             Drag from one shape or image to another to connect them with arrows.
           </p>
-          <p v-else-if="currentTool === 'text'" class="text-xs text-zinc-500 italic">
-            Text is rendered with a handwritten font and can be moved later.
+          <p v-else-if="showTextEditor" class="text-xs text-zinc-500 italic">
+            Text is rendered with a handwritten font and can be edited or moved later.
           </p>
           </div>
         </div>
@@ -298,6 +317,17 @@ const historyIndex = ref(0)
 
 const canUndo = computed(() => historyIndex.value > 0)
 const canRedo = computed(() => historyIndex.value < history.value.length - 1)
+const selectedTextObject = computed(() => {
+  if (selectedObjectIds.value.length !== 1) return null
+  const obj = getObjectById(selectedObjectIds.value[0])
+  return obj?.type === 'text' ? obj : null
+})
+const showStyleControls = computed(() =>
+  Boolean(selectedTextObject.value) || !['eraser', 'select', 'image', 'crop'].includes(currentTool.value)
+)
+const showTextEditor = computed(() =>
+  currentTool.value === 'text' || Boolean(selectedTextObject.value)
+)
 
 const isDrawing = ref(false)
 const isDragging = ref(false)
@@ -492,7 +522,30 @@ watch(selectedObjectIds, (newIds) => {
   if (obj?.type === 'image' && obj.prompt) {
     aiPrompt.value = obj.prompt
   }
+  if (obj?.type === 'text') {
+    textDraft.value = obj.text
+    currentColor.value = obj.color
+    currentSize.value = obj.size
+  }
 }, { deep: true })
+
+const startNewTextPlacement = () => {
+  currentTool.value = 'text'
+  selectedObjectIds.value = []
+}
+
+const applyTextEdits = () => {
+  const obj = selectedTextObject.value
+  const nextText = textDraft.value.trim()
+  if (!obj || !nextText) return
+
+  obj.text = nextText
+  obj.color = currentColor.value
+  obj.size = currentSize.value
+  currentTool.value = 'select'
+  commitToHistory()
+  render()
+}
 
 const syncApiKey = () => {
   apiKey.value = localStorage.getItem('global_openrouter_key') || ''

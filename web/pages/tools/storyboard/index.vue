@@ -344,6 +344,13 @@
                   >
                     {{ isGeneratingAllPanels ? 'Rendering Missing...' : 'Render Missing Images' }}
                   </button>
+                  <button
+                    class="sketch-button w-full py-2 px-3 text-sm sm:w-auto"
+                    :disabled="isDownloadingBundle || !generatedPanels.length"
+                    @click="downloadStoryboardBundle"
+                  >
+                    {{ isDownloadingBundle ? 'Packing Bundle...' : 'Download Bundle' }}
+                  </button>
                   <button class="sketch-button w-full py-2 px-3 text-sm sm:w-auto" @click="openImagePreview(generatedPanelUrls, 0)">
                     Preview All
                   </button>
@@ -373,13 +380,22 @@
                 <h3 class="text-xl font-bold text-zinc-900">Panel Rendering Queue</h3>
                 <p class="text-sm text-zinc-500">Run missing panel images in order to keep shot-to-shot continuity stable.</p>
               </div>
-              <button
-                class="sketch-button w-full py-2 px-3 text-sm !bg-zinc-900 !text-white sm:w-auto disabled:opacity-50"
-                :disabled="isGeneratingAllPanels"
-                @click="generateAllPanelImages"
-              >
-                {{ isGeneratingAllPanels ? 'Rendering Missing...' : 'Render Missing Images' }}
-              </button>
+              <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                <button
+                  class="sketch-button w-full py-2 px-3 text-sm !bg-zinc-900 !text-white sm:w-auto disabled:opacity-50"
+                  :disabled="isGeneratingAllPanels"
+                  @click="generateAllPanelImages"
+                >
+                  {{ isGeneratingAllPanels ? 'Rendering Missing...' : 'Render Missing Images' }}
+                </button>
+                <button
+                  class="sketch-button w-full py-2 px-3 text-sm sm:w-auto disabled:opacity-50"
+                  :disabled="isDownloadingBundle || !generatedPanels.length"
+                  @click="downloadStoryboardBundle"
+                >
+                  {{ isDownloadingBundle ? 'Packing Bundle...' : 'Download Bundle' }}
+                </button>
+              </div>
             </div>
 
             <article
@@ -541,6 +557,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import JSZip from 'jszip'
 import ImageLightbox from '~/components/ImageLightbox.vue'
 import { renderSafeMarkdown } from '~/utils/safeRichText'
 
@@ -606,6 +623,7 @@ const styleInstructions = ref('rough crayon hand-drawn, high saturation, simple 
 const usePreviousPanelReference = ref(true)
 const isGeneratingStoryboard = ref(false)
 const isGeneratingAllPanels = ref(false)
+const isDownloadingBundle = ref(false)
 const storyboard = ref<StoryboardMeta>({ title: '', summary: '' })
 const panels = ref<StoryboardPanel[]>([])
 const textOutput = ref('')
@@ -1019,6 +1037,78 @@ const copyText = async (text: string, successMessage = 'Copied') => {
   }
 }
 
+const slugify = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'storyboard'
+
+const triggerBlobDownload = (blob: Blob, filename: string) => {
+  const objectUrl = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.download = filename
+  link.href = objectUrl
+  link.click()
+  URL.revokeObjectURL(objectUrl)
+}
+
+const inferImageExtension = (src: string, blob: Blob) => {
+  const mime = blob.type.toLowerCase()
+  if (mime.includes('png')) return 'png'
+  if (mime.includes('jpeg') || mime.includes('jpg')) return 'jpg'
+  if (mime.includes('webp')) return 'webp'
+
+  const cleanSrc = src.split('?')[0].toLowerCase()
+  if (cleanSrc.endsWith('.png')) return 'png'
+  if (cleanSrc.endsWith('.jpg') || cleanSrc.endsWith('.jpeg')) return 'jpg'
+  if (cleanSrc.endsWith('.webp')) return 'webp'
+  return 'png'
+}
+
+const buildStoryboardBundleMarkdown = () => {
+  const lines = [
+    `# ${storyboard.value.title || 'Untitled Storyboard'}`,
+    '',
+    `- Story Mode: ${storyMode.value}`,
+    `- Scene Format: ${sceneFormatLabel.value}`,
+    `- Language: ${storyLanguageLabel.value}`,
+    `- Style: ${styleName.value}`,
+    `- Plot: ${storyPlot.value || 'N/A'}`,
+    `- Target Length: ${storyLength.value || 'N/A'}`,
+    `- Panel Count: ${panels.value.length}`,
+    '',
+    '## Summary',
+    '',
+    storyboard.value.summary || 'No summary provided.',
+    '',
+    '## Panels',
+    ''
+  ]
+
+  panels.value.forEach((panel, index) => {
+    const imageName = panel.imageSrc
+      ? `images/panel-${String(index + 1).padStart(2, '0')}-${slugify(panel.title)}`
+      : 'Not generated'
+
+    lines.push(`### Panel ${index + 1}: ${panel.title}`)
+    lines.push(`- Duration: ${panel.durationSeconds}s`)
+    lines.push(`- Camera: ${panel.camera || 'N/A'}`)
+    lines.push(`- Mood: ${panel.mood || 'N/A'}`)
+    lines.push(`- Image File: ${imageName}`)
+    lines.push('')
+    lines.push(`Action: ${panel.action || 'N/A'}`)
+    lines.push('')
+    lines.push(`Dialogue: ${panel.dialogue || 'N/A'}`)
+    lines.push('')
+    lines.push('Image Prompt:')
+    lines.push('')
+    lines.push(panel.imagePrompt || 'N/A')
+    lines.push('')
+  })
+
+  return lines.join('\n')
+}
+
 const downloadImage = async (src?: string, filename = 'storyboard-image.png') => {
   if (!src) return
 
@@ -1039,6 +1129,40 @@ const downloadImage = async (src?: string, filename = 'storyboard-image.png') =>
     link.target = '_blank'
     link.rel = 'noopener'
     link.click()
+  }
+}
+
+const downloadStoryboardBundle = async () => {
+  if (!panels.value.length || !generatedPanels.value.length || isDownloadingBundle.value) return
+
+  isDownloadingBundle.value = true
+
+  try {
+    const zip = new JSZip()
+    const bundleBaseName = slugify(storyboard.value.title || storyPlot.value || 'storyboard')
+
+    zip.file('storyboard-script.md', buildStoryboardBundleMarkdown())
+
+    for (const [index, panel] of panels.value.entries()) {
+      if (!panel.imageSrc) continue
+      const response = await fetch(panel.imageSrc)
+      if (!response.ok) {
+        throw new Error(`Failed to fetch panel ${index + 1} image`)
+      }
+
+      const blob = await response.blob()
+      const extension = inferImageExtension(panel.imageSrc, blob)
+      const filename = `images/panel-${String(index + 1).padStart(2, '0')}-${slugify(panel.title)}.${extension}`
+      zip.file(filename, blob)
+    }
+
+    const archive = await zip.generateAsync({ type: 'blob' })
+    triggerBlobDownload(archive, `${bundleBaseName}.zip`)
+  } catch (error: any) {
+    console.error('Failed to pack storyboard bundle:', error)
+    alert(`Bundle download failed: ${error?.message || 'unknown error'}`)
+  } finally {
+    isDownloadingBundle.value = false
   }
 }
 

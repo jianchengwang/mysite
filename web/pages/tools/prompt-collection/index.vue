@@ -279,19 +279,10 @@ const buildPreview = (content: string) => {
   return previewText.length > 180 ? `${previewText.slice(0, 180)}...` : previewText
 }
 
-const classifyPromptCategory = (title: string, content: string) => {
-  const source = `${title}\n${content}`.toLowerCase()
+const VIDEO_PROMPT_TITLES = new Set(['pov vlog-style video'])
 
-  if (/(video|shot|scene|storyboard|trailer|clip|camera|cinematic)/i.test(source)) {
-    return 'video'
-  }
-
-  if (/(image|illustration|logo|icon|render|photo|png|visual|nft|3d|card|poster|background)/i.test(source)) {
-    return 'image'
-  }
-
-  return 'text'
-}
+const classifyPromptCategory = (title: string) =>
+  VIDEO_PROMPT_TITLES.has(title.trim().toLowerCase()) ? 'video' : 'image'
 
 const parsePromptMarkdown = (source: string): PromptItem[] => {
   const lines = stripFrontmatter(source).replace(/\r\n/g, '\n').split('\n')
@@ -303,7 +294,7 @@ const parsePromptMarkdown = (source: string): PromptItem[] => {
     if (!currentTitle) return
     const content = currentLines.join('\n').trim()
     list.push({
-      category: classifyPromptCategory(currentTitle, content),
+      category: classifyPromptCategory(currentTitle),
       title: currentTitle,
       content,
       preview: buildPreview(content)
@@ -336,7 +327,7 @@ const parsePromptMarkdown = (source: string): PromptItem[] => {
 const prompts = parsePromptMarkdown(promptCollectionSource)
 
 const categories = computed(() =>
-  ['text', 'image', 'video'].filter(category => prompts.some(prompt => prompt.category === category))
+  ['image', 'video'].filter(category => prompts.some(prompt => prompt.category === category))
 )
 
 const filteredPrompts = computed(() => {
