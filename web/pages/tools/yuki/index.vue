@@ -56,7 +56,14 @@
           <div v-show="mobileCharacterExpanded || isDesktopViewport" class="character-container relative mx-auto aspect-[4/5] w-full max-w-[620px] overflow-hidden bg-[radial-gradient(circle_at_top,_#ffffff_0%,_#f4f4f5_58%,_#e4e4e7_100%)] p-0 sketch-border-3">
             <ClientOnly>
               <div id="L2dCanvas" class="w-full h-full relative"></div>
-              <div v-if="!isModelLoaded" class="absolute inset-0 flex items-center justify-center bg-white/80">
+              <div v-if="live2dErrorMessage" class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white/88 p-5 text-center">
+                <p class="text-lg font-bold text-zinc-900">Live2D failed to load</p>
+                <p class="max-w-xs text-sm leading-relaxed text-zinc-600">{{ live2dErrorMessage }}</p>
+                <button class="sketch-button px-4 py-2 text-sm !bg-zinc-900 !text-white" @click="initLive2D({ force: true })">
+                  Retry
+                </button>
+              </div>
+              <div v-else-if="!isModelLoaded" class="absolute inset-0 flex items-center justify-center bg-white/80">
                 <span class="animate-pulse italic">Summoning {{ currentCharacterName }}...</span>
               </div>
             </ClientOnly>
@@ -319,9 +326,12 @@ const selectModel = (m: any) => {
 }
 
 const isModelLoaded = ref(false)
+const isLive2dInitializing = ref(false)
+const live2dErrorMessage = ref('')
 const characterResponse = ref('')
 let l2dv: any = null
 let speechSynthesis: SpeechSynthesis | null = null
+let live2dInitRequestId = 0
 
 const defaultMessage = computed(() => `Hi there! I'm ${currentCharacterName.value}, your hand-drawn AI companion. How can I help you today?`)
 
@@ -385,8 +395,6 @@ onMounted(async () => {
     messages.value = createDefaultMessages()
   }
 
-  characterResponse.value = defaultMessage.value
-
   const savedModel = localStorage.getItem('yuki_current_model')
   if (savedModel) {
     currentModel.value = savedModel
@@ -396,6 +404,8 @@ onMounted(async () => {
   if (savedL2dModel) {
     currentLive2dModel.value = savedL2dModel
   }
+
+  characterResponse.value = defaultMessage.value
 
   scrollToBottom()
   await fetchModels()
@@ -415,9 +425,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  if (l2dv) {
-    l2dv = null
-  }
+  releaseLive2D()
   if (speechSynthesis) {
     speechSynthesis.cancel()
   }
@@ -428,7 +436,7 @@ onUnmounted(() => {
 
 watch(apiKey, (value) => {
   if (value && !l2dv) {
-    initLive2D()
+    void initLive2D()
   }
 })
 
@@ -665,36 +673,94 @@ const clearChat = () => {
   }
 }
 
-const initLive2D = async () => {
+const releaseLive2D = () => {
+  const unloadHandler = window.onbeforeunload
+  if (typeof unloadHandler === 'function') {
+    try {
+      unloadHandler.call(window, undefined as unknown as BeforeUnloadEvent)
+    } catch (error) {
+      console.warn('Failed to release existing Live2D instance cleanly:', error)
+    }
+  }
+
+  const canvasHost = document.getElementById('L2dCanvas')
+  if (canvasHost) {
+    canvasHost.innerHTML = ''
+  }
+
+  window.l2dv = null
+  l2dv = null
+  isModelLoaded.value = false
+  isLive2dInitializing.value = false
+}
+
+const ensureLive2dScripts = async () => {
+  await Promise.all([
+    loadScript('/live2d/sdk/live2dcubismcore.min.js'),
+    loadScript('/live2d/sdk/live2dv3.js')
+  ])
+}
+
+const initLive2D = async (options: { force?: boolean } = {}) => {
+  const requestId = ++live2dInitRequestId
+  const targetModelId = currentLive2dModel.value
+  const targetRuntimeModel = currentLive2dRuntimeModel.value
+
   try {
     const canvas = document.getElementById('L2dCanvas')
     if (!canvas) return
 
+    live2dErrorMessage.value = ''
+    isLive2dInitializing.value = true
     isModelLoaded.value = false
-    canvas.innerHTML = ''
 
-    await Promise.all([
-      loadScript('https://unpkg.com/core-js-bundle@3.6.1/minified.js'),
-      loadScript('https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/lib/live2dcubismcore.min.js'),
-      loadScript('https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/live2dv3.js'),
-      loadScript('https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/charData.js')
-    ])
-
-    if (window.L2dViewer) {
-      window.l2dv = new window.L2dViewer({
-        el: canvas,
-        modelHomePath: 'https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/model/moc3/',
-        model: currentLive2dRuntimeModel.value,
-        width: Math.round((canvas.clientWidth || 520) * Math.min(window.devicePixelRatio || 1, 2)),
-        height: Math.round((canvas.clientHeight || 640) * Math.min(window.devicePixelRatio || 1, 2)),
-        autoMotion: true
-      })
-
-      l2dv = window.l2dv
-      isModelLoaded.value = true
+    if (l2dv || options.force) {
+      releaseLive2D()
+      await nextTick()
+      isLive2dInitializing.value = true
     }
+
+    await ensureLive2dScripts()
+    if (requestId !== live2dInitRequestId) return
+
+    if (!window.L2dViewer) {
+      throw new Error('Live2D viewer runtime is unavailable.')
+    }
+
+    window.l2dv = new window.L2dViewer({
+      el: canvas,
+      modelHomePath: 'https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/model/moc3/',
+      model: targetRuntimeModel,
+      width: Math.round((canvas.clientWidth || 520) * Math.min(window.devicePixelRatio || 1, 2)),
+      height: Math.round((canvas.clientHeight || 640) * Math.min(window.devicePixelRatio || 1, 2)),
+      autoMotion: true,
+      _finishedLoadModel: () => {
+        if (requestId !== live2dInitRequestId) return
+        live2dErrorMessage.value = ''
+        isModelLoaded.value = true
+        isLive2dInitializing.value = false
+      }
+    })
+
+    l2dv = window.l2dv
+
+    window.setTimeout(() => {
+      if (requestId !== live2dInitRequestId || isModelLoaded.value) return
+      if (canvas.querySelector('canvas')) {
+        live2dErrorMessage.value = ''
+        isModelLoaded.value = true
+        isLive2dInitializing.value = false
+      }
+    }, 500)
   } catch (error) {
+    if (requestId !== live2dInitRequestId) return
     console.error('Failed to initialize Live2D:', error)
+    releaseLive2D()
+    live2dErrorMessage.value =
+      error instanceof Error ? error.message : `Unable to load ${currentCharacterName.value}.`
+    if (currentLive2dModel.value !== targetModelId) {
+      void initLive2D({ force: true })
+    }
   }
 }
 
@@ -703,15 +769,15 @@ const handleLive2dModelChange = (modelId: string) => {
 
   currentLive2dModel.value = modelId
   localStorage.setItem('yuki_live2d_model', modelId)
-
-  if (l2dv) {
-    l2dv.loadModel(currentLive2dRuntimeModel.value)
-  }
-
   characterResponse.value = `Hi there! I'm ${currentCharacterName.value}.`
   if (autoPronounce.value) {
     playVoice(characterResponse.value)
   }
+
+  releaseLive2D()
+  window.setTimeout(() => {
+    window.location.reload()
+  }, 40)
 }
 
 const stopVoice = () => {

@@ -39,49 +39,38 @@
               <p class="text-xs font-bold uppercase tracking-[0.22em] text-zinc-500">Connection</p>
               <h2 class="text-2xl font-bold text-zinc-900">Gateway Deck</h2>
             </div>
-            <span
-              class="inline-flex items-center gap-2 rounded-full border-2 px-4 py-2 text-sm font-bold"
-              :class="statusPillClass"
-            >
-              <span class="h-2.5 w-2.5 rounded-full bg-current"></span>
-              {{ statusLabel }}
-            </span>
+            <div class="flex flex-wrap items-center gap-3">
+              <button class="sketch-button px-4 py-2 text-sm" @click="showSettingsModal = true">
+                Workshop Settings
+              </button>
+              <span
+                class="inline-flex items-center gap-2 rounded-full border-2 px-4 py-2 text-sm font-bold"
+                :class="statusPillClass"
+              >
+                <span class="h-2.5 w-2.5 rounded-full bg-current"></span>
+                {{ statusLabel }}
+              </span>
+            </div>
           </div>
 
-          <div class="grid gap-4 sm:grid-cols-2">
-            <label class="space-y-2 sm:col-span-2">
-              <span class="block text-sm font-bold text-zinc-700">Gateway WS URL</span>
-              <input
-                v-model="gatewayUrl"
-                class="w-full rounded-[18px] border-2 border-zinc-900 bg-[#fffdf8] px-4 py-3 text-sm outline-none"
-                placeholder="ws://127.0.0.1:18789"
-              />
-            </label>
-            <label class="space-y-2">
-              <span class="block text-sm font-bold text-zinc-700">Session Key</span>
-              <input
-                v-model="sessionKey"
-                class="w-full rounded-[18px] border-2 border-zinc-900 bg-[#fffdf8] px-4 py-3 text-sm outline-none"
-                placeholder="main"
-              />
-            </label>
-            <label class="space-y-2">
-              <span class="block text-sm font-bold text-zinc-700">Gateway Token</span>
-              <input
-                v-model="token"
-                class="w-full rounded-[18px] border-2 border-zinc-900 bg-[#fffdf8] px-4 py-3 text-sm outline-none"
-                placeholder="Optional"
-              />
-            </label>
-            <label class="space-y-2 sm:col-span-2">
-              <span class="block text-sm font-bold text-zinc-700">Gateway Password</span>
-              <input
-                v-model="password"
-                type="password"
-                class="w-full rounded-[18px] border-2 border-zinc-900 bg-[#fffdf8] px-4 py-3 text-sm outline-none"
-                placeholder="Optional"
-              />
-            </label>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div class="rounded-[20px] border border-zinc-200 bg-zinc-50 p-4">
+              <p class="text-xs font-bold uppercase tracking-[0.22em] text-zinc-500">Gateway</p>
+              <p class="mt-2 text-sm font-bold text-zinc-900 break-all">{{ gatewaySummary }}</p>
+            </div>
+            <div class="rounded-[20px] border border-zinc-200 bg-zinc-50 p-4">
+              <p class="text-xs font-bold uppercase tracking-[0.22em] text-zinc-500">Session</p>
+              <p class="mt-2 text-sm font-bold text-zinc-900">{{ sessionSummary }}</p>
+            </div>
+            <div class="rounded-[20px] border border-zinc-200 bg-zinc-50 p-4">
+              <p class="text-xs font-bold uppercase tracking-[0.22em] text-zinc-500">Auth</p>
+              <p class="mt-2 text-sm font-bold text-zinc-900">{{ authSummary }}</p>
+            </div>
+            <div class="rounded-[20px] border border-zinc-200 bg-zinc-50 p-4">
+              <p class="text-xs font-bold uppercase tracking-[0.22em] text-zinc-500">Server</p>
+              <p class="mt-2 text-sm font-bold text-zinc-900">{{ serverVersion || 'Waiting for gateway' }}</p>
+              <p class="mt-1 text-xs text-zinc-500">{{ availableMethods.length }} methods · {{ availableEvents.length }} events</p>
+            </div>
           </div>
 
           <div class="flex flex-wrap gap-3">
@@ -114,19 +103,6 @@
               On <span class="font-bold text-zinc-800">localhost</span> or <span class="font-bold text-zinc-800">HTTPS</span>, this page creates a browser device identity for OpenClaw automatically.
               <span v-if="!deviceAuthReady" class="font-bold text-amber-700"> If you connect over plain HTTP, your gateway may require token-only auth or allow-insecure auth.</span>
             </p>
-          </div>
-
-          <div class="grid gap-3 sm:grid-cols-2">
-            <div class="rounded-[20px] border border-zinc-200 bg-zinc-50 p-4">
-              <p class="text-xs font-bold uppercase tracking-[0.22em] text-zinc-500">Server</p>
-              <p class="mt-2 text-lg font-bold text-zinc-900">{{ serverVersion || 'Unknown' }}</p>
-              <p class="mt-1 text-xs text-zinc-500">Conn ID: {{ serverConnId || '—' }}</p>
-            </div>
-            <div class="rounded-[20px] border border-zinc-200 bg-zinc-50 p-4">
-              <p class="text-xs font-bold uppercase tracking-[0.22em] text-zinc-500">Capabilities</p>
-              <p class="mt-2 text-lg font-bold text-zinc-900">{{ availableMethods.length }}</p>
-              <p class="mt-1 text-xs text-zinc-500">{{ availableEvents.length }} live events reported</p>
-            </div>
           </div>
 
           <div v-if="lastError" class="rounded-[20px] border-2 border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -401,11 +377,76 @@
         </article>
       </section>
     </div>
+
+    <Teleport to="body">
+      <div
+        v-if="showSettingsModal"
+        class="fixed inset-0 z-[120] flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
+        @click.self="showSettingsModal = false"
+      >
+        <div class="sketch-card w-full max-w-2xl bg-white p-5 sm:p-6">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-[0.22em] text-zinc-500">Connection Setup</p>
+              <h2 class="text-3xl font-bold text-zinc-900">Workshop Settings</h2>
+            </div>
+            <button class="text-3xl leading-none text-zinc-500 hover:text-zinc-900" @click="showSettingsModal = false">
+              ×
+            </button>
+          </div>
+
+          <div class="mt-5 grid gap-4 sm:grid-cols-2">
+            <label class="space-y-2 sm:col-span-2">
+              <span class="block text-sm font-bold text-zinc-700">Gateway WS URL</span>
+              <input
+                v-model="gatewayUrl"
+                class="w-full rounded-[18px] border-2 border-zinc-900 bg-[#fffdf8] px-4 py-3 text-sm outline-none"
+                placeholder="ws://127.0.0.1:18789"
+              />
+            </label>
+            <label class="space-y-2">
+              <span class="block text-sm font-bold text-zinc-700">Session Key</span>
+              <input
+                v-model="sessionKey"
+                class="w-full rounded-[18px] border-2 border-zinc-900 bg-[#fffdf8] px-4 py-3 text-sm outline-none"
+                placeholder="main"
+              />
+            </label>
+            <label class="space-y-2">
+              <span class="block text-sm font-bold text-zinc-700">Gateway Token</span>
+              <input
+                v-model="token"
+                class="w-full rounded-[18px] border-2 border-zinc-900 bg-[#fffdf8] px-4 py-3 text-sm outline-none"
+                placeholder="Optional"
+              />
+            </label>
+            <label class="space-y-2 sm:col-span-2">
+              <span class="block text-sm font-bold text-zinc-700">Gateway Password</span>
+              <input
+                v-model="password"
+                type="password"
+                class="w-full rounded-[18px] border-2 border-zinc-900 bg-[#fffdf8] px-4 py-3 text-sm outline-none"
+                placeholder="Optional"
+              />
+            </label>
+          </div>
+
+          <div class="mt-5 flex flex-wrap items-start justify-between gap-3">
+            <p class="max-w-xl text-sm text-zinc-500">
+              Settings save automatically in the browser. Close this panel, then use <span class="font-bold text-zinc-800">Connect Deck</span> on the main card.
+            </p>
+            <button class="sketch-button px-5 py-3 !bg-zinc-900 !text-white" @click="showSettingsModal = false">
+              Done
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useOpenClawGateway } from '~/composables/useOpenClawGateway'
 
 definePageMeta({ layout: 'default' })
@@ -417,7 +458,6 @@ const {
   password,
   status,
   serverVersion,
-  serverConnId,
   lastError,
   draft,
   messages,
@@ -443,6 +483,8 @@ const {
   abortActiveRun
 } = useOpenClawGateway()
 
+const showSettingsModal = ref(false)
+
 const roleLabelMap: Record<string, string> = {
   user: 'Captain',
   assistant: 'Boss Lobster',
@@ -459,6 +501,16 @@ const statusPillClass = computed(() => {
   if (status.value === 'connected') return 'border-emerald-300 bg-emerald-50 text-emerald-700'
   if (status.value === 'connecting') return 'border-amber-300 bg-amber-50 text-amber-700'
   return 'border-zinc-300 bg-zinc-100 text-zinc-500'
+})
+
+const gatewaySummary = computed(() => gatewayUrl.value.trim() || 'ws://127.0.0.1:18789')
+const sessionSummary = computed(() => sessionKey.value.trim() || 'main')
+const authSummary = computed(() => {
+  const parts: string[] = []
+  if (token.value.trim()) parts.push('gateway token')
+  if (password.value.trim()) parts.push('password')
+  if (deviceAuthReady.value) parts.push('browser device auth')
+  return parts.length ? parts.join(' + ') : 'no auth configured yet'
 })
 
 const connectedNodeCount = computed(() =>

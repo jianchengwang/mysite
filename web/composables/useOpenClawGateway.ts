@@ -111,6 +111,8 @@ const MAX_MINIONS = 12
 const MAX_MESSAGES = 200
 
 const defaultGatewayUrl = 'ws://127.0.0.1:18789'
+const GATEWAY_CONTROL_UI_CLIENT_ID = 'openclaw-control-ui'
+const GATEWAY_WEBCHAT_MODE = 'webchat'
 
 const textEncoder = new TextEncoder()
 
@@ -872,9 +874,8 @@ export const useOpenClawGateway = () => {
     try {
       const role = 'operator'
       const scopes = ['operator.admin', 'operator.approvals', 'operator.pairing']
-      const clientId = 'lobster-workshop'
-      const clientMode = 'webchat'
-      const normalizedUrl = normalizeGatewayUrl(gatewayUrl.value || defaultGatewayUrl)
+      const clientId = GATEWAY_CONTROL_UI_CLIENT_ID
+      const clientMode = GATEWAY_WEBCHAT_MODE
 
       let deviceIdentity: DeviceIdentity | null = null
       let deviceToken = ''
@@ -911,19 +912,21 @@ export const useOpenClawGateway = () => {
         deviceAuthReady.value = false
       }
 
-      const auth = trimmedToken || trimmedPassword || deviceToken
+      const auth = trimmedToken || trimmedPassword
         ? {
-            token: trimmedToken || deviceToken || undefined,
-            deviceToken: trimmedToken && deviceToken ? deviceToken : undefined,
+            token: trimmedToken || undefined,
             password: trimmedPassword || undefined
           }
-        : undefined
+        : deviceToken
+          ? { token: deviceToken }
+          : undefined
 
       const hello = await request<GatewayHelloOk>('connect', {
         minProtocol: 3,
         maxProtocol: 3,
         client: {
           id: clientId,
+          displayName: 'Lobster Workshop',
           version: 'lobster-workshop',
           platform: import.meta.client ? (navigator.platform || 'web') : 'web',
           mode: clientMode,

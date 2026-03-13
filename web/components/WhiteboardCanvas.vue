@@ -102,11 +102,8 @@
             >
               Edit Selected Text
             </button>
-            <p class="text-xs leading-relaxed text-zinc-500 italic">
-              Click once to create a note directly on the board. Double-click an existing note to edit it in place.
-            </p>
             <p class="text-[11px] leading-relaxed text-zinc-500">
-              While typing: <span class="font-bold text-zinc-700">Ctrl/Cmd + Enter</span> saves, <span class="font-bold text-zinc-700">Esc</span> cancels.
+              Click to place. Double-click to edit. <span class="font-bold text-zinc-700">Ctrl/Cmd + Enter</span> saves.
             </p>
           </div>
 
@@ -117,7 +114,7 @@
             Drag from one shape or image to another to connect them with arrows.
           </p>
           <p v-else-if="showTextEditor" class="text-xs text-zinc-500 italic">
-            Text is rendered with a handwritten font and can be edited or moved later.
+            Handwritten notes can be placed, edited, and moved later.
           </p>
           </div>
         </div>
