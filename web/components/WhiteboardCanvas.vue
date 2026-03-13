@@ -78,9 +78,9 @@
             <input type="range" v-model.number="currentSize" min="1" max="20" class="w-full accent-zinc-700" />
           </div>
 
-          <div v-if="showTextEditor" class="pt-4 space-y-2">
+          <div v-if="showTextEditor" class="pt-4 space-y-3">
             <div class="flex items-center justify-between gap-3 border-b border-zinc-200 pb-2">
-              <h3 class="font-bold">{{ selectedTextObject ? 'Edit Text' : 'Text' }}</h3>
+              <h3 class="font-bold">Text</h3>
               <button
                 v-if="selectedTextObject"
                 class="text-[11px] font-bold uppercase tracking-wide text-zinc-500 hover:text-zinc-900"
@@ -89,24 +89,24 @@
                 New Text
               </button>
             </div>
-            <textarea
-              v-model="textDraft"
-              rows="4"
-              :placeholder="selectedTextObject ? 'Edit the selected note here.' : 'Type text, then click the canvas to place it.'"
-              class="w-full resize-none sketch-border bg-white p-3 text-sm outline-none"
-            ></textarea>
             <button
-              v-if="selectedTextObject"
-              class="sketch-button w-full py-2 text-sm !bg-zinc-900 !text-white disabled:opacity-50"
-              :disabled="!textDraft.trim()"
-              @click="applyTextEdits"
+              class="sketch-button w-full py-2 text-sm !bg-zinc-900 !text-white"
+              @click="startNewTextPlacement"
             >
-              Update Selected Text
+              Click Canvas To Type
             </button>
-            <p class="text-xs text-zinc-500 italic">
-              {{ selectedTextObject
-                ? 'Update the selected note here. You can still drag it with Select.'
-                : 'Click once to place the text. Switch to Select to move it.' }}
+            <button
+              v-if="selectedTextObject && !isInlineTextEditing"
+              class="sketch-button w-full py-2 text-sm"
+              @click="editSelectedTextOnCanvas"
+            >
+              Edit Selected Text
+            </button>
+            <p class="text-xs leading-relaxed text-zinc-500 italic">
+              Click once to create a note directly on the board. Double-click an existing note to edit it in place.
+            </p>
+            <p class="text-[11px] leading-relaxed text-zinc-500">
+              While typing: <span class="font-bold text-zinc-700">Ctrl/Cmd + Enter</span> saves, <span class="font-bold text-zinc-700">Esc</span> cancels.
             </p>
           </div>
 
@@ -120,6 +120,29 @@
             Text is rendered with a handwritten font and can be edited or moved later.
           </p>
           </div>
+        </div>
+
+        <div v-if="selectedObjectIds.length" class="sketch-card w-full p-4 space-y-3 sm:min-w-[280px] lg:min-w-0">
+          <div class="flex items-center justify-between gap-3 border-b border-zinc-200 pb-2">
+            <h3 class="font-bold">Selection</h3>
+            <span class="text-[11px] font-bold uppercase tracking-wide text-zinc-500">{{ selectedObjectIds.length }} selected</span>
+          </div>
+          <button
+            v-if="selectedTextObject && !isInlineTextEditing"
+            class="sketch-button w-full py-2 text-sm"
+            @click="editSelectedTextOnCanvas"
+          >
+            Edit Text On Canvas
+          </button>
+          <button
+            class="sketch-button w-full py-2 text-sm border-red-200 text-red-600"
+            @click="deleteSelectedObjects"
+          >
+            Delete Selected
+          </button>
+          <p class="text-[11px] leading-relaxed text-zinc-500">
+            Use <span class="font-bold text-zinc-700">Delete</span> on the keyboard for faster cleanup during demos.
+          </p>
         </div>
 
         <div class="sketch-card w-full p-4 space-y-4 sm:min-w-[280px] lg:min-w-0">
@@ -155,6 +178,7 @@
         <canvas
           ref="canvas"
           @mousedown="handleMouseDown"
+          @dblclick="handleDoubleClick"
           @mousemove="handleMouseMove"
           @mouseup="handleMouseUp"
           @mouseleave="handleMouseUp"
@@ -164,6 +188,16 @@
           @contextmenu.prevent="handleContextMenu"
           class="h-full w-full cursor-crosshair bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px]"
         ></canvas>
+        <textarea
+          v-if="textEditor"
+          ref="textEditorRef"
+          v-model="textDraft"
+          :style="textEditorStyle"
+          class="absolute z-20 min-h-[56px] min-w-[180px] max-w-[min(320px,calc(100%-24px))] resize-none overflow-hidden rounded-2xl border-2 border-sky-500 bg-white/95 px-3 py-2 text-sm text-zinc-900 shadow-[6px_6px_0_0_rgba(14,165,233,0.18)] outline-none backdrop-blur"
+          placeholder="Type here..."
+          @keydown="handleInlineTextKeyDown"
+          @blur="commitTextEditor"
+        ></textarea>
       </div>
     </div>
 
@@ -207,7 +241,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const props = defineProps({
   isModal: { type: Boolean, default: false }
@@ -257,6 +291,12 @@ type TextObject = {
   size: number
 }
 
+type ActiveTextEditor = {
+  objectId: string | null
+  pos: Point
+  width: number
+}
+
 type LinkObject = {
   type: 'link'
   id: string
@@ -277,11 +317,12 @@ const MAX_IMAGE_DIMENSION = 4096
 const canvas = ref<HTMLCanvasElement | null>(null)
 const canvasWrapper = ref<HTMLElement | null>(null)
 const ctx = ref<CanvasRenderingContext2D | null>(null)
+const textEditorRef = ref<HTMLTextAreaElement | null>(null)
 
 const currentTool = ref<ToolId>('pencil')
 const currentColor = ref('#000000')
 const currentSize = ref(3)
-const textDraft = ref('Handwritten note')
+const textDraft = ref('')
 const mobileToolsExpanded = ref(true)
 const mobileAiExpanded = ref(false)
 
@@ -322,12 +363,35 @@ const selectedTextObject = computed(() => {
   const obj = getObjectById(selectedObjectIds.value[0])
   return obj?.type === 'text' ? obj : null
 })
+const textEditor = ref<ActiveTextEditor | null>(null)
+const isInlineTextEditing = computed(() => Boolean(textEditor.value))
 const showStyleControls = computed(() =>
-  Boolean(selectedTextObject.value) || !['eraser', 'select', 'image', 'crop'].includes(currentTool.value)
+  Boolean(selectedTextObject.value) || Boolean(textEditor.value) || !['eraser', 'select', 'image', 'crop'].includes(currentTool.value)
 )
 const showTextEditor = computed(() =>
-  currentTool.value === 'text' || Boolean(selectedTextObject.value)
+  currentTool.value === 'text' || Boolean(selectedTextObject.value) || Boolean(textEditor.value)
 )
+const textEditorStyle = computed(() => {
+  if (!textEditor.value) return {}
+
+  const fontSize = getTextFontSize(currentSize.value)
+  const lineHeight = getTextLineHeight(fontSize)
+  const canvasWidth = canvas.value?.width || 0
+  const canvasHeight = canvas.value?.height || 0
+  const maxLeft = canvasWidth ? Math.max(canvasWidth - textEditor.value.width - 12, 12) : textEditor.value.pos.x
+  const estimatedHeight = Math.max(lineHeight * Math.max(textDraft.value.split(/\r?\n/).length, 2) + 22, 72)
+  const maxTop = canvasHeight ? Math.max(canvasHeight - estimatedHeight - 12, 12) : textEditor.value.pos.y
+
+  return {
+    left: `${Math.min(Math.max(textEditor.value.pos.x, 12), maxLeft)}px`,
+    top: `${Math.min(Math.max(textEditor.value.pos.y, 12), maxTop)}px`,
+    width: `${textEditor.value.width}px`,
+    fontSize: `${fontSize}px`,
+    lineHeight: `${lineHeight}px`,
+    color: currentColor.value,
+    fontFamily: '"Patrick Hand", "Indie Flower", cursive'
+  }
+})
 
 const isDrawing = ref(false)
 const isDragging = ref(false)
@@ -340,6 +404,7 @@ const dragStartPoint = ref<Point | null>(null)
 const dragPrimaryId = ref<string | null>(null)
 const dragObjectIds = ref<string[]>([])
 const dragOrigins = ref<Record<string, MoveableObject>>({})
+const pendingTextEditId = ref<string | null>(null)
 
 const hasCropSelection = computed(() =>
   Boolean(cropSelection.value && cropSelection.value.width > 0 && cropSelection.value.height > 0)
@@ -487,6 +552,39 @@ const getTextMetrics = (obj: TextObject, customCtx?: CanvasRenderingContext2D | 
   }
 }
 
+const syncTextEditorHeight = () => {
+  if (!textEditorRef.value) return
+  textEditorRef.value.style.height = '0px'
+  textEditorRef.value.style.height = `${Math.max(textEditorRef.value.scrollHeight, 56)}px`
+}
+
+const focusTextEditor = () => {
+  nextTick(() => {
+    if (!textEditorRef.value) return
+    textEditorRef.value.focus()
+    const draftLength = textDraft.value.length
+    textEditorRef.value.setSelectionRange(draftLength, draftLength)
+    syncTextEditorHeight()
+  })
+}
+
+const openTextEditor = (pos: Point, obj?: TextObject) => {
+  const bounds = obj ? getObjectBounds(obj) : null
+  const width = bounds ? Math.min(Math.max(bounds.width + 40, 180), 360) : 220
+  textEditor.value = {
+    objectId: obj?.id || null,
+    pos: bounds
+      ? { x: Math.max(bounds.x - 14, 12), y: Math.max(bounds.y - 12, 12) }
+      : clonePoint(pos),
+    width
+  }
+  textDraft.value = obj?.text || ''
+  currentColor.value = obj?.color || currentColor.value
+  currentSize.value = obj?.size || currentSize.value
+  selectedObjectIds.value = obj ? [obj.id] : []
+  focusTextEditor()
+}
+
 const fetchModels = async () => {
   try {
     const response = await fetch('https://openrouter.ai/api/v1/models')
@@ -529,22 +627,139 @@ watch(selectedObjectIds, (newIds) => {
   }
 }, { deep: true })
 
+watch([textDraft, currentSize, textEditor], () => {
+  if (!textEditor.value) return
+  nextTick(syncTextEditorHeight)
+})
+
+const removeObjectsByIds = (ids: string[]) => {
+  if (ids.length === 0) return false
+  const idSet = new Set(ids)
+  const nextObjects = objects.value.filter((obj) => {
+    if (idSet.has(obj.id)) return false
+    if (obj.type === 'link' && (idSet.has(obj.fromId) || idSet.has(obj.toId))) return false
+    return true
+  })
+
+  if (nextObjects.length === objects.value.length) return false
+
+  objects.value = nextObjects
+  selectedObjectIds.value = []
+  if (textEditor.value?.objectId && idSet.has(textEditor.value.objectId)) {
+    textEditor.value = null
+    textDraft.value = ''
+  }
+  resetTransientState()
+  commitToHistory()
+  render()
+  return true
+}
+
 const startNewTextPlacement = () => {
+  textEditor.value = null
+  textDraft.value = ''
   currentTool.value = 'text'
   selectedObjectIds.value = []
 }
 
-const applyTextEdits = () => {
-  const obj = selectedTextObject.value
-  const nextText = textDraft.value.trim()
-  if (!obj || !nextText) return
+const editSelectedTextOnCanvas = () => {
+  if (!selectedTextObject.value) return
+  openTextEditor(selectedTextObject.value.pos, selectedTextObject.value)
+}
 
-  obj.text = nextText
-  obj.color = currentColor.value
-  obj.size = currentSize.value
+const commitTextEditor = () => {
+  const activeEditor = textEditor.value
+  if (!activeEditor) return
+
+  const nextText = textDraft.value.trim()
+  const existingObject = activeEditor.objectId ? getObjectById(activeEditor.objectId) : null
+  textEditor.value = null
+
+  if (!nextText) {
+    textDraft.value = ''
+    if (existingObject?.type === 'text') {
+      removeObjectsByIds([existingObject.id])
+    } else {
+      render()
+    }
+    return
+  }
+
+  if (existingObject?.type === 'text') {
+    const changed =
+      existingObject.text !== nextText ||
+      existingObject.color !== currentColor.value ||
+      existingObject.size !== currentSize.value
+
+    existingObject.text = nextText
+    existingObject.color = currentColor.value
+    existingObject.size = currentSize.value
+    selectedObjectIds.value = [existingObject.id]
+    currentTool.value = 'select'
+
+    if (changed) {
+      commitToHistory()
+    }
+    render()
+    return
+  }
+
+  const id = createId()
+  objects.value.push({
+    type: 'text',
+    id,
+    pos: clonePoint(activeEditor.pos),
+    text: nextText,
+    color: currentColor.value,
+    size: currentSize.value
+  })
+  selectedObjectIds.value = [id]
   currentTool.value = 'select'
   commitToHistory()
   render()
+}
+
+const cancelTextEditor = () => {
+  if (!textEditor.value) return
+  const editingObjectId = textEditor.value.objectId
+  textEditor.value = null
+  if (editingObjectId) {
+    selectedObjectIds.value = [editingObjectId]
+  }
+  render()
+}
+
+const deleteSelectedObjects = () => {
+  if (!selectedObjectIds.value.length) return
+  removeObjectsByIds(selectedObjectIds.value)
+}
+
+const isTypingTarget = (target: EventTarget | null) => {
+  if (!(target instanceof HTMLElement)) return false
+  const tagName = target.tagName.toLowerCase()
+  return tagName === 'input' || tagName === 'textarea' || target.isContentEditable
+}
+
+const handleInlineTextKeyDown = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    cancelTextEditor()
+    return
+  }
+
+  if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+    event.preventDefault()
+    commitTextEditor()
+  }
+}
+
+const handleWindowKeyDown = (event: KeyboardEvent) => {
+  if (isTypingTarget(event.target)) return
+
+  if ((event.key === 'Delete' || event.key === 'Backspace') && selectedObjectIds.value.length > 0) {
+    event.preventDefault()
+    deleteSelectedObjects()
+  }
 }
 
 const syncApiKey = () => {
@@ -562,6 +777,7 @@ onMounted(() => {
   syncApiKey()
   window.addEventListener('storage', syncApiKey)
   window.addEventListener('resize', handleResize)
+  window.addEventListener('keydown', handleWindowKeyDown)
   canvas.value.addEventListener('wheel', handleWheel, { passive: false })
 
   fetchModels()
@@ -572,6 +788,7 @@ onUnmounted(() => {
   flushPendingWheelHistoryCommit()
   window.removeEventListener('storage', syncApiKey)
   window.removeEventListener('resize', handleResize)
+  window.removeEventListener('keydown', handleWindowKeyDown)
   if (canvas.value) {
     canvas.value.removeEventListener('wheel', handleWheel)
   }
@@ -719,6 +936,7 @@ const resetTransientState = () => {
   dragPrimaryId.value = null
   dragObjectIds.value = []
   dragOrigins.value = {}
+  pendingTextEditId.value = null
 }
 
 const snapshotSelectionForDrag = (ids: string[]) => {
@@ -782,6 +1000,9 @@ const handleMouseDown = (e: MouseEvent) => {
       selectedObjectIds.value = [clicked.id]
     }
 
+    pendingTextEditId.value = clicked.type === 'text' && selectedObjectIds.value.length === 1 && selectedObjectIds.value[0] === clicked.id
+      ? clicked.id
+      : null
     isDragging.value = true
     dragStartPoint.value = pos
     dragPrimaryId.value = clicked.id
@@ -801,21 +1022,7 @@ const handleMouseDown = (e: MouseEvent) => {
   }
 
   if (currentTool.value === 'text') {
-    const text = textDraft.value.trim()
-    if (!text) return
-
-    const id = createId()
-    objects.value.push({
-      type: 'text',
-      id,
-      pos,
-      text,
-      color: currentColor.value,
-      size: currentSize.value
-    })
-    selectedObjectIds.value = [id]
-    currentTool.value = 'select'
-    commitToHistory()
+    openTextEditor(pos)
     render()
     return
   }
@@ -948,9 +1155,16 @@ const finishDrag = (pos?: Point) => {
   isDragging.value = false
   alignmentGuides.value = []
   const moved = Math.abs(delta.x) > 0.5 || Math.abs(delta.y) > 0.5
+  const editTargetId = !moved ? pendingTextEditId.value : null
   resetTransientState()
   if (moved) {
     commitToHistory()
+  } else if (editTargetId) {
+    const editTarget = getObjectById(editTargetId)
+    if (editTarget?.type === 'text') {
+      openTextEditor(editTarget.pos, editTarget)
+      currentTool.value = 'select'
+    }
   }
   render()
 }
@@ -1034,6 +1248,16 @@ const handleMouseUp = (e?: MouseEvent | Touch) => {
   currentPoints.value = []
   startPoint.value = null
   alignmentGuides.value = []
+  render()
+}
+
+const handleDoubleClick = (e: MouseEvent) => {
+  const pos = getMousePos(e)
+  const clicked = findSelectableObjectAt(pos)
+  if (clicked?.type !== 'text') return
+
+  openTextEditor(clicked.pos, clicked)
+  currentTool.value = 'select'
   render()
 }
 
@@ -1487,6 +1711,9 @@ const commitToHistory = () => {
 }
 
 const undo = () => {
+  if (textEditor.value) {
+    cancelTextEditor()
+  }
   flushPendingWheelHistoryCommit()
   if (!canUndo.value) return
   historyIndex.value--
@@ -1495,6 +1722,9 @@ const undo = () => {
 }
 
 const redo = () => {
+  if (textEditor.value) {
+    cancelTextEditor()
+  }
   flushPendingWheelHistoryCommit()
   if (!canRedo.value) return
   historyIndex.value++
@@ -1504,6 +1734,8 @@ const redo = () => {
 
 const clear = () => {
   if (!confirm('Clear everything?')) return
+  textEditor.value = null
+  textDraft.value = ''
   flushPendingWheelHistoryCommit()
   objects.value = []
   cropSelection.value = null
@@ -1514,6 +1746,9 @@ const clear = () => {
 }
 
 const buildExportCanvas = () => {
+  if (textEditor.value) {
+    commitTextEditor()
+  }
   if (!canvas.value) return null
   const exportCanvas = document.createElement('canvas')
   exportCanvas.width = canvas.value.width
