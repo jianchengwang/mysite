@@ -143,6 +143,15 @@ const tools = [
       { label: 'AI Visuals', color: 'green' }
     ]
   },
+  {
+    to: '/tools/lobster-workshop',
+    title: 'Lobster Workshop',
+    description: 'Connect to an OpenClaw gateway over WebSocket, chat with the boss lobster, and monitor minion activity in one hand-drawn dashboard.',
+    tags: [
+      { label: 'OpenClaw', color: 'indigo' },
+      { label: 'Agent Ops', color: 'green' }
+    ]
+  },
 ]
 </script>
 

@@ -1021,12 +1021,6 @@ const handleMouseDown = (e: MouseEvent) => {
     return
   }
 
-  if (currentTool.value === 'text') {
-    openTextEditor(pos)
-    render()
-    return
-  }
-
   if (currentTool.value === 'image') {
     const input = document.createElement('input')
     input.type = 'file'
@@ -1173,6 +1167,12 @@ const handleMouseUp = (e?: MouseEvent | Touch) => {
   const pos = e ? getMousePos(e) : startPoint.value
   if (isDragging.value) {
     finishDrag(pos || undefined)
+    return
+  }
+
+  if (currentTool.value === 'text' && pos) {
+    openTextEditor(pos)
+    render()
     return
   }
 
