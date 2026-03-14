@@ -4,5 +4,17 @@ Office background reference:
 - Upstream reference file: assets/room-reference.webp
 - Usage note from upstream: non-commercial / learning / demo use only
 
-This page keeps the office background separate from the lobster character art.
-The lobster character SVG files in this directory are original local assets for this project.
+Character sprite sheets:
+- Source: Animated mini characters 2 [Platform] [FREE] by LimeZu
+- Page: https://limezu.itch.io/animated-mini-characters-2-platform-free
+- Files adapted in this page:
+  - limezu/fish-idle.png
+  - limezu/fish-run.png
+  - limezu/white-idle.png
+  - limezu/white-run.png
+  - limezu/yellow-idle.png
+  - limezu/yellow-run.png
+- Usage note from upstream: free and commercial use allowed, modifications allowed, redistribution/resale not allowed
+
+The office background and the character sprites are intentionally kept separate in this page.
+Legacy lobster SVG files are still stored here as older local draft assets, but the current workshop stage uses the LimeZu sprite sheets above.

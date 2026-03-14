@@ -48,7 +48,7 @@
                     </button>
                     <button
                       v-if="status === 'connected'"
-                      class="sketch-button px-5 py-3 border-red-200 text-red-600"
+                      class="sketch-button border-red-200 px-5 py-3 text-red-600"
                       @click="disconnect"
                     >
                       Disconnect
@@ -65,49 +65,53 @@
                     />
                     <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#fff7eb]/35 via-transparent to-white/10"></div>
 
-                    <div class="absolute left-[44%] top-[56%] w-[32%] min-w-[140px] max-w-[240px] -translate-x-1/2 -translate-y-1/2">
-                      <img
-                        src="/tools/lobster-workshop/lobster-boss.svg"
-                        alt="Boss lobster"
-                        class="w-full drop-shadow-[0_8px_0_rgba(34,34,34,0.2)] [image-rendering:pixelated]"
-                      />
+                    <div class="absolute left-1/2 top-[58%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
+                      <div class="mb-3 flex flex-wrap items-center justify-center gap-2">
+                        <span class="rounded-full border-2 border-zinc-900 bg-white/95 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-700 shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
+                          Boss Lobster
+                        </span>
+                        <span
+                          class="rounded-full border-2 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] shadow-[2px_2px_0_0_rgba(0,0,0,1)]"
+                          :class="stageStatusChipClass(bossStageState.status)"
+                        >
+                          {{ bossStageState.label }}
+                        </span>
+                      </div>
+                      <WorkshopActorSprite variant="boss" :status="bossStageState.status" :scale="3" size="stage" />
                     </div>
 
                     <div
                       v-for="(worker, index) in stageWorkers"
                       :key="worker.id"
-                      class="absolute flex flex-col items-center gap-2"
+                      class="absolute"
                       :style="stageWorkerStyle(index)"
                     >
-                      <div class="rounded-full border-2 border-zinc-900 bg-white/95 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-700 shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
-                        {{ worker.title }}
+                      <div class="flex min-w-[130px] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-2">
+                        <div class="flex flex-wrap items-center justify-center gap-2">
+                          <span class="rounded-full border-2 border-zinc-900 bg-white/95 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-700 shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
+                            {{ worker.title }}
+                          </span>
+                          <span
+                            class="rounded-full border-2 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] shadow-[2px_2px_0_0_rgba(0,0,0,1)]"
+                            :class="stageStatusChipClass(worker.status)"
+                          >
+                            {{ worker.statusLabel }}
+                          </span>
+                        </div>
+                        <WorkshopActorSprite :variant="worker.variant" :status="worker.status" :scale="1.55" size="stage" />
+                        <p class="max-w-[9rem] text-center text-[11px] uppercase tracking-[0.14em] text-zinc-600">
+                          {{ worker.note }}
+                        </p>
                       </div>
-                      <img
-                        :src="lobsterAssetForVariant(worker.variant)"
-                        :alt="`${worker.title} lobster`"
-                        class="w-16 sm:w-20 drop-shadow-[0_6px_0_rgba(34,34,34,0.18)] [image-rendering:pixelated]"
-                      />
                     </div>
                   </div>
                 </div>
 
-                <div class="mt-5 grid gap-4 lg:grid-cols-[1fr_1fr]">
-                  <div class="rounded-[24px] border-2 border-zinc-900 bg-[#fff9ef] p-4 shadow-[3px_3px_0_0_rgba(0,0,0,1)]">
-                    <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Latest Boss Note</p>
-                    <p class="mt-3 text-sm leading-7 text-zinc-700">{{ bossReplyDigest }}</p>
-                  </div>
-
-                  <div class="rounded-[24px] border border-zinc-200 bg-white p-4">
-                    <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Crew Setup</p>
-                    <p class="mt-3 text-sm leading-7 text-zinc-700">{{ helperRosterSummary }}</p>
-                  </div>
-
-                  <div
-                    v-if="lastError"
-                    class="rounded-[20px] border-2 border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 lg:col-span-2"
-                  >
-                    {{ lastError }}
-                  </div>
+                <div
+                  v-if="lastError"
+                  class="mt-5 rounded-[20px] border-2 border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700"
+                >
+                  {{ lastError }}
                 </div>
               </div>
 
@@ -130,17 +134,16 @@
                       class="flex items-center gap-3 rounded-[22px] border-2 border-zinc-900 bg-white p-3 shadow-[2px_2px_0_0_rgba(0,0,0,1)]"
                     >
                       <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-[18px] border border-zinc-200 bg-[#fff6e8]">
-                        <img
-                          :src="lobsterAssetForVariant(worker.variant)"
-                          :alt="`${worker.title} helper lobster`"
-                          class="h-14 w-14 [image-rendering:pixelated]"
-                        />
+                        <WorkshopActorSprite :variant="worker.variant" :status="worker.status" :scale="1" size="chip" />
                       </div>
                       <div class="min-w-0 flex-1">
                         <div class="flex items-center justify-between gap-3">
                           <p class="text-sm font-bold text-zinc-900">{{ worker.title }}</p>
-                          <span class="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-500">
-                            {{ worker.subtitle }}
+                          <span
+                            class="rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em]"
+                            :class="stageStatusChipClass(worker.status)"
+                          >
+                            {{ worker.statusLabel }}
                           </span>
                         </div>
                         <p class="mt-2 text-sm leading-6 text-zinc-600">{{ worker.note }}</p>
@@ -169,7 +172,7 @@
               <h2 class="text-2xl font-bold text-zinc-900">Chat With Boss Lobster</h2>
             </div>
             <button
-              class="sketch-button px-4 py-2 text-sm border-red-200 text-red-600"
+              class="sketch-button border-red-200 px-4 py-2 text-sm text-red-600"
               :disabled="!activeRunId"
               @click="abortActiveRun"
             >
@@ -179,7 +182,7 @@
 
           <div class="mt-4 flex-1 space-y-4 overflow-y-auto pr-1">
             <div
-              v-for="message in messages"
+              v-for="message in chatMessages"
               :key="message.id"
               :class="[
                 'max-w-[94%] rounded-[28px] border-2 px-4 py-3 shadow-[4px_4px_0_0_rgba(0,0,0,1)]',
@@ -190,28 +193,62 @@
                     : 'border-zinc-900 bg-[#fff8ef] text-zinc-900'
               ]"
             >
-              <div class="mb-2 flex items-center justify-between gap-3 text-xs uppercase tracking-[0.18em] text-zinc-500">
+              <div class="mb-3 flex flex-wrap items-start justify-between gap-3 text-xs uppercase tracking-[0.18em] text-zinc-500">
                 <span>{{ roleLabelMap[message.role] }}</span>
-                <span>{{ formatTime(message.timestamp) }}</span>
+                <div class="flex flex-wrap items-center gap-2">
+                  <button
+                    v-if="message.hasThoughts"
+                    class="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700 transition-colors hover:bg-amber-100"
+                    @click="toggleThoughts(message.id)"
+                  >
+                    {{ isThoughtsOpen(message.id) ? 'Hide Thoughts' : 'Thoughts' }}
+                  </button>
+                  <span>{{ formatTime(message.timestamp) }}</span>
+                </div>
               </div>
-              <div class="space-y-2 text-[15px] leading-7">
-                <p v-for="(block, blockIndex) in message.blocks" :key="`${message.id}-${blockIndex}`">{{ block.text }}</p>
+
+              <div
+                v-if="message.hasThoughts && isThoughtsOpen(message.id)"
+                class="mb-3 rounded-[22px] border border-dashed border-amber-300 bg-amber-50/80 p-3"
+              >
+                <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-amber-700">Thoughts</p>
+                <div class="lobster-markdown mt-2 text-[14px] leading-7 text-zinc-700" v-html="message.thoughtsHtml"></div>
               </div>
+
+              <div class="lobster-markdown text-[15px] leading-7" v-html="message.bodyHtml"></div>
             </div>
 
             <div
-              v-if="streamingText"
+              v-if="streamingChatCard"
               class="max-w-[94%] rounded-[28px] border-2 border-sky-600 bg-sky-50 px-4 py-3 text-zinc-900 shadow-[4px_4px_0_0_rgba(14,165,233,0.18)]"
             >
-              <div class="mb-2 flex items-center justify-between gap-3 text-xs uppercase tracking-[0.18em] text-sky-700">
+              <div class="mb-3 flex flex-wrap items-start justify-between gap-3 text-xs uppercase tracking-[0.18em] text-sky-700">
                 <span>Boss Lobster</span>
-                <span>Streaming</span>
+                <div class="flex flex-wrap items-center gap-2">
+                  <button
+                    v-if="streamingChatCard.hasThoughts"
+                    class="rounded-full border border-sky-300 bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-sky-700 transition-colors hover:bg-sky-100"
+                    @click="toggleThoughts(streamingChatCard.id)"
+                  >
+                    {{ isThoughtsOpen(streamingChatCard.id) ? 'Hide Thoughts' : 'Thoughts' }}
+                  </button>
+                  <span>Streaming</span>
+                </div>
               </div>
-              <p class="text-[15px] leading-7 whitespace-pre-wrap">{{ streamingText }}</p>
+
+              <div
+                v-if="streamingChatCard.hasThoughts && isThoughtsOpen(streamingChatCard.id)"
+                class="mb-3 rounded-[22px] border border-sky-200 bg-white/80 p-3"
+              >
+                <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-sky-700">Thoughts</p>
+                <div class="lobster-markdown mt-2 text-[14px] leading-7 text-zinc-700" v-html="streamingChatCard.thoughtsHtml"></div>
+              </div>
+
+              <div class="lobster-markdown text-[15px] leading-7" v-html="streamingChatCard.bodyHtml"></div>
             </div>
 
             <div
-              v-if="!messages.length && !streamingText"
+              v-if="!chatMessages.length && !streamingChatCard"
               class="flex min-h-[260px] items-center justify-center rounded-[28px] border-2 border-dashed border-zinc-300 bg-[#fffdf8] px-6 text-center text-zinc-500"
             >
               Connect the workshop, then send the first order to Boss Lobster.
@@ -241,10 +278,11 @@
                 >
                   <div class="flex items-center gap-3">
                     <div class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-[16px] border-2 border-zinc-900 bg-white shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
-                      <img
-                        :src="lobsterAssetForVariant(worker.variant)"
-                        :alt="`${worker.label} helper lobster`"
-                        class="h-14 w-14 [image-rendering:pixelated]"
+                      <WorkshopActorSprite
+                        :variant="worker.variant"
+                        :status="selectedWorkers.includes(worker.id) ? 'armed' : 'idle'"
+                        :scale="1"
+                        size="chip"
                       />
                     </div>
                     <div class="min-w-0">
@@ -300,18 +338,21 @@
               >
                 <div class="flex gap-4">
                   <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[22px] border-2 border-zinc-900 bg-white shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
-                    <img
-                      :src="lobsterAssetForVariant(card.variant)"
-                      :alt="`${card.title} helper lobster`"
-                      class="h-20 w-20 [image-rendering:pixelated]"
-                    />
+                    <WorkshopActorSprite :variant="card.variant" :status="card.status" :scale="1.35" size="card" />
                   </div>
 
                   <div class="min-w-0 flex-1">
                     <div class="flex flex-wrap items-start justify-between gap-2">
                       <div>
                         <h3 class="text-lg font-bold text-zinc-900">{{ card.title }}</h3>
-                        <p class="mt-1 text-xs uppercase tracking-[0.16em] text-zinc-500">{{ card.taskLine }}</p>
+                        <div class="mt-1 flex flex-wrap gap-2">
+                          <span class="rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-500">
+                            {{ card.shortLabel }}
+                          </span>
+                          <span class="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[11px] uppercase tracking-[0.14em] text-zinc-500">
+                            {{ card.taskLine }}
+                          </span>
+                        </div>
                       </div>
                       <span
                         class="rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em]"
@@ -366,12 +407,12 @@
                 :key="item.id"
                 class="rounded-[22px] border-2 border-zinc-900 bg-[#fffaf2] p-4 shadow-[3px_3px_0_0_rgba(0,0,0,1)]"
               >
-                <div class="flex items-start gap-3">
+                <button type="button" class="flex w-full items-start gap-3 text-left" @click="toggleTodoItem(item.id)">
                   <span
                     class="mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-bold"
                     :class="todoBadgeClass(item.status)"
                   >
-                    {{ todoBadgeText(item.status) }}
+                    {{ isTodoOpen(item.id) ? '−' : todoBadgeText(item.status) }}
                   </span>
                   <div class="min-w-0 flex-1">
                     <div class="flex flex-wrap items-start justify-between gap-2">
@@ -393,7 +434,48 @@
                         :style="{ width: `${item.progress}%` }"
                       ></div>
                     </div>
-                    <p class="mt-3 text-sm leading-6 text-zinc-600">{{ item.detail }}</p>
+                    <p class="mt-3 text-sm leading-6 text-zinc-600">{{ item.summary }}</p>
+                  </div>
+                </button>
+
+                <div v-if="isTodoOpen(item.id)" class="mt-4 space-y-4 border-t border-zinc-200 pt-4">
+                  <div class="rounded-[18px] border border-zinc-200 bg-white/90 p-3">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Crew Update</p>
+                    <p class="mt-2 text-sm leading-6 text-zinc-700 whitespace-pre-wrap">{{ item.detail }}</p>
+                  </div>
+
+                  <div
+                    v-if="item.response"
+                    class="rounded-[18px] border-2 border-zinc-900 bg-[#fffdf8] p-4 shadow-[2px_2px_0_0_rgba(0,0,0,1)]"
+                  >
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                      <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">
+                        {{ item.response.isStreaming ? 'Live Boss Reply' : 'Boss Reply' }}
+                      </p>
+                      <button
+                        v-if="item.response.hasThoughts"
+                        class="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700 transition-colors hover:bg-amber-100"
+                        @click.stop="toggleThoughts(item.response.id)"
+                      >
+                        {{ isThoughtsOpen(item.response.id) ? 'Hide Thoughts' : 'Thoughts' }}
+                      </button>
+                    </div>
+
+                    <div
+                      v-if="item.response.hasThoughts && isThoughtsOpen(item.response.id)"
+                      class="mt-3 rounded-[16px] border border-dashed border-amber-300 bg-amber-50/80 p-3"
+                    >
+                      <div class="lobster-markdown text-[14px] leading-7 text-zinc-700" v-html="item.response.thoughtsHtml"></div>
+                    </div>
+
+                    <div class="lobster-markdown mt-3 text-sm leading-7 text-zinc-800" v-html="item.response.bodyHtml"></div>
+                  </div>
+
+                  <div
+                    v-else
+                    class="rounded-[18px] border border-dashed border-zinc-300 bg-white px-4 py-4 text-sm text-zinc-500"
+                  >
+                    Boss reply will appear here when the run reports back.
                   </div>
                 </div>
               </div>
@@ -479,12 +561,14 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { useOpenClawGateway, type LobsterMinionCard } from '~/composables/useOpenClawGateway'
+import { type LobsterChatMessage, type LobsterMinionCard, useOpenClawGateway } from '~/composables/useOpenClawGateway'
+import { renderSafeMarkdown } from '~/utils/safeRichText'
 
 definePageMeta({ layout: 'default' })
 
 type WorkerId = 'codex' | 'claude-code' | 'gemini-cli'
 type CrewStatus = 'queued' | 'idle' | 'working' | 'done' | 'error'
+type StageStatus = CrewStatus | 'armed' | 'online'
 
 type WorkerOption = {
   id: WorkerId
@@ -496,6 +580,7 @@ type WorkerOption = {
 
 type DispatchPlan = {
   id: string
+  runId: string
   task: string
   createdAt: number
   workers: WorkerId[]
@@ -517,41 +602,55 @@ type CrewCardView = {
 type StageWorkerView = {
   id: string
   title: string
-  subtitle: string
+  status: StageStatus
+  statusLabel: string
   note: string
   variant: 'worker' | 'codex' | 'claude' | 'gemini'
+}
+
+type RenderedReplyView = {
+  id: string
+  bodyHtml: string
+  thoughtsHtml: string
+  hasThoughts: boolean
+  isStreaming: boolean
+}
+
+type ChatCardView = {
+  id: string
+  role: LobsterChatMessage['role']
+  timestamp: number
+  bodyHtml: string
+  thoughtsHtml: string
+  hasThoughts: boolean
 }
 
 type TodoItem = {
   id: string
   label: string
   workerLabel: string
+  summary: string
   detail: string
   status: CrewStatus
   progress: number
+  response: RenderedReplyView | null
 }
 
-type LobsterVariant = 'boss' | 'worker' | 'codex' | 'claude' | 'gemini'
+type ActorVariant = 'boss' | 'worker' | 'codex' | 'claude' | 'gemini'
 type StageSlot = {
   left: string
   top: string
 }
 
 const DISPATCH_PREFS_STORAGE_KEY = 'lobster_workshop_dispatch_prefs_v1'
-
-const lobsterAssetMap: Record<LobsterVariant, string> = {
-  boss: '/tools/lobster-workshop/lobster-boss.svg',
-  worker: '/tools/lobster-workshop/lobster-worker-neutral.svg',
-  codex: '/tools/lobster-workshop/lobster-worker-codex.svg',
-  claude: '/tools/lobster-workshop/lobster-worker-claude.svg',
-  gemini: '/tools/lobster-workshop/lobster-worker-gemini.svg'
-}
+const THINK_TAG_PATTERN = /<think>([\s\S]*?)<\/think>/gi
+const FINAL_TAG_PATTERN = /<final>([\s\S]*?)<\/final>/gi
 
 const stageSlots: StageSlot[] = [
-  { left: '12%', top: '60%' },
-  { left: '43%', top: '18%' },
-  { left: '77%', top: '18%' },
-  { left: '80%', top: '68%' }
+  { left: '15%', top: '62%' },
+  { left: '34%', top: '24%' },
+  { left: '68%', top: '23%' },
+  { left: '83%', top: '62%' }
 ]
 
 const workerOptions: WorkerOption[] = [
@@ -602,7 +701,6 @@ const {
   activeRunId,
   sending,
   minionCards,
-  latestAssistantMessage,
   connect,
   disconnect,
   refreshDeck,
@@ -614,8 +712,10 @@ const showSettingsModal = ref(false)
 const launchSubagents = ref(true)
 const selectedWorkers = ref<WorkerId[]>(['codex'])
 const recentDispatches = ref<DispatchPlan[]>([])
+const openThoughtIds = ref<string[]>([])
+const openTodoIds = ref<string[]>([])
 
-const roleLabelMap: Record<string, string> = {
+const roleLabelMap: Record<LobsterChatMessage['role'], string> = {
   user: 'Captain',
   assistant: 'Boss Lobster',
   system: 'Workshop'
@@ -639,31 +739,47 @@ const connectButtonLabel = computed(() => {
   return 'Connect Workshop'
 })
 
+const latestDispatch = computed(() => recentDispatches.value[0] || null)
+
+const dispatchMapByRunId = computed(() =>
+  new Map(
+    recentDispatches.value
+      .filter(dispatch => dispatch.runId)
+      .map(dispatch => [dispatch.runId, dispatch] as const)
+  )
+)
+
+const activeDispatch = computed(() =>
+  activeRunId.value ? dispatchMapByRunId.value.get(activeRunId.value) || null : null
+)
+
+const bossStageState = computed<{ status: StageStatus; label: string }>(() => {
+  if (status.value === 'connecting') {
+    return { status: 'working', label: 'Waking' }
+  }
+  if (status.value === 'connected' && streamingText.value && activeDispatch.value?.workers.length) {
+    return { status: 'working', label: 'Dispatching' }
+  }
+  if (status.value === 'connected' && streamingText.value) {
+    return { status: 'working', label: 'Thinking' }
+  }
+  if (status.value === 'connected') {
+    return { status: 'online', label: 'Online' }
+  }
+  return { status: 'idle', label: 'Docked' }
+})
+
 const bossStatusNote = computed(() => {
   if (status.value === 'connecting') return 'Boss Lobster is waking the gateway and checking the dock lines.'
-  if (status.value === 'connected' && streamingText.value) return 'Boss Lobster is steering the run and waiting for helper reports.'
+  if (status.value === 'connected' && streamingText.value && activeDispatch.value?.workers.length) {
+    return 'Boss Lobster is dispatching helper work. Follow detailed progress from the checklist on the right.'
+  }
+  if (status.value === 'connected' && streamingText.value) {
+    return 'Boss Lobster is steering the current task and sending a direct response.'
+  }
   if (status.value === 'connected') return 'The workshop is online. Send a task and the crew will start moving.'
   return 'The workshop is docked. Open settings if needed, then connect the gateway.'
 })
-
-const bossReplyDigest = computed(() =>
-  streamingText.value || latestAssistantMessage.value || 'The next boss update will appear here once the workshop starts talking.'
-)
-
-const helperRosterSummary = computed(() => {
-  if (!launchSubagents.value) {
-    return 'Helpers are off. Boss Lobster will handle the next order alone.'
-  }
-
-  if (!selectedWorkers.value.length) {
-    return 'No helper lobster is armed yet. Pick Codex, Claude Code, or Gemini CLI before you dispatch work.'
-  }
-
-  const labels = selectedWorkers.value.map(workerId => workerOptionMap[workerId].label).join(', ')
-  return `${selectedWorkers.value.length} helper ${selectedWorkers.value.length > 1 ? 'lobsters are' : 'lobster is'} armed: ${labels}.`
-})
-
-const latestDispatch = computed(() => recentDispatches.value[0] || null)
 
 const canSendOrder = computed(() =>
   status.value === 'connected' &&
@@ -741,6 +857,14 @@ const todoBadgeText = (statusValue: CrewStatus) => {
   return '>'
 }
 
+const stageStatusChipClass = (statusValue: StageStatus) => {
+  if (statusValue === 'working') return 'work-chip border-sky-300 bg-sky-100 text-sky-700'
+  if (statusValue === 'done' || statusValue === 'online') return 'border-emerald-300 bg-emerald-100 text-emerald-700'
+  if (statusValue === 'error') return 'border-red-300 bg-red-100 text-red-700'
+  if (statusValue === 'armed') return 'border-amber-300 bg-amber-100 text-amber-700'
+  return 'border-zinc-300 bg-zinc-100 text-zinc-600'
+}
+
 const workerChipClass = (workerId: WorkerId) => {
   const active = selectedWorkers.value.includes(workerId)
   return [
@@ -751,14 +875,11 @@ const workerChipClass = (workerId: WorkerId) => {
   ]
 }
 
-const lobsterAssetForVariant = (variant: LobsterVariant) => lobsterAssetMap[variant] || lobsterAssetMap.worker
-
 const stageWorkerStyle = (index: number) => {
   const slot = stageSlots[index] || stageSlots[stageSlots.length - 1]
   return {
     left: slot.left,
-    top: slot.top,
-    transform: 'translate(-50%, -50%)'
+    top: slot.top
   }
 }
 
@@ -771,6 +892,19 @@ const toggleWorker = (workerId: WorkerId) => {
     selectedWorkers.value = [...selectedWorkers.value, workerId]
   }
 }
+
+const toggleExpandedId = (target: typeof openThoughtIds | typeof openTodoIds, id: string) => {
+  if (target.value.includes(id)) {
+    target.value = target.value.filter(entry => entry !== id)
+  } else {
+    target.value = [...target.value, id]
+  }
+}
+
+const toggleThoughts = (id: string) => toggleExpandedId(openThoughtIds, id)
+const isThoughtsOpen = (id: string) => openThoughtIds.value.includes(id)
+const toggleTodoItem = (id: string) => toggleExpandedId(openTodoIds, id)
+const isTodoOpen = (id: string) => openTodoIds.value.includes(id)
 
 const buildGatewayMessage = (taskText: string, workers: WorkerId[]) => {
   if (!workers.length) return taskText
@@ -823,16 +957,19 @@ const loadDispatchPrefs = () => {
   }
 }
 
-const registerDispatch = (task: string, workers: WorkerId[]) => {
-  recentDispatches.value = [
-    {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      task,
-      createdAt: Date.now(),
-      workers
-    },
-    ...recentDispatches.value
-  ].slice(0, 6)
+const registerDispatch = (task: string, workers: WorkerId[], runId: string) => {
+  const dispatch: DispatchPlan = {
+    id: runId || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    runId,
+    task,
+    createdAt: Date.now(),
+    workers
+  }
+
+  recentDispatches.value = [dispatch, ...recentDispatches.value].slice(0, 6)
+  openTodoIds.value = workers.length
+    ? workers.map(workerId => `${dispatch.id}-${workerId}`)
+    : [`${dispatch.id}-boss`]
 }
 
 const matchingActualCard = (dispatch: DispatchPlan, workerId: WorkerId) =>
@@ -898,7 +1035,8 @@ const stageWorkers = computed<StageWorkerView[]>(() => {
     return crewCards.value.slice(0, 4).map((card) => ({
       id: card.id,
       title: card.title,
-      subtitle: card.status,
+      status: card.status,
+      statusLabel: card.status,
       note: card.note || card.taskLine,
       variant: card.variant
     }))
@@ -915,38 +1053,160 @@ const stageWorkers = computed<StageWorkerView[]>(() => {
     return {
       id: `stage-${workerId}`,
       title: worker.label,
-      subtitle: 'armed',
+      status: 'armed' as const,
+      statusLabel: 'armed',
       note: worker.short,
       variant: worker.variant
     }
   })
 })
 
+const flattenMessageText = (message: LobsterChatMessage) =>
+  message.blocks
+    .map(block => block.text.trim())
+    .filter(Boolean)
+    .join('\n\n')
+    .trim()
+
+const extractTaggedContent = (raw: string) => {
+  const thoughtChunks: string[] = []
+  let working = raw || ''
+
+  working = working.replace(THINK_TAG_PATTERN, (_, thought: string) => {
+    const cleaned = String(thought || '').trim()
+    if (cleaned) {
+      thoughtChunks.push(cleaned)
+    }
+    return ''
+  })
+
+  const finalChunks: string[] = []
+  working = working.replace(FINAL_TAG_PATTERN, (_, finalChunk: string) => {
+    const cleaned = String(finalChunk || '').trim()
+    if (cleaned) {
+      finalChunks.push(cleaned)
+      return cleaned
+    }
+    return ''
+  })
+
+  const cleanedWorking = working.replace(/<\/?(?:think|final)>/gi, '').trim()
+  const body = (finalChunks.length ? finalChunks.join('\n\n') : cleanedWorking).trim() || cleanedWorking
+
+  return {
+    body,
+    thoughts: thoughtChunks.join('\n\n').trim()
+  }
+}
+
+const buildRenderedReply = (id: string, rawText: string, isStreaming = false): RenderedReplyView => {
+  const tagged = extractTaggedContent(rawText)
+  const bodyMarkdown = tagged.body || '_No reply yet._'
+  const thoughtsMarkdown = tagged.thoughts
+
+  return {
+    id,
+    bodyHtml: renderSafeMarkdown(bodyMarkdown),
+    thoughtsHtml: thoughtsMarkdown ? renderSafeMarkdown(thoughtsMarkdown) : '',
+    hasThoughts: Boolean(thoughtsMarkdown),
+    isStreaming
+  }
+}
+
+const renderedRepliesByRunId = computed(() => {
+  const nextMap = new Map<string, RenderedReplyView>()
+
+  messages.value.forEach((message) => {
+    if (message.role !== 'assistant' || !message.runId) return
+    nextMap.set(message.runId, buildRenderedReply(message.id, flattenMessageText(message)))
+  })
+
+  if (activeRunId.value && streamingText.value.trim()) {
+    nextMap.set(activeRunId.value, buildRenderedReply(`stream-${activeRunId.value}`, streamingText.value, true))
+  }
+
+  return nextMap
+})
+
+const isHelperDispatchRun = (runId?: string) =>
+  Boolean(runId && dispatchMapByRunId.value.get(runId)?.workers.length)
+
+const chatMessages = computed<ChatCardView[]>(() =>
+  messages.value
+    .filter((message) => !(message.role === 'assistant' && isHelperDispatchRun(message.runId)))
+    .map((message) => {
+      const rendered = buildRenderedReply(message.id, flattenMessageText(message))
+      return {
+        id: message.id,
+        role: message.role,
+        timestamp: message.timestamp,
+        bodyHtml: rendered.bodyHtml,
+        thoughtsHtml: rendered.thoughtsHtml,
+        hasThoughts: rendered.hasThoughts
+      }
+    })
+)
+
+const streamingChatCard = computed(() => {
+  if (!streamingText.value.trim()) return null
+  if (activeDispatch.value?.workers.length) return null
+
+  const rendered = buildRenderedReply(`stream-${activeRunId.value || 'boss'}`, streamingText.value, true)
+  return {
+    ...rendered,
+    role: 'assistant' as const
+  }
+})
+
+const dispatchFallbackStatus = (dispatch: DispatchPlan): CrewStatus => {
+  if (dispatch.runId && activeRunId.value === dispatch.runId && streamingText.value.trim()) {
+    return 'working'
+  }
+
+  const reply = dispatch.runId ? renderedRepliesByRunId.value.get(dispatch.runId) : null
+  if (reply && !reply.isStreaming) {
+    return 'done'
+  }
+
+  return 'queued'
+}
+
 const todoItems = computed<TodoItem[]>(() => {
   const items = recentDispatches.value.flatMap((dispatch) => {
+    const reply = dispatch.runId ? renderedRepliesByRunId.value.get(dispatch.runId) || null : null
+
     if (dispatch.workers.length === 0) {
-      const statusValue: CrewStatus = streamingText.value ? 'working' : 'queued'
+      const statusValue = dispatchFallbackStatus(dispatch)
       return [{
         id: `${dispatch.id}-boss`,
         label: truncateTask(dispatch.task, 68),
         workerLabel: 'Boss Lobster',
-        detail: 'Handled directly by the boss without helper lobsters.',
+        summary: statusValue === 'working'
+          ? 'Boss Lobster is still composing a direct reply.'
+          : 'Handled directly by the boss without helper lobsters.',
+        detail: dispatch.task,
         status: statusValue,
-        progress: progressFromStatus(statusValue)
+        progress: progressFromStatus(statusValue),
+        response: reply
       }]
     }
 
     return dispatch.workers.map((workerId) => {
       const worker = workerOptionMap[workerId]
       const actualCard = matchingActualCard(dispatch, workerId)
-      const statusValue: CrewStatus = actualCard?.status || 'queued'
+      const statusValue: CrewStatus = actualCard?.status || dispatchFallbackStatus(dispatch)
+
       return {
         id: `${dispatch.id}-${workerId}`,
         label: truncateTask(dispatch.task, 68),
         workerLabel: worker.label,
-        detail: actualCard?.detail || 'Queued for helper dispatch. Waiting for telemetry from OpenClaw.',
+        summary: actualCard?.note || (statusValue === 'working'
+          ? 'Helper run is active. Open this item to follow the latest boss reply.'
+          : 'Queued for helper dispatch. Waiting for telemetry from OpenClaw.'),
+        detail: actualCard?.detail || dispatch.task,
         status: statusValue,
-        progress: progressFromStatus(statusValue)
+        progress: progressFromStatus(statusValue),
+        response: reply
       }
     })
   })
@@ -959,13 +1219,13 @@ const handleSendOrder = async () => {
   if (!taskText || !canSendOrder.value) return
 
   const workers = launchSubagents.value ? [...selectedWorkers.value] : []
-  const success = await sendMessage({
+  const runId = await sendMessage({
     displayText: taskText,
     gatewayText: buildGatewayMessage(taskText, workers)
   })
 
-  if (success) {
-    registerDispatch(taskText, workers)
+  if (runId) {
+    registerDispatch(taskText, workers, runId)
   }
 }
 
@@ -975,3 +1235,154 @@ onMounted(() => {
   loadDispatchPrefs()
 })
 </script>
+
+<style scoped>
+.work-chip {
+  animation: work-chip-pulse 1.15s ease-in-out infinite;
+}
+
+.lobster-markdown :deep(p) {
+  margin: 0.55rem 0;
+}
+
+.lobster-markdown :deep(p:first-child) {
+  margin-top: 0;
+}
+
+.lobster-markdown :deep(p:last-child) {
+  margin-bottom: 0;
+}
+
+.lobster-markdown :deep(ul),
+.lobster-markdown :deep(ol) {
+  margin: 0.55rem 0;
+  padding-left: 1.4rem;
+}
+
+.lobster-markdown :deep(li) {
+  margin: 0.28rem 0;
+}
+
+.lobster-markdown :deep(strong) {
+  font-weight: 700;
+}
+
+.lobster-markdown :deep(em) {
+  font-style: italic;
+}
+
+.lobster-markdown :deep(code) {
+  border-radius: 0.4rem;
+  background: rgba(24, 24, 27, 0.08);
+  padding: 0.05rem 0.35rem;
+  font-size: 0.92em;
+}
+
+.lobster-markdown :deep(pre) {
+  overflow-x: auto;
+  border-radius: 1rem;
+  background: #1f2937;
+  color: #f8fafc;
+  padding: 0.85rem 1rem;
+}
+
+.lobster-markdown :deep(pre code) {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+.lobster-markdown :deep(a) {
+  color: #0369a1;
+  text-decoration: underline;
+}
+
+.lobster-markdown :deep(blockquote) {
+  margin: 0.8rem 0;
+  border-left: 3px solid rgba(245, 158, 11, 0.4);
+  padding-left: 0.85rem;
+  color: #57534e;
+}
+
+@keyframes lobster-idle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-4px) rotate(-1deg);
+  }
+}
+
+@keyframes lobster-ready {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1.5deg);
+  }
+
+  50% {
+    transform: translateY(-6px) rotate(1.5deg);
+  }
+}
+
+@keyframes lobster-working {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg) scale(1);
+  }
+
+  25% {
+    transform: translateY(-4px) rotate(2deg) scale(1.02);
+  }
+
+  50% {
+    transform: translateY(-7px) rotate(-1deg) scale(1.03);
+  }
+
+  75% {
+    transform: translateY(-3px) rotate(2deg) scale(1.02);
+  }
+}
+
+@keyframes lobster-done {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  40% {
+    transform: translateY(-5px) rotate(-1deg);
+  }
+
+  65% {
+    transform: translateY(-2px) rotate(2deg);
+  }
+}
+
+@keyframes lobster-error {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-2px);
+  }
+
+  75% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes work-chip-pulse {
+  0%,
+  100% {
+    box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 1);
+  }
+
+  50% {
+    box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 1), 0 0 0 6px rgba(125, 211, 252, 0.2);
+  }
+}
+</style>

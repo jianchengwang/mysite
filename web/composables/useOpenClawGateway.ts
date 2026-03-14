@@ -1023,7 +1023,7 @@ export const useOpenClawGateway = () => {
     const displayText = (options.displayText ?? draft.value).trim()
     const gatewayText = (options.gatewayText ?? displayText).trim()
     const text = displayText
-    if (!text || status.value !== 'connected' || sending.value) return false
+    if (!text || status.value !== 'connected' || sending.value) return ''
 
     const runId = createId()
     messages.value = [
@@ -1050,14 +1050,14 @@ export const useOpenClawGateway = () => {
         deliver: false,
         idempotencyKey: runId
       })
-      return true
+      return runId
     } catch (error) {
       const message = normalizeErrorMessage(error)
       lastError.value = message
       pushSystemMessage(message)
       activeRunId.value = ''
       streamingText.value = ''
-      return false
+      return ''
     } finally {
       sending.value = false
     }
