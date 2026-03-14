@@ -99,11 +99,15 @@ type PondFish = {
   x: number
   y: number
   baseY: number
+  targetY: number
   speed: number
+  speedY: number
   direction: number
   phase: number
   size: number
   label: string
+  state: 'drifting' | 'darting'
+  stateTimer: number
 }
 
 const STORAGE_KEY = 'games_fish_pond_items'
@@ -122,27 +126,32 @@ const heroStats = computed(() => [
 ])
 
 const fishStyle = (fish: PondFish) => {
-  const bob = Math.sin(fish.phase) * 12
+  const bob = Math.sin(fish.phase) * 8
   const scaleX = fish.direction > 0 ? 1 : -1
+  const tilt = fish.speedY * 2.5 + Math.sin(fish.phase * 0.5) * 2
   return {
     width: `${fish.size}px`,
-    transform: `translate(${fish.x}px, ${fish.baseY + bob}px) scaleX(${scaleX}) rotate(${Math.sin(fish.phase * 0.5) * 3}deg)`
+    transform: `translate(${fish.x}px, ${fish.y + bob}px) scaleX(${scaleX}) rotate(${tilt}deg)`
   }
 }
 
 const persistFishes = () => {
   if (!import.meta.client) return
-  const payload = fishes.value.map(({ id, image, x, y, baseY, speed, direction, phase, size, label }) => ({
+  const payload = fishes.value.map(({ id, image, x, y, baseY, targetY, speed, speedY, direction, phase, size, label, state, stateTimer }) => ({
     id,
     image,
     x,
     y,
     baseY,
+    targetY,
     speed,
+    speedY,
     direction,
     phase,
     size,
-    label
+    label,
+    state,
+    stateTimer
   }))
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
 }
@@ -153,23 +162,51 @@ const animate = (timestamp: number) => {
   lastTick = timestamp
 
   if (!isPaused.value) {
+    const pondWidth = pondRef.value?.clientWidth || 880
+    const pondHeight = pondRef.value?.clientHeight || 620
+
     fishes.value = fishes.value.map((fish) => {
       const next = { ...fish }
-      next.phase += delta * 0.0025
-      next.x += next.speed * (delta / 16)
-      next.y = next.baseY
+      next.phase += delta * 0.002
+      next.stateTimer -= delta
 
-      const maxX = Math.max(520, (pondRef.value?.clientWidth || 880) - next.size * 0.4)
+      if (next.stateTimer <= 0) {
+        if (next.state === 'drifting') {
+          next.state = 'darting'
+          next.stateTimer = 800 + Math.random() * 1200
+          next.speed = (next.direction > 0 ? 1 : -1) * (2.8 + Math.random() * 2.5)
+        } else {
+          next.state = 'drifting'
+          next.stateTimer = 2000 + Math.random() * 4000
+          next.speed = (next.direction > 0 ? 1 : -1) * (0.8 + Math.random() * 0.8)
+        }
+      }
+
+      // Smoothly adjust vertical position
+      if (Math.random() < 0.01) {
+        next.targetY = 80 + Math.random() * (pondHeight - 160)
+      }
+      const dy = next.targetY - next.y
+      next.speedY = dy * 0.01
+      next.y += next.speedY * (delta / 16)
+      next.x += next.speed * (delta / 16)
+
+      const maxX = pondWidth - next.size * 0.4
+      const minX = -next.size * 0.55
+
       if (next.x > maxX) {
         next.x = maxX
-        next.speed *= -1
+        next.speed = -Math.abs(next.speed)
         next.direction = -1
+        next.stateTimer = 0 // Force state change
       }
-      if (next.x < -next.size * 0.55) {
-        next.x = -next.size * 0.55
-        next.speed *= -1
+      if (next.x < minX) {
+        next.x = minX
+        next.speed = Math.abs(next.speed)
         next.direction = 1
+        next.stateTimer = 0 // Force state change
       }
+      
       return next
     })
   }
@@ -180,8 +217,9 @@ const animate = (timestamp: number) => {
 const handleSaveFish = (image: string) => {
   const size = 96 + Math.round(Math.random() * 64)
   const direction = Math.random() > 0.5 ? 1 : -1
-  const speed = (1.4 + Math.random() * 1.2) * direction
+  const speed = (0.8 + Math.random() * 0.8) * direction
   const id = `${Date.now()}-${Math.round(Math.random() * 10000)}`
+  const y = 96 + Math.random() * 360
 
   fishes.value = [
     ...fishes.value,
@@ -189,15 +227,19 @@ const handleSaveFish = (image: string) => {
       id,
       image,
       x: Math.random() * 760,
-      y: 0,
-      baseY: 96 + Math.random() * 360,
+      y,
+      baseY: y,
+      targetY: y,
       speed,
+      speedY: 0,
       direction,
       phase: Math.random() * Math.PI * 2,
       size,
-      label: `Fish ${fishes.value.length + 1}`
+      label: `Fish ${fishes.value.length + 1}`,
+      state: 'drifting',
+      stateTimer: 2000 + Math.random() * 3000
     }
-  ].slice(-12)
+  ].slice(-16)
 
   showWhiteboard.value = false
   persistFishes()

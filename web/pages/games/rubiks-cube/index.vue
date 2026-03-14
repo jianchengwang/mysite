@@ -150,7 +150,17 @@ const formatTurnLabel = (move: CubeMove) => {
 const turningLayer = ref<number | null>(null)
 const turningAxis = ref<'x' | 'y' | 'z' | null>(null)
 const turningAngle = ref(0)
-let turnAnimationTimer = 0
+
+// For the drag preview
+const previewFace = ref<CubeFace | null>(null)
+const previewAxis = ref<'x' | 'y' | 'z' | null>(null)
+const previewAngle = ref(0)
+
+const clearFacePreview = () => {
+  previewFace.value = null
+  previewAxis.value = null
+  previewAngle.value = 0
+}
 
 const guide = computed(() => getCubeGuide(cube.value, moveHistory.value))
 const cubeTransform = computed(
@@ -163,9 +173,11 @@ const cubieStyle = (cubie: any) => {
   const { x, y, z } = cubie.position
   const transforms = [`translate3d(calc(${x} * var(--cubie-size)), calc(${-y} * var(--cubie-size)), calc(${z} * var(--cubie-size)))`]
 
-  if (turningAxis.value && cubie.position[turningAxis.value] === turningLayer.value) {
-    const axis = turningAxis.value.toUpperCase()
-    transforms.unshift(`rotate${axis}(${turningAngle.value}deg)`)
+  // Apply either the active animation or the current drag preview
+  const axis = turningAxis.value || (previewFace.value ? faceTurnAxis[previewFace.value] : null)
+  if (axis && cubie.position[axis] === (turningLayer.value ?? (previewFace.value ? (previewFace.value === 'U' || previewFace.value === 'R' || previewFace.value === 'F' ? 1 : -1) : 0))) {
+    const angle = turningAngle.value || previewAngle.value
+    transforms.unshift(`rotate${axis.toUpperCase()}(${angle}deg)`)
   }
 
   return {

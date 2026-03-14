@@ -33,10 +33,38 @@ const DIRECTIONS = [
   [1, -1]
 ] as const
 
+// Zobrist Hashing for Gomoku
+const zobristTable = new BigUint64Array(GOMOKU_SIZE * GOMOKU_SIZE * 3) // 0: empty, 1: black, 2: white
+const zobristSide = new BigUint64Array(1)
+
+const initZobrist = () => {
+  const view = new BigUint64Array(1)
+  for (let i = 0; i < zobristTable.length; i++) {
+    crypto.getRandomValues(new Uint32Array(view.buffer))
+    zobristTable[i] = view[0]
+  }
+  crypto.getRandomValues(new Uint32Array(view.buffer))
+  zobristSide[0] = view[0]
+}
+initZobrist()
+
+const getZobristHash = (board: GomokuBoard, turn: GomokuColor): bigint => {
+  let hash = turn === 1 ? 0n : zobristSide[0]
+  for (let r = 0; r < GOMOKU_SIZE; r++) {
+    for (let c = 0; c < GOMOKU_SIZE; c++) {
+      const stone = board[r][c]
+      if (stone !== 0) {
+        hash ^= zobristTable[(r * GOMOKU_SIZE + c) * 3 + stone]
+      }
+    }
+  }
+  return hash
+}
+
 export const gomokuDifficulties: GomokuDifficulty[] = [
   { id: 'easy', label: 'Easy', depth: 1, width: 12, note: 'Fast local play that is good for short practice rounds.' },
-  { id: 'medium', label: 'Medium', depth: 3, width: 14, note: 'Balances attack building with immediate defensive reading.' },
-  { id: 'hard', label: 'Hard', depth: 5, width: 18, note: 'Deep tactical reading of forcing threats and initiative.' }
+  { id: 'medium', label: 'Medium', depth: 4, width: 10, note: 'Balances attack building with immediate defensive reading.' },
+  { id: 'hard', label: 'Hard', depth: 6, width: 8, note: 'Deep tactical reading of forcing threats and initiative.' }
 ]
 
 export const createGomokuBoard = (): GomokuBoard =>
@@ -122,7 +150,7 @@ const scoreMoveLocal = (board: GomokuBoard, row: number, col: number, color: Gom
   return score - centerDistance * 2
 }
 
-const hasNearbyStone = (board: GomokuBoard, row: number, col: number, radius = 2) => {
+const hasNearbyStone = (board: GomokuBoard, row: number, col: number, radius = 1) => {
   for (let dr = -radius; dr <= radius; dr++) {
     for (let dc = -radius; dc <= radius; dc++) {
       if (dr === 0 && dc === 0) continue
@@ -177,7 +205,7 @@ const scoreBoardForColor = (board: GomokuBoard, color: GomokuColor) => {
 
 export const evaluateGomokuBoard = (board: GomokuBoard, aiColor: GomokuColor) => {
   const opponent = getOpponentColor(aiColor)
-  return scoreBoardForColor(board, aiColor) - scoreBoardForColor(board, opponent) * 1.06
+  return scoreBoardForColor(board, aiColor) - scoreBoardForColor(board, opponent) * 1.12
 }
 
 const isWinningMove = (board: GomokuBoard, move: GomokuMove) => {
@@ -217,7 +245,7 @@ const getCandidateMoves = (board: GomokuBoard, color: GomokuColor, maxCandidates
 
   for (let row = 0; row < GOMOKU_SIZE; row++) {
     for (let col = 0; col < GOMOKU_SIZE; col++) {
-      if (board[row][col] !== 0 || !hasNearbyStone(board, row, col)) continue
+      if (board[row][col] !== 0 || !hasNearbyStone(board, row, col, 2)) continue
 
       const ownScore = scoreMoveLocal(board, row, col, color)
       const blockScore = scoreMoveLocal(board, row, col, opponent)
@@ -225,7 +253,7 @@ const getCandidateMoves = (board: GomokuBoard, color: GomokuColor, maxCandidates
         row,
         col,
         color,
-        score: ownScore * 1.1 + blockScore
+        score: ownScore * 1.2 + blockScore
       })
     }
   }
@@ -235,16 +263,13 @@ const getCandidateMoves = (board: GomokuBoard, color: GomokuColor, maxCandidates
     .slice(0, maxCandidates)
 }
 
-const boardKey = (board: GomokuBoard, color: GomokuColor, depth: number) =>
-  `${color}:${depth}:${board.map((row) => row.join('')).join('|')}`
-
 type TTEntry = {
   score: number
   depth: number
   flag: 'EXACT' | 'LOWERBOUND' | 'UPPERBOUND'
 }
 
-const transpositionTable = new Map<string, TTEntry>()
+const transpositionTable = new Map<bigint, TTEntry>()
 
 export const searchBestGomokuMove = (
   board: GomokuBoard,
@@ -253,7 +278,8 @@ export const searchBestGomokuMove = (
 ): GomokuSearchResult => {
   let nodes = 0
   transpositionTable.clear()
-  const tacticalWidth = Math.max(difficulty.width * 2, 24)
+  const tacticalWidth = Math.max(difficulty.width * 2, 20)
+  let currentHash = getZobristHash(board, aiColor)
 
   const negamax = (
     currentBoard: GomokuBoard,
@@ -266,11 +292,10 @@ export const searchBestGomokuMove = (
     nodes++
 
     if (lastMove && checkGomokuWin(currentBoard, lastMove.row, lastMove.col, lastMove.color)) {
-      return lastMove.color === aiColor ? WIN_SCORE + depth : -WIN_SCORE - depth
+      return -WIN_SCORE - depth
     }
 
-    const key = boardKey(currentBoard, currentColor, depth)
-    const ttEntry = transpositionTable.get(key)
+    const ttEntry = transpositionTable.get(currentHash)
     if (ttEntry && ttEntry.depth >= depth) {
       if (ttEntry.flag === 'EXACT') return ttEntry.score
       if (ttEntry.flag === 'LOWERBOUND') alpha = Math.max(alpha, ttEntry.score)
@@ -281,11 +306,12 @@ export const searchBestGomokuMove = (
     const opponent = getOpponentColor(currentColor)
     const immediateWins = getImmediateWinningMoves(currentBoard, currentColor, tacticalWidth)
     if (immediateWins.length) {
-      return currentColor === aiColor ? WIN_SCORE + depth : -WIN_SCORE - depth
+      return WIN_SCORE + depth
     }
 
     if (depth === 0 || countStones(currentBoard) === GOMOKU_SIZE * GOMOKU_SIZE) {
-      return evaluateGomokuBoard(currentBoard, aiColor)
+      const evalScore = evaluateGomokuBoard(currentBoard, aiColor)
+      return currentColor === aiColor ? evalScore : -evalScore
     }
 
     const opponentWinningMoves = getImmediateWinningMoves(currentBoard, opponent, tacticalWidth)
@@ -295,21 +321,32 @@ export const searchBestGomokuMove = (
         : getCandidateMoves(currentBoard, currentColor, difficulty.width)
     
     if (!moves.length) {
-      return evaluateGomokuBoard(currentBoard, aiColor)
+      const evalScore = evaluateGomokuBoard(currentBoard, aiColor)
+      return currentColor === aiColor ? evalScore : -evalScore
     }
 
     let best = -Infinity
+    let alphaOrig = alpha
     for (const move of moves) {
+      // Update hash
+      const prevHash = currentHash
+      currentHash ^= zobristTable[(move.row * GOMOKU_SIZE + move.col) * 3 + currentColor]
+      currentHash ^= zobristSide[0]
+      
       const score = -negamax(applyGomokuMove(currentBoard, move), opponent, depth - 1, -beta, -alpha, move)
+      
+      // Restore hash
+      currentHash = prevHash
+
       if (score > best) best = score
       alpha = Math.max(alpha, score)
       if (alpha >= beta) break
     }
 
-    transpositionTable.set(key, {
+    transpositionTable.set(currentHash, {
       score: best,
       depth,
-      flag: best <= alpha ? 'UPPERBOUND' : best >= beta ? 'LOWERBOUND' : 'EXACT'
+      flag: best <= alphaOrig ? 'UPPERBOUND' : best >= beta ? 'LOWERBOUND' : 'EXACT'
     })
 
     return best
@@ -333,7 +370,14 @@ export const searchBestGomokuMove = (
     let currentBestScore = -Infinity
 
     for (const move of rootMoves) {
+      const prevHash = currentHash
+      currentHash ^= zobristTable[(move.row * GOMOKU_SIZE + move.col) * 3 + aiColor]
+      currentHash ^= zobristSide[0]
+
       const score = -negamax(applyGomokuMove(board, move), getOpponentColor(aiColor), d - 1, -Infinity, Infinity, move)
+      
+      currentHash = prevHash
+
       if (score > currentBestScore) {
         currentBestScore = score
         currentBestMove = move

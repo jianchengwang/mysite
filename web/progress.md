@@ -1,57 +1,61 @@
 # Game Optimizations & Visual Polish Progress
 
-## Completed Tasks
+## Recent Bugfix Pass (March 14, 2026)
 
-### 1. Chinese Chess (Xiangqi)
-- **Visual Polish:** Added a standard Xiangqi board look using SVG lines, including the **River (楚河 漢界)** and **Palace diagonals**.
-- **Piece Labels:** Updated to **Traditional Chinese characters** (帥, 將, etc.) for a more authentic feel.
-- **AI Improvement:** 
-    - Implemented **Transposition Table (TT)**: Caches search results to avoid redundant evaluations, significantly speeding up deeper searches.
-    - **Quiescence Search**: Added a capture-only search at the end of the main search to mitigate the horizon effect and ensure more accurate evaluations during tactical exchanges.
-    - **Iterative Deepening**: Allows for better move ordering (using TT best moves) and provides a more robust search framework.
-    - **MVV-LVA Move Ordering**: Most Valuable Victim - Least Valuable Aggressor ordering greatly improves Alpha-Beta pruning efficiency.
-    - **Mobility & Positional Evaluation**: Enhanced the evaluation function with mobility bonuses and refined Piece-Square Tables (PST).
-    - **Increased Search Depth**: Pushed depths to **Medium: 5** and **Hard: 6** for a professional-level challenge while maintaining responsiveness.
-- **Verification:** Built successfully. AI moves feel much more purposeful and tactical.
+### 1. Gomoku AI
+- **Root Cause**: Search was using expensive string-based board hashing for every node, and depth settings were too shallow for Medium while too wide for Hard.
+- **Fixes**:
+    - Implemented **Zobrist Hashing** for O(1) board state keys.
+    - Optimized **Transposition Table** usage by removing depth from key and checking entry depth.
+    - Adjusted difficulty: Medium depth increased to 4 (stronger), Hard width reduced to 8 but depth increased to 6 (faster but deeper).
+    - Improved **nearby stone detection** radius for better candidate moves.
+- **Behavior Improvement**: Medium feels competent; Hard responds much faster and plays more deeply.
 
-### 2. Gomoku
-- **AI Improvement:**
-    - **Transposition Table (TT)**: Implemented search caching for improved efficiency.
-    - **Iterative Deepening**: Added for better move ordering and more robust tactical reading.
-    - **Increased Search Depth**: Increased depths to **Medium: 3** and **Hard: 5**, making the AI significantly better at detecting long-term threats and forced wins.
-    - **Threat Awareness**: Improved root move selection to better handle immediate winning/losing threats.
-- **Verification:** Built successfully.
+### 2. Chinese Chess AI
+- **Root Cause**: Check detection (`isInternalInCheck`) was generating all legal moves for the opponent, which was O(N^2) and slow in JavaScript.
+- **Fixes**:
+    - Optimized `isInternalInCheck` to directly check threat lines/patterns (Horse, Rook, Cannon, Soldier) from the General's square.
+    - Balanced depth settings: Hard reduced from 7 to 6, Medium from 5 to 4 to ensure responsiveness in the browser.
+- **Behavior Improvement**: AI responds significantly faster, especially in complex positions.
 
-### 3. Huarongdao
-- **Interaction:** Implemented **Drag-to-Move** detection. Users can now swipe or drag pieces in the desired direction.
-- **Localization:** Translated all UI labels and status messages to **English**.
-- **Piece Names:** Preserved Chinese piece names (曹操, 关羽, etc.).
-- **Verification:** Built successfully.
+### 3. Fish Pond
+- **Root Cause**: Movement logic was a simple X-axis oscillation with a fixed bobbing phase.
+- **Fixes**:
+    - Added **target-based vertical movement** with smooth interpolation.
+    - Implemented **state-based movement**: alternating between 'drifting' (slow) and 'darting' (fast).
+    - Added random direction changes and tilt/rotation based on vertical speed.
+- **Behavior Improvement**: Fish feel much more alive with varied, lifelike motion and unpredictable "darts".
 
 ### 4. Rubik's Cube
-- **Rendering Fix:** Refactored the rendering logic to **Cubie-based (27 cubies)**.
-- **Correct Rotation:** Coherent layer rotations across all adjacent faces.
-- **Animation:** Added smooth **CSS-based rotation animation**.
-- **Verification:** Built successfully.
+- **Root Cause**: Missing state variables (`previewFace`, `previewAxis`, `previewAngle`) and lack of visual feedback during dragging made rotations feel broken.
+- **Fixes**:
+    - Fixed missing declarations and defined `clearFacePreview`.
+    - Integrated **drag preview** into the `cubieStyle` transform logic.
+    - Synced drag distance to a visual rotation angle (limited to 34 degrees) for immediate feedback.
+- **Behavior Improvement**: Dragging a face now shows it physically rotating in real-time before the move is committed.
 
-### 5. Fish Pond
-- **Visual Style:** Replaced the "blue ocean" gradient with a "Pencil/Sketch style", matching the site's overall aesthetic.
-- **Verification:** Built successfully.
+### 5. Huarongdao
+- **Root Cause**: Interaction layers were blocking each other, and drag thresholds were too sensitive for small screens.
+- **Fixes**:
+    - Added explicit **z-index** hierarchy: `hua-target` (20) > `hua-piece` (10).
+    - Increased drag threshold to **30px** and added a `hasDragged` guard to prevent accidental selection switches.
+    - Ensured state reset on `pointerdown` to keep pieces operable.
+- **Behavior Improvement**: Hit detection is reliable; pieces can be both dragged and clicked without becoming stuck.
 
 ### 6. Lobster Workshop
-- **Optimistic Updates & RunID Sync:** Updated state handling to synchronize with server-assigned `runId`s immediately.
-- **State Persistence:** Implemented `localStorage` persistence for `recentDispatches`.
-- **Verification:** Built successfully.
-
-## Remaining Imperfections & Next Steps
-
-### Xiangqi
-- **Professional Engines:** For even stronger play (Grandmaster level), integrating a WASM-based Stockfish-Xiangqi or similar engine could be considered.
-- **Opening Book:** Adding a small opening book would make the early game feel more varied.
-
-### Gomoku
-- **VCF/VCT Solvers:** Implementing specialized Victory-by-Continuous-Four/Threat solvers would make the Hard difficulty nearly unbeatable.
+- **Root Cause**: Assistant replies for dispatch runs were being filtered out of the chat window, leading to "missing" replies. History was replaying stale local dispatches.
+- **Fixes**:
+    - Removed assistant message filtering: all replies now appear in the main chat flow.
+    - Added **8-hour expiration** for `recentDispatches` in local storage to prevent stale replay.
+    - Preserved visibility in both the Chat window and the Task Board.
+- **Behavior Improvement**: Immediate visibility of all replies; cleaner initial load without stale history.
 
 ## Verification Results
-- **Build Status:** `npx nuxi build` passed successfully.
-- **Runtime:** All games load and function correctly with the new AI logic.
+- **Build Status**: `npx nuxi build` passed successfully.
+- **Files Changed**:
+    - `utils/games/gomoku.ts`
+    - `utils/games/chineseChess.ts`
+    - `pages/games/fish-pond/index.vue`
+    - `pages/games/rubiks-cube/index.vue`
+    - `pages/games/huarongdao/index.vue`
+    - `pages/tools/lobster-workshop/index.vue`

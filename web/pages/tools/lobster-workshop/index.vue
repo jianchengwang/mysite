@@ -980,7 +980,9 @@ const loadDispatchPrefs = () => {
     if (rawDispatches) {
       const parsed = JSON.parse(rawDispatches) as DispatchPlan[]
       if (Array.isArray(parsed)) {
-        recentDispatches.value = parsed.slice(0, 10)
+        // Only keep dispatches from the last 8 hours to avoid stale history.
+        const limit = Date.now() - 8 * 60 * 60 * 1000
+        recentDispatches.value = parsed.filter(d => d.createdAt > limit).slice(0, 10)
       }
     }
   } catch {
@@ -1211,7 +1213,6 @@ const isHelperDispatchRun = (runId?: string) =>
 
 const chatMessages = computed<ChatCardView[]>(() =>
   messages.value
-    .filter((message) => !(message.role === 'assistant' && isHelperDispatchRun(resolvedRunIdForMessage(message))))
     .map((message) => {
       const rendered = buildRenderedReply(message.id, flattenMessageText(message))
       return {

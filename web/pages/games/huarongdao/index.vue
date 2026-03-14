@@ -220,22 +220,26 @@ const handlePiecePointerDown = (pieceId: string, event: PointerEvent) => {
   activePointerId = event.pointerId
   startX = event.clientX
   startY = event.clientY
+  hasDragged = false
   window.addEventListener('pointermove', handlePointerMove)
   window.addEventListener('pointerup', handlePointerUp)
 }
+
+let hasDragged = false
 
 const handlePointerMove = (event: PointerEvent) => {
   if (activePointerId === null || event.pointerId !== activePointerId) return
   const dx = event.clientX - startX
   const dy = event.clientY - startY
 
-  if (Math.abs(dx) > 20 || Math.abs(dy) > 20) {
+  if (Math.abs(dx) > 30 || Math.abs(dy) > 30) {
     const moveDx = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 1 : -1) : 0
     const moveDy = Math.abs(dy) > Math.abs(dx) ? (dy > 0 ? 1 : -1) : 0
 
     const move = selectedMoves.value.find((m) => m.dx === moveDx && m.dy === moveDy)
     if (move) {
       applyMove(move)
+      hasDragged = true
       handlePointerUp(event)
     }
   }
@@ -319,6 +323,7 @@ const requestHint = () => {
   text-align: center;
   color: #18181b;
   transition: transform 140ms ease, box-shadow 140ms ease;
+  z-index: 10;
 }
 
 .hua-piece:hover {
@@ -328,6 +333,7 @@ const requestHint = () => {
 .hua-piece.is-selected {
   box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.14);
   border-color: rgba(14, 116, 144, 0.72);
+  z-index: 15;
 }
 
 .hua-piece.is-hint-piece {
@@ -354,6 +360,7 @@ const requestHint = () => {
   border-radius: 24px;
   border: 2px dashed rgba(14, 165, 233, 0.56);
   background: rgba(14, 165, 233, 0.12);
+  z-index: 20;
 }
 
 .hua-hint-arrow {

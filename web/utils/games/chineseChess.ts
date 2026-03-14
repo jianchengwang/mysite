@@ -43,8 +43,8 @@ const BOARD_COLS = 9
 
 export const xiangqiDifficulties: XiangqiDifficulty[] = [
   { id: 'easy', label: 'Easy', depth: 2, note: 'Fast replies for learning movement rules and common captures.', rootMoveLimit: 32, branchLimit: 32 },
-  { id: 'medium', label: 'Medium', depth: 5, note: 'Looks deeper for practical tactics while keeping reply times reasonable.', rootMoveLimit: 32, branchLimit: 32 },
-  { id: 'hard', label: 'Hard', depth: 7, note: 'Stronger tactical reading with aspiration windows and PVS.', rootMoveLimit: 64, branchLimit: 64 }
+  { id: 'medium', label: 'Medium', depth: 4, note: 'Looks deeper for practical tactics while keeping reply times reasonable.', rootMoveLimit: 32, branchLimit: 32 },
+  { id: 'hard', label: 'Hard', depth: 6, note: 'Stronger tactical reading with aspiration windows and PVS.', rootMoveLimit: 64, branchLimit: 64 }
 ]
 
 const pieceCodeMap: Record<XiangqiSide, Record<XiangqiPieceType, string>> = {
@@ -335,14 +335,48 @@ const findInternalGeneral = (board: InternalBoard, isRed: boolean): number => {
 const isInternalInCheck = (board: InternalBoard, isRed: boolean): boolean => {
   const gPos = findInternalGeneral(board, isRed)
   if (gPos === -1) return true
+  const r = Math.floor(gPos / 9), c = gPos % 9
   const oppRed = !isRed
-  for (let i = 0; i < 90; i++) {
-    const p = board[i]
-    if (p !== EMPTY && (p > 0) === oppRed) {
-      const pseudos = generateInternalPseudoMoves(board, i)
-      for (const m of pseudos) if (m.to === gPos) return true
+  const oppSideSign = isRed ? -1 : 1
+
+  // Knight (Horse) threats
+  const horseType = isRed ? B_HOR : R_HOR
+  for (const [dr, dc, lr, lc] of [[-2, -1, -1, 0], [-2, 1, -1, 0], [2, -1, 1, 0], [2, 1, 1, 0], [-1, -2, 0, -1], [1, -2, 0, -1], [-1, 2, 0, 1], [1, 2, 0, 1]]) {
+    const tr = r + dr, tc = c + dc
+    if (tr >= 0 && tr < 10 && tc >= 0 && tc < 9 && board[tr * 9 + tc] === horseType) {
+      if (board[(r + lr) * 9 + (c + lc)] === EMPTY) return true
     }
   }
+
+  // Rook and Cannon threats (and General flying)
+  const rookType = isRed ? B_ROO : R_ROO
+  const cannonType = isRed ? B_CAN : R_CAN
+  const oppGeneralType = isRed ? B_GEN : R_GEN
+  for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+    let tr = r + dr, tc = c + dc, jumped = false
+    while (tr >= 0 && tr < 10 && tc >= 0 && tc < 9) {
+      const tp = board[tr * 9 + tc]
+      if (tp !== EMPTY) {
+        if (!jumped) {
+          if (tp === rookType || tp === oppGeneralType) return true
+          jumped = true
+        } else {
+          if (tp === cannonType) return true
+          break
+        }
+      }
+      tr += dr; tc += dc
+    }
+  }
+
+  // Soldier threats
+  const soldierType = isRed ? B_SOL : R_SOL
+  const soldierMoves = isRed ? [[1, 0], [0, -1], [0, 1]] : [[-1, 0], [0, -1], [0, 1]]
+  for (const [dr, dc] of soldierMoves) {
+    const tr = r + dr, tc = c + dc
+    if (tr >= 0 && tr < 10 && tc >= 0 && tc < 9 && board[tr * 9 + tc] === soldierType) return true
+  }
+
   return false
 }
 
