@@ -271,7 +271,8 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const props = defineProps({
-  isModal: { type: Boolean, default: false }
+  isModal: { type: Boolean, default: false },
+  transparentExport: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['save', 'close'])
@@ -1812,8 +1813,10 @@ const buildExportCanvas = () => {
   const exportCtx = exportCanvas.getContext('2d')
   if (!exportCtx) return null
 
-  exportCtx.fillStyle = '#ffffff'
-  exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height)
+  if (!props.transparentExport) {
+    exportCtx.fillStyle = '#ffffff'
+    exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height)
+  }
   renderScene(exportCtx, exportCanvas, { includeCropOverlay: false, clearCanvas: false })
   return exportCanvas
 }
@@ -1849,8 +1852,10 @@ const saveCroppedArea = () => {
   const cropCtx = cropCanvas.getContext('2d')
   if (!cropCtx) return
 
-  cropCtx.fillStyle = '#ffffff'
-  cropCtx.fillRect(0, 0, cropCanvas.width, cropCanvas.height)
+  if (!props.transparentExport) {
+    cropCtx.fillStyle = '#ffffff'
+    cropCtx.fillRect(0, 0, cropCanvas.width, cropCanvas.height)
+  }
   cropCtx.drawImage(exportCanvas, x, y, width, height, 0, 0, cropCanvas.width, cropCanvas.height)
 
   const dataUrl = cropCanvas.toDataURL('image/png')

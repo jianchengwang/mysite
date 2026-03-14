@@ -15,26 +15,14 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
         </button>
         <div class="hidden md:flex items-center space-x-6">
-          <NuxtLink to="/tech" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
-            Tech
-          </NuxtLink>
-          <NuxtLink to="/store" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
-            Store
-          </NuxtLink>
-          <NuxtLink to="/column" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
-            Column
-          </NuxtLink>
-          <NuxtLink to="/english" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
-            English
-          </NuxtLink>
-          <NuxtLink to="/tools" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
-            Tools
-          </NuxtLink>
-          <NuxtLink to="/links" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
-            Links
-          </NuxtLink>
-          <NuxtLink to="/about" class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link" active-class="active">
-            About
+          <NuxtLink
+            v-for="item in navItems"
+            :key="item.to"
+            :to="item.to"
+            class="text-lg font-medium text-zinc-700 hover:text-zinc-900 sketch-nav-link"
+            active-class="active"
+          >
+            {{ item.label }}
           </NuxtLink>
         </div>
         <button
@@ -167,6 +155,7 @@ const navItems = [
   { to: '/column', label: 'Column' },
   { to: '/english', label: 'English' },
   { to: '/tools', label: 'Tools' },
+  { to: '/games', label: 'Games' },
   { to: '/links', label: 'Links' },
   { to: '/about', label: 'About' }
 ]
