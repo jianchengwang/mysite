@@ -1,29 +1,29 @@
 <template>
   <GameShell
-    eyebrow="经典益智"
-    :title="game?.title || '华容道'"
+    eyebrow="Classic Puzzle"
+    :title="game?.title || 'Huarongdao'"
     :description="game?.description || ''"
-    :highlights="['多关卡', '最短提示', '棋盘箭头']"
+    :highlights="['Multi-Level', 'Shortest Path Hint', 'Board Guides']"
     :stats="heroStats"
   >
     <section class="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_21rem]">
       <div class="sketch-card !p-4 sm:!p-6">
         <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div class="space-y-1">
-            <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">棋盘状态</p>
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Board Status</p>
             <h2 class="text-2xl font-bold text-zinc-900 sm:text-3xl">{{ hintTitle }}</h2>
             <p class="max-w-3xl text-sm leading-relaxed text-zinc-600 sm:text-base">{{ hintDetail }}</p>
           </div>
 
           <div class="flex flex-wrap items-center gap-3">
             <button class="sketch-button px-4 py-2 text-sm !bg-zinc-900 !text-white" @click="resetLevel">
-              重开
+              Restart
             </button>
             <button class="sketch-button px-4 py-2 text-sm" :disabled="history.length === 0" @click="undoMove">
-              悔一步
+              Undo
             </button>
             <button class="sketch-button px-4 py-2 text-sm" @click="requestHint">
-              提示
+              Hint
             </button>
           </div>
         </div>
@@ -31,7 +31,7 @@
         <div class="mt-6 rounded-[36px] border-2 border-zinc-900 bg-[linear-gradient(180deg,#ffffff_0%,#fafaf9_100%)] p-4 shadow-[8px_8px_0_0_rgba(0,0,0,0.1)]">
           <div class="mx-auto w-full max-w-[34rem]">
             <div class="hua-board">
-              <div class="hua-exit">出口</div>
+              <div class="hua-exit">EXIT</div>
 
               <button
                 v-for="move in selectedMoves"
@@ -59,7 +59,7 @@
                   hintMove?.pieceId === piece.id ? 'is-hint-piece' : ''
                 ]"
                 :style="pieceStyle(piece)"
-                @click="selectPiece(piece.id)"
+                @pointerdown="handlePiecePointerDown(piece.id, $event)"
               >
                 {{ piece.label }}
               </button>
@@ -69,25 +69,25 @@
 
         <div class="mt-5 grid gap-3 xl:grid-cols-3">
           <div class="rounded-[28px] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4">
-            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">关卡</p>
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">Level</p>
             <p class="mt-2 text-lg font-bold text-zinc-900">{{ currentLevel.title }}</p>
             <p class="mt-1 text-sm text-zinc-500">{{ currentLevel.note }}</p>
           </div>
           <div class="rounded-[28px] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4">
-            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">当前选子</p>
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">Selected</p>
             <p class="mt-2 text-lg font-bold text-zinc-900">{{ selectedPieceLabel }}</p>
-            <p class="mt-1 text-sm text-zinc-500">点击棋子后，会直接显示它当前能走的一步。</p>
+            <p class="mt-1 text-sm text-zinc-500">Tap a piece to see available moves on the board.</p>
           </div>
           <div class="rounded-[28px] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4">
-            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">提示方向</p>
-            <p class="mt-2 text-lg font-bold text-zinc-900">{{ hintMove ? directionLabel(hintMove) : '未开启' }}</p>
-            <p class="mt-1 text-sm text-zinc-500">提示箭头会直接落在棋盘目标位置里，方便跟着操作。</p>
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">Hint Guide</p>
+            <p class="mt-2 text-lg font-bold text-zinc-900">{{ hintMove ? directionLabel(hintMove) : 'Not Active' }}</p>
+            <p class="mt-1 text-sm text-zinc-500">Hints show arrows directly on the board to guide you.</p>
           </div>
         </div>
       </div>
 
       <aside class="sketch-card !p-5">
-        <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">关卡列表</p>
+        <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Level List</p>
         <div class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-1">
           <button
             v-for="level in huarongdaoLevels"
@@ -97,7 +97,7 @@
             @click="changeLevel(level.id)"
           >
             <p class="text-sm font-bold">{{ level.title }}</p>
-            <p class="mt-1 text-xs opacity-80">预计深度 {{ level.estimatedDepth }}</p>
+            <p class="mt-1 text-xs opacity-80">Estimated {{ level.estimatedDepth }} steps</p>
           </button>
         </div>
       </aside>
@@ -134,7 +134,7 @@ const currentLevel = computed(
 )
 const isSolved = computed(() => isHuarongdaoSolved(currentPieces.value))
 const selectedPiece = computed(() => currentPieces.value.find((piece) => piece.id === selectedPieceId.value) || null)
-const selectedPieceLabel = computed(() => selectedPiece.value?.label || '未选择')
+const selectedPieceLabel = computed(() => selectedPiece.value?.label || 'None')
 const selectedMoves = computed(() =>
   selectedPieceId.value
     ? getHuarongdaoLegalMoves(currentPieces.value).filter((move) => move.pieceId === selectedPieceId.value)
@@ -151,33 +151,33 @@ const hintArrow = computed(() => {
 })
 
 const heroStats = computed(() => [
-  { label: '关卡', value: currentLevel.value.title },
-  { label: '步数', value: `${history.value.length}` },
-  { label: '状态', value: isSolved.value ? '已通关' : '进行中' }
+  { label: 'Level', value: currentLevel.value.title },
+  { label: 'Moves', value: `${history.value.length}` },
+  { label: 'State', value: isSolved.value ? 'Solved' : 'In Progress' }
 ])
 
 const directionLabel = (move: HuarongdaoMove) => {
-  if (move.dx === 1) return '向右'
-  if (move.dx === -1) return '向左'
-  if (move.dy === 1) return '向下'
-  return '向上'
+  if (move.dx === 1) return 'Right'
+  if (move.dx === -1) return 'Left'
+  if (move.dy === 1) return 'Down'
+  return 'Up'
 }
 
 const hintTitle = computed(() => {
-  if (isSolved.value) return '已经通关'
-  if (!hint.value) return '规划下一步'
-  if (!hintMove.value) return '当前局面可自由尝试'
+  if (isSolved.value) return 'Solved'
+  if (!hint.value) return 'Plan Next Move'
+  if (!hintMove.value) return 'Exploring'
   const piece = currentPieces.value.find((item) => item.id === hintMove.value?.pieceId)
-  return `${piece?.label || '当前棋子'} · ${directionLabel(hintMove.value)}`
+  return `${piece?.label || 'Piece'} · Move ${directionLabel(hintMove.value)}`
 })
 
 const hintDetail = computed(() => {
-  if (isSolved.value) return '曹操已经抵达出口。'
-  if (!hint.value) return '点一下 Hint，会直接从当前局面计算一条可行路径，并在棋盘里标出第一步。'
+  if (isSolved.value) return 'Cao Cao has reached the exit.'
+  if (!hint.value) return 'Tap Hint to calculate the shortest path from the current board state.'
   if (!hintMove.value || hint.value.remainingSteps === null) {
-    return '当前没有找到更短的现成路径，可以继续自己试。'
+    return 'No predefined path found for this specific state. Keep trying!'
   }
-  return `按着提示先走这一步，距离通关大约还剩 ${hint.value.remainingSteps} 步。`
+  return `Follow the hint arrow. You are approximately ${hint.value.remainingSteps} steps from solving.`
 })
 
 const pieceStyle = (piece: HuarongdaoPiece) => ({
@@ -210,8 +210,42 @@ const changeLevel = (levelId: string) => {
   resetLevel()
 }
 
-const selectPiece = (pieceId: string) => {
-  selectedPieceId.value = selectedPieceId.value === pieceId ? null : pieceId
+let activePointerId: number | null = null
+let startX = 0
+let startY = 0
+
+const handlePiecePointerDown = (pieceId: string, event: PointerEvent) => {
+  if (isSolved.value) return
+  selectedPieceId.value = pieceId
+  activePointerId = event.pointerId
+  startX = event.clientX
+  startY = event.clientY
+  window.addEventListener('pointermove', handlePointerMove)
+  window.addEventListener('pointerup', handlePointerUp)
+}
+
+const handlePointerMove = (event: PointerEvent) => {
+  if (activePointerId === null || event.pointerId !== activePointerId) return
+  const dx = event.clientX - startX
+  const dy = event.clientY - startY
+
+  if (Math.abs(dx) > 20 || Math.abs(dy) > 20) {
+    const moveDx = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 1 : -1) : 0
+    const moveDy = Math.abs(dy) > Math.abs(dx) ? (dy > 0 ? 1 : -1) : 0
+
+    const move = selectedMoves.value.find((m) => m.dx === moveDx && m.dy === moveDy)
+    if (move) {
+      applyMove(move)
+      handlePointerUp(event)
+    }
+  }
+}
+
+const handlePointerUp = (event: PointerEvent) => {
+  if (activePointerId === null || event.pointerId !== activePointerId) return
+  activePointerId = null
+  window.removeEventListener('pointermove', handlePointerMove)
+  window.removeEventListener('pointerup', handlePointerUp)
 }
 
 const applyMove = (move: HuarongdaoMove) => {

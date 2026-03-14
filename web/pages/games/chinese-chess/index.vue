@@ -48,32 +48,50 @@
 
         <div class="mt-6 rounded-[36px] border-2 border-zinc-900 bg-[#f6ead0] p-3 shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] sm:p-5">
           <div class="mx-auto w-full max-w-[62rem]">
-            <div class="xiangqi-board" :style="{ gridTemplateColumns: 'repeat(9, minmax(0, 1fr))' }">
-              <button
-                v-for="(cell, index) in board.flat()"
-                :key="index"
-                class="xiangqi-cell"
-                :class="{
-                  'is-selected': isSelectedIndex(index),
-                  'is-target': isTargetIndex(index),
-                  'is-last-from': isLastMoveFromIndex(index),
-                  'is-last-to': isLastMoveToIndex(index)
-                }"
-                @click="handleCellClickByIndex(index)"
-              >
-                <span v-if="isTargetIndex(index) && !cell" class="target-dot" />
-                <span
-                  v-if="cell"
-                  class="xiangqi-piece"
-                  :class="[
-                    cell.side === 'red' ? 'piece-red' : 'piece-black',
-                    isSelectedIndex(index) ? 'piece-selected' : '',
-                    isLastMoveToIndex(index) ? 'piece-last' : ''
-                  ]"
+            <div class="xiangqi-board-container relative">
+              <!-- Board Lines Layer -->
+              <div class="absolute inset-0 pointer-events-none p-[5.5%]">
+                <svg viewBox="0 0 800 900" class="w-full h-full stroke-zinc-700/60 fill-none" stroke-width="2">
+                  <!-- Vertical Lines -->
+                  <path v-for="i in 9" :key="`v-${i}`" :d="`M ${(i-1)*100} 0 L ${(i-1)*100} ${i===1||i===9 ? 900 : 400} M ${(i-1)*100} 500 L ${(i-1)*100} 900`" />
+                  <!-- Horizontal Lines -->
+                  <path v-for="i in 10" :key="`h-${i}`" :d="`M 0 ${(i-1)*100} L 800 ${(i-1)*100}`" />
+                  <!-- Palace Diagonals -->
+                  <path d="M 300 0 L 500 200 M 500 0 L 300 200" />
+                  <path d="M 300 700 L 500 900 M 500 700 L 300 900" />
+                  <!-- River Text -->
+                  <text x="200" y="465" class="fill-zinc-600 font-serif italic text-4xl" stroke="none">楚 河</text>
+                  <text x="600" y="465" class="fill-zinc-600 font-serif italic text-4xl" text-anchor="end" stroke="none">漢 界</text>
+                </svg>
+              </div>
+
+              <div class="xiangqi-board relative z-10" :style="{ gridTemplateColumns: 'repeat(9, minmax(0, 1fr))' }">
+                <button
+                  v-for="(cell, index) in board.flat()"
+                  :key="index"
+                  class="xiangqi-cell"
+                  :class="{
+                    'is-selected': isSelectedIndex(index),
+                    'is-target': isTargetIndex(index),
+                    'is-last-from': isLastMoveFromIndex(index),
+                    'is-last-to': isLastMoveToIndex(index)
+                  }"
+                  @click="handleCellClickByIndex(index)"
                 >
-                  {{ getXiangqiPieceLabel(cell) }}
-                </span>
-              </button>
+                  <span v-if="isTargetIndex(index) && !cell" class="target-dot" />
+                  <span
+                    v-if="cell"
+                    class="xiangqi-piece"
+                    :class="[
+                      cell.side === 'red' ? 'piece-red' : 'piece-black',
+                      isSelectedIndex(index) ? 'piece-selected' : '',
+                      isLastMoveToIndex(index) ? 'piece-last' : ''
+                    ]"
+                  >
+                    {{ getXiangqiPieceLabel(cell) }}
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -446,30 +464,6 @@ await resetGame()
   aspect-ratio: 1 / 1;
   min-width: 28px;
   background: transparent;
-}
-
-.xiangqi-cell::before,
-.xiangqi-cell::after {
-  content: '';
-  position: absolute;
-  background: rgba(63, 63, 70, 0.68);
-  pointer-events: none;
-}
-
-.xiangqi-cell::before {
-  left: 50%;
-  top: 0;
-  width: 1.5px;
-  height: 100%;
-  transform: translateX(-50%);
-}
-
-.xiangqi-cell::after {
-  left: 0;
-  top: 50%;
-  width: 100%;
-  height: 1.5px;
-  transform: translateY(-50%);
 }
 
 .xiangqi-cell.is-selected {

@@ -42,38 +42,38 @@ const BOARD_ROWS = 10
 const BOARD_COLS = 9
 
 export const xiangqiDifficulties: XiangqiDifficulty[] = [
-  { id: 'easy', label: 'Easy', depth: 1, note: 'Fast replies for learning movement rules and common captures.', rootMoveLimit: 28, branchLimit: 22 },
-  { id: 'medium', label: 'Medium', depth: 3, note: 'Looks deeper for practical tactics while keeping reply times reasonable in the browser worker.', rootMoveLimit: 18, branchLimit: 12 },
-  { id: 'hard', label: 'Hard', depth: 3, note: 'Keeps more tactical branches alive so the AI can press initiative and defend cleaner.', rootMoveLimit: 20, branchLimit: 14 }
+  { id: 'easy', label: 'Easy', depth: 2, note: 'Fast replies for learning movement rules and common captures.', rootMoveLimit: 32, branchLimit: 32 },
+  { id: 'medium', label: 'Medium', depth: 4, note: 'Looks deeper for practical tactics while keeping reply times reasonable in the browser worker.', rootMoveLimit: 24, branchLimit: 18 },
+  { id: 'hard', label: 'Hard', depth: 4, note: 'Keeps more tactical branches alive so the AI can press initiative and defend cleaner.', rootMoveLimit: 30, branchLimit: 22 }
 ]
 
 const pieceValue: Record<XiangqiPieceType, number> = {
-  general: 100000,
-  advisor: 110,
-  elephant: 110,
-  horse: 320,
-  rook: 620,
-  cannon: 340,
-  soldier: 120
+  general: 1000000,
+  advisor: 120,
+  elephant: 120,
+  horse: 450,
+  rook: 950,
+  cannon: 480,
+  soldier: 100
 }
 
 const pieceCodeMap: Record<XiangqiSide, Record<XiangqiPieceType, string>> = {
   red: {
-    general: '帅',
+    general: '帥',
     advisor: '仕',
     elephant: '相',
-    horse: '马',
-    rook: '车',
+    horse: '馬',
+    rook: '車',
     cannon: '炮',
     soldier: '兵'
   },
   black: {
-    general: '将',
+    general: '將',
     advisor: '士',
     elephant: '象',
-    horse: '马',
-    rook: '车',
-    cannon: '炮',
+    horse: '馬',
+    rook: '車',
+    cannon: '砲',
     soldier: '卒'
   }
 }
@@ -393,25 +393,78 @@ const getMobility = (board: XiangqiBoard, row: number, col: number) => {
   return generatePseudoMoves(board, row, col).length
 }
 
+// Piece-Square Tables (PST) for positional evaluation
+// Values are from the perspective of Red (bottom-up)
+const soldierPST = [
+  [0, 3, 6, 9, 12, 9, 6, 3, 0],
+  [18, 36, 56, 80, 120, 80, 56, 36, 18],
+  [14, 26, 42, 60, 80, 60, 42, 26, 14],
+  [10, 20, 30, 34, 40, 34, 30, 20, 10],
+  [6, 12, 18, 18, 20, 18, 18, 12, 6],
+  [2, 0, 8, 0, 8, 0, 8, 0, 2],
+  [0, 0, -2, 0, 4, 0, -2, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0]
+]
+
+const horsePST = [
+  [4, 8, 16, 12, 4, 12, 16, 8, 4],
+  [4, 10, 28, 16, 8, 16, 28, 10, 4],
+  [12, 14, 16, 20, 18, 20, 16, 14, 12],
+  [8, 24, 18, 24, 20, 24, 18, 24, 8],
+  [6, 16, 14, 18, 16, 18, 14, 16, 6],
+  [4, 12, 10, 14, 12, 14, 10, 12, 4],
+  [2, 8, 6, 10, 8, 10, 6, 8, 2],
+  [0, 4, 2, 6, 4, 6, 2, 4, 0],
+  [-2, 2, 0, 4, 2, 4, 0, 2, -2],
+  [-4, -2, 0, 0, -2, 0, 0, -2, -4]
+]
+
+const cannonPST = [
+  [6, 4, 0, -10, -12, -10, 0, 4, 6],
+  [2, 2, 0, -4, -4, -4, 0, 2, 2],
+  [4, 0, 0, 0, 0, 0, 0, 0, 4],
+  [2, 2, 0, 2, 4, 2, 0, 2, 2],
+  [0, 0, 0, 2, 4, 2, 0, 0, 0],
+  [1, 2, 2, 2, 2, 2, 2, 2, 1],
+  [0, 0, 1, 2, 2, 2, 1, 0, 0],
+  [-2, 0, 4, 0, 0, 0, 4, 0, -2],
+  [-3, 2, 0, 0, 0, 0, 0, 2, -3],
+  [-4, -2, -2, -2, -2, -2, -2, -2, -4]
+]
+
+const rookPST = [
+  [14, 14, 12, 18, 16, 18, 12, 14, 14],
+  [16, 20, 18, 24, 26, 24, 18, 20, 16],
+  [12, 12, 12, 18, 18, 18, 12, 12, 12],
+  [12, 18, 16, 22, 22, 22, 16, 18, 12],
+  [12, 14, 12, 18, 18, 18, 12, 14, 12],
+  [12, 16, 14, 20, 20, 20, 14, 16, 12],
+  [6, 10, 8, 14, 14, 14, 8, 10, 6],
+  [10, 8, 12, 16, 16, 16, 12, 8, 10],
+  [8, 6, 10, 12, 18, 12, 10, 6, 8],
+  [10, 8, 12, 14, 12, 14, 12, 8, 10]
+]
+
 const getPiecePositionalValue = (piece: XiangqiPiece, row: number, col: number) => {
-  const mirroredRow = piece.side === 'red' ? 9 - row : row
+  const pstRow = piece.side === 'red' ? row : 9 - row
+  const pstCol = col
 
   switch (piece.type) {
-    case 'soldier': {
-      const advance = piece.side === 'red' ? 6 - row : row - 3
-      return hasCrossedRiver(piece.side, row) ? 40 + Math.max(0, advance) * 8 : Math.max(0, advance) * 4
-    }
+    case 'soldier':
+      return soldierPST[pstRow][pstCol]
     case 'horse':
-      return (4 - Math.abs(4 - col)) * 8 + (4 - Math.abs(4 - mirroredRow)) * 6
+      return horsePST[pstRow][pstCol]
     case 'cannon':
-      return (4 - Math.abs(4 - col)) * 6 + (4 - Math.abs(4 - mirroredRow)) * 4
+      return cannonPST[pstRow][pstCol]
     case 'rook':
-      return getMobilityBonus(col, mirroredRow)
+      return rookPST[pstRow][pstCol]
     case 'advisor':
     case 'elephant':
-      return 8
+      return 10
     case 'general':
-      return inPalace(piece.side, row, col) ? 12 : 0
+      return 0
   }
 }
 

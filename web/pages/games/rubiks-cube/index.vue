@@ -38,17 +38,17 @@
           <div v-if="activeTurnLabel" class="cube-turn-badge">{{ activeTurnLabel }}</div>
           <div class="cube-model" :style="{ transform: cubeTransform }">
             <div
-              v-for="face in faceOrder"
-              :key="face"
-              class="cube-face"
-              :style="faceStyle(face)"
-              @pointerdown.stop="handleFacePointerDown(face, $event)"
+              v-for="cubie in cube.cubies"
+              :key="cubie.id"
+              class="cubie"
+              :style="cubieStyle(cubie)"
             >
               <div
-                v-for="(color, index) in faceMap[face]"
-                :key="`${face}-${index}`"
-                class="cube-sticker"
-                :class="stickerClass(color)"
+                v-for="(color, side) in cubie.stickers"
+                :key="side"
+                class="cubie-sticker"
+                :class="[side, stickerClass(color)]"
+                @pointerdown.stop="handleStickerPointerDown(side, cubie, $event)"
               />
             </div>
           </div>
@@ -129,67 +129,41 @@ definePageMeta({ layout: 'default' })
 
 const game = getGameBySlug('rubiks-cube')
 const cube = ref(createSolvedCube())
-const moveHistory = ref<CubeMove[]>([])
 const viewRotationX = ref(-26)
 const viewRotationY = ref(34)
-const turnNudgeX = ref(0)
-const turnNudgeY = ref(0)
-const turnNudgeZ = ref(0)
 const activeTurnLabel = ref('')
-const previewFace = ref<CubeFace | null>(null)
-const previewAxis = ref<'x' | 'y' | 'z'>('z')
-const previewAngle = ref(0)
-const faceOrder: CubeFace[] = ['U', 'F', 'R', 'L', 'B', 'D']
-let turnAnimationTimer = 0
-
-const faceBaseTransforms: Record<CubeFace, string> = {
-  F: 'rotateY(0deg) translateZ(var(--cube-depth))',
-  B: 'rotateY(180deg) translateZ(var(--cube-depth))',
-  R: 'rotateY(90deg) translateZ(var(--cube-depth))',
-  L: 'rotateY(-90deg) translateZ(var(--cube-depth))',
-  U: 'rotateX(90deg) translateZ(var(--cube-depth))',
-  D: 'rotateX(-90deg) translateZ(var(--cube-depth))'
-}
+const moveHistory = ref<CubeMove[]>([])
 
 const faceTurnAxis: Record<CubeFace, 'x' | 'y' | 'z'> = {
-  U: 'y',
-  D: 'y',
-  L: 'x',
-  R: 'x',
-  F: 'z',
-  B: 'z'
+  U: 'y', D: 'y', L: 'x', R: 'x', F: 'z', B: 'z'
 }
 
-const faceMap = computed<Record<CubeFace, StickerColor[]>>(() => ({
-  U: getCubeFace(cube.value, 'U'),
-  F: getCubeFace(cube.value, 'F'),
-  R: getCubeFace(cube.value, 'R'),
-  L: getCubeFace(cube.value, 'L'),
-  B: getCubeFace(cube.value, 'B'),
-  D: getCubeFace(cube.value, 'D')
-}))
+const formatTurnLabel = (move: CubeMove) => {
+  const faceNames: Record<CubeFace, string> = {
+    U: 'Top', D: 'Bottom', L: 'Left', R: 'Right', F: 'Front', B: 'Back'
+  }
+  const face = move[0] as CubeFace
+  return `${faceNames[face]} ${move.endsWith("'") ? 'counter-clockwise' : 'clockwise'}`
+}
+
+// For the "live" turning effect
+const turningLayer = ref<number | null>(null)
+const turningAxis = ref<'x' | 'y' | 'z' | null>(null)
+const turningAngle = ref(0)
+let turnAnimationTimer = 0
 
 const guide = computed(() => getCubeGuide(cube.value, moveHistory.value))
 const cubeTransform = computed(
-  () => `rotateX(${viewRotationX.value + turnNudgeX.value}deg) rotateY(${viewRotationY.value + turnNudgeY.value}deg) rotateZ(${turnNudgeZ.value}deg)`
+  () => `rotateX(${viewRotationX.value}deg) rotateY(${viewRotationY.value}deg)`
 )
-const currentGuideStep = computed(() => {
-  const match = guide.value.title.match(/^Step\\s+(\\d+)/)
-  return match ? Number(match[1]) : 0
-})
-const heroStats = computed(() => [
-  { label: 'Solved Faces', value: `${countSolvedFaces(cube.value)} / 6` },
-  { label: 'Solved Stickers', value: `${countSolvedStickers(cube.value)} / 54` },
-  { label: 'Status', value: isCubeSolved(cube.value) ? 'Solved' : 'In Practice' }
-])
 
-const stickerClass = (color: StickerColor) => `sticker-${color}`
-const faceStyle = (face: CubeFace) => {
-  const transforms = [faceBaseTransforms[face]]
+const cubieStyle = (cubie: any) => {
+  const { x, y, z } = cubie.position
+  const transforms = [`translate3d(calc(${x} * var(--cubie-size)), calc(${-y} * var(--cubie-size)), calc(${z} * var(--cubie-size)))`]
 
-  if (previewFace.value === face && previewAngle.value !== 0) {
-    const axis = previewAxis.value.toUpperCase()
-    transforms.unshift(`rotate${axis}(${previewAngle.value}deg)`)
+  if (turningAxis.value && cubie.position[turningAxis.value] === turningLayer.value) {
+    const axis = turningAxis.value.toUpperCase()
+    transforms.unshift(`rotate${axis}(${turningAngle.value}deg)`)
   }
 
   return {
@@ -197,73 +171,50 @@ const faceStyle = (face: CubeFace) => {
   }
 }
 
-const formatTurnLabel = (move: CubeMove) => {
-  const faceNames: Record<CubeFace, string> = {
-    U: 'Top',
-    D: 'Bottom',
-    L: 'Left',
-    R: 'Right',
-    F: 'Front',
-    B: 'Back'
+const handleStickerPointerDown = (side: string, cubie: any, event: PointerEvent) => {
+  const sideToFace: Record<string, CubeFace> = {
+    py: 'U', ny: 'D', px: 'R', nx: 'L', pz: 'F', nz: 'B'
   }
-  const face = move[0] as CubeFace
-  return `${faceNames[face]} ${move.endsWith("'") ? 'counter-clockwise' : 'clockwise'}`
-}
-
-const clearFacePreview = () => {
-  previewFace.value = null
-  previewAngle.value = 0
-}
-
-const animateMoveFeedback = (move: CubeMove) => {
-  const face = move[0] as CubeFace
-  const direction = move.endsWith("'") ? -1 : 1
-  activeTurnLabel.value = formatTurnLabel(move)
-  previewFace.value = face
-  previewAxis.value = faceTurnAxis[face]
-  previewAngle.value = direction * 26
-
-  turnNudgeX.value = 0
-  turnNudgeY.value = 0
-  turnNudgeZ.value = 0
-
-  switch (face) {
-    case 'U':
-      turnNudgeX.value = -10 * direction
-      break
-    case 'D':
-      turnNudgeX.value = 10 * direction
-      break
-    case 'R':
-      turnNudgeY.value = 12 * direction
-      break
-    case 'L':
-      turnNudgeY.value = -12 * direction
-      break
-    case 'F':
-      turnNudgeZ.value = -12 * direction
-      break
-    case 'B':
-      turnNudgeZ.value = 12 * direction
-      break
-  }
-
-  window.clearTimeout(turnAnimationTimer)
-  turnAnimationTimer = window.setTimeout(() => {
-    turnNudgeX.value = 0
-    turnNudgeY.value = 0
-    turnNudgeZ.value = 0
-    clearFacePreview()
-    activeTurnLabel.value = ''
-  }, 220)
+  beginPointerInteraction('face', event, sideToFace[side])
 }
 
 const performMove = (move: CubeMove, options: { animate?: boolean } = {}) => {
   if (options.animate !== false) {
-    animateMoveFeedback(move)
+    const face = move[0] as CubeFace
+    const axis = faceTurnAxis[face]
+    const layer = face === 'U' || face === 'R' || face === 'F' ? 1 : -1
+    const direction = move.endsWith("'") ? -1 : 1
+
+    activeTurnLabel.value = formatTurnLabel(move)
+    turningAxis.value = axis
+    turningLayer.value = layer
+    turningAngle.value = 0
+
+    const start = performance.now()
+    const duration = 200
+
+    const animate = (time: number) => {
+      const elapsed = time - start
+      const progress = Math.min(elapsed / duration, 1)
+      const ease = 1 - Math.pow(1 - progress, 3)
+      turningAngle.value = direction * 90 * ease
+
+      if (progress < 1) {
+        requestAnimationFrame(animate)
+      } else {
+        cube.value = applyCubeMove(cube.value, move)
+        moveHistory.value = [...moveHistory.value, move]
+        turningAxis.value = null
+        turningLayer.value = null
+        turningAngle.value = 0
+        activeTurnLabel.value = ''
+      }
+    }
+    requestAnimationFrame(animate)
+  } else {
+    cube.value = applyCubeMove(cube.value, move)
+    moveHistory.value = [...moveHistory.value, move]
   }
-  cube.value = applyCubeMove(cube.value, move)
-  moveHistory.value = [...moveHistory.value, move]
 }
 
 const undoLastMove = () => {
@@ -441,38 +392,43 @@ onUnmounted(() => {
 }
 
 .cube-model {
-  --cube-depth: 140px;
+  --cubie-size: 94px;
   position: relative;
-  width: 280px;
-  height: 280px;
+  width: 0;
+  height: 0;
   transform-style: preserve-3d;
-  transition: transform 180ms ease;
 }
 
-.cube-face {
+.cubie {
   position: absolute;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 7px;
-  width: 280px;
-  height: 280px;
-  padding: 12px;
-  border-radius: 24px;
-  background: rgba(24, 24, 27, 0.95);
-  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.14);
+  width: 90px;
+  height: 90px;
+  transform-style: preserve-3d;
+  transition: transform 0.05s linear;
+  left: -45px;
+  top: -45px;
+}
+
+.cubie-sticker {
+  position: absolute;
+  width: 84px;
+  height: 84px;
+  border-radius: 12px;
+  border: 4px solid #18181b;
   backface-visibility: hidden;
   cursor: grab;
-  transition: transform 160ms ease;
 }
 
-.cube-face:active {
+.cubie-sticker:active {
   cursor: grabbing;
 }
 
-.cube-sticker {
-  border-radius: 18px;
-  border: 1px solid rgba(15, 23, 42, 0.18);
-}
+.cubie-sticker.py { transform: rotateX(90deg) translateZ(45px); }
+.cubie-sticker.ny { transform: rotateX(-90deg) translateZ(45px); }
+.cubie-sticker.px { transform: rotateY(90deg) translateZ(45px); }
+.cubie-sticker.nx { transform: rotateY(-90deg) translateZ(45px); }
+.cubie-sticker.pz { transform: translateZ(45px); }
+.cubie-sticker.nz { transform: rotateY(180deg) translateZ(45px); }
 
 .sticker-white { background: #f8fafc; }
 .sticker-yellow { background: #fde68a; }
@@ -482,21 +438,24 @@ onUnmounted(() => {
 .sticker-blue { background: #93c5fd; }
 
 @media (max-width: 640px) {
-  .cube-stage {
-    min-height: 420px;
-  }
-
   .cube-model {
-    --cube-depth: 110px;
-    width: 220px;
-    height: 220px;
+    --cubie-size: 70px;
   }
-
-  .cube-face {
-    width: 220px;
-    height: 220px;
-    gap: 6px;
-    padding: 10px;
+  .cubie {
+    width: 66px;
+    height: 66px;
+    left: -33px;
+    top: -33px;
   }
+  .cubie-sticker {
+    width: 60px;
+    height: 60px;
+  }
+  .cubie-sticker.py { transform: rotateX(90deg) translateZ(33px); }
+  .cubie-sticker.ny { transform: rotateX(-90deg) translateZ(33px); }
+  .cubie-sticker.px { transform: rotateY(90deg) translateZ(33px); }
+  .cubie-sticker.nx { transform: rotateY(-90deg) translateZ(33px); }
+  .cubie-sticker.pz { transform: translateZ(33px); }
+  .cubie-sticker.nz { transform: rotateY(180deg) translateZ(33px); }
 }
 </style>

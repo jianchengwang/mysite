@@ -234,10 +234,8 @@ onUnmounted(() => {
   border-radius: 40px;
   border: 2px solid #18181b;
   background:
-    radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.72), transparent 22%),
-    radial-gradient(circle at 82% 16%, rgba(255, 255, 255, 0.42), transparent 18%),
-    radial-gradient(circle at 50% 40%, rgba(186, 230, 253, 0.22), transparent 42%),
-    linear-gradient(180deg, #f8fbff 0%, #e0f2fe 20%, #cfeeff 52%, #bae6fd 78%, #93c5fd 100%);
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.95), #fcfaf7 100%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
   box-shadow: 8px 8px 0 0 rgba(0, 0, 0, 0.12);
 }
 
@@ -245,9 +243,8 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent 18%),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0, rgba(255, 255, 255, 0.08) 2px, transparent 2px, transparent 72px);
-  opacity: 0.9;
+    repeating-linear-gradient(45deg, rgba(24, 24, 27, 0.02) 0, rgba(24, 24, 27, 0.02) 1px, transparent 1px, transparent 40px),
+    repeating-linear-gradient(-45deg, rgba(24, 24, 27, 0.02) 0, rgba(24, 24, 27, 0.02) 1px, transparent 1px, transparent 50px);
 }
 
 .pond-status {
@@ -264,20 +261,21 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  border: 1px solid rgba(24, 24, 27, 0.16);
-  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(24, 24, 27, 0.42);
+  background: rgba(255, 255, 255, 0.88);
   padding: 0.35rem 0.8rem;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #0f3d63;
+  color: #18181b;
 }
 
 .pond-ripple {
   position: absolute;
   border-radius: 999px;
-  border: 2px dashed rgba(255, 255, 255, 0.42);
+  border: 1.5px solid rgba(24, 24, 27, 0.14);
+  filter: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='pencil'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05' numOctaves='3' result='noise'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='noise' scale='4'/%3E%3C/filter%3E%3C/svg%3E#pencil");
 }
 
 .ripple-one {
@@ -285,6 +283,7 @@ onUnmounted(() => {
   top: 22%;
   width: 220px;
   height: 84px;
+  transform: rotate(-3deg);
 }
 
 .ripple-two {
@@ -292,6 +291,7 @@ onUnmounted(() => {
   bottom: 18%;
   width: 260px;
   height: 90px;
+  transform: rotate(2deg);
 }
 
 .ripple-three {
@@ -306,22 +306,20 @@ onUnmounted(() => {
   width: 160px;
   height: 78px;
   border-radius: 999px;
-  background:
-    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.86) 0 8px, transparent 9px),
-    radial-gradient(circle at 42% 42%, rgba(255, 255, 255, 0.78) 0 7px, transparent 8px),
-    radial-gradient(circle at 64% 56%, rgba(255, 255, 255, 0.8) 0 8px, transparent 9px),
-    radial-gradient(circle at 82% 40%, rgba(255, 255, 255, 0.7) 0 6px, transparent 7px);
-  opacity: 0.62;
+  border: 1px dashed rgba(24, 24, 27, 0.12);
+  background: rgba(255, 255, 255, 0.4);
 }
 
 .foam-left {
   left: 26px;
   bottom: 28px;
+  transform: rotate(12deg);
 }
 
 .foam-right {
   right: 32px;
   top: 40px;
+  transform: rotate(-8deg);
 }
 
 .pond-fish {
@@ -329,7 +327,6 @@ onUnmounted(() => {
   left: 0;
   top: 0;
   transform-origin: center center;
-  transition: filter 180ms ease;
   will-change: transform;
 }
 
@@ -338,7 +335,7 @@ onUnmounted(() => {
   height: auto;
   user-select: none;
   pointer-events: none;
-  filter: drop-shadow(0 12px 14px rgba(14, 116, 144, 0.18));
+  filter: drop-shadow(0 8px 12px rgba(24, 24, 27, 0.12));
 }
 
 .empty-pond {
