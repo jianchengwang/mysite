@@ -238,8 +238,8 @@ const DEFAULT_MODEL = 'google/gemini-2.0-flash-001'
 const markdownRenderer = new Marked({
   gfm: true,
   breaks: true,
-  highlight: (code, lang) => {
-    return highlightCode(code, lang)
+  highlight: (code, language) => {
+    return highlightCode(code, language)
   }
 })
 

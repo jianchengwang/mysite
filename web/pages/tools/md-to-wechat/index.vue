@@ -201,8 +201,8 @@ const onlyFansCanComment = ref(false)
 const { accessToken, backendKey, hasAccessToken: hasWechatAccessToken, openGlobalSettings } = useGlobalWechatDraftAccess()
 
 const markdownRenderer = new Marked({
-  highlight(code, lang) {
-    return highlightCode(code, lang)
+  highlight(code, language) {
+    return highlightCode(code, language)
   },
   breaks: true,
   gfm: true
