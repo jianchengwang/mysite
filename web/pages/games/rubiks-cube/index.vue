@@ -157,6 +157,8 @@ const cubeTransform = computed(
   () => `rotateX(${viewRotationX.value}deg) rotateY(${viewRotationY.value}deg)`
 )
 
+const stickerClass = (color: StickerColor) => `sticker-${color}`
+
 const cubieStyle = (cubie: any) => {
   const { x, y, z } = cubie.position
   const transforms = [`translate3d(calc(${x} * var(--cubie-size)), calc(${-y} * var(--cubie-size)), calc(${z} * var(--cubie-size)))`]

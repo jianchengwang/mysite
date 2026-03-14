@@ -275,7 +275,7 @@ onUnmounted(() => {
   position: absolute;
   border-radius: 999px;
   border: 1.5px solid rgba(24, 24, 27, 0.14);
-  filter: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='pencil'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05' numOctaves='3' result='noise'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='noise' scale='4'/%3E%3C/filter%3E%3C/svg%3E#pencil");
+  opacity: 0.9;
 }
 
 .ripple-one {
