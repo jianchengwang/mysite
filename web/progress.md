@@ -25,11 +25,18 @@
 - **Verification:** Built successfully. The "Identifier 'moveHistory' has already been declared" error was fixed.
 
 ### 4. Fish Pond
-- **Visual Style:** Replaced the "blue ocean" gradient with a **Pencil/Sketch style**.
+- **Visual Style:** Replaced the "blue ocean" gradient with a "Pencil/Sketch style".
 - **Aesthetic Match:** The pond now uses a paper-like background and subtle pencil-drawn ripples, matching the site's overall "sketchy" theme.
 - **Verification:** Built successfully.
 
+### 5. Lobster Workshop
+- **Optimistic Updates & RunID Sync:** Updated `sendMessage` and `normalizeChatPayload` to handle server-assigned `runId`s. The local state now synchronizes immediately with the server's `runId`, ensuring the conversation thread and Task Board mapping stay intact.
+- **State Persistence:** Implemented `localStorage` persistence for `recentDispatches`. This prevents the "Task Board / Helper Jobs" from being wiped on page refresh.
+- **Early Registration:** Dispatches are now registered *before* the message is sent to the gateway, allowing the UI to capture and display early telemetry events.
+- **Verification:** Built successfully. Messages now appear immediately and reliably, and the workshop state persists after refresh.
+
 ## Remaining Imperfections & Next Steps
+
 
 ### Xiangqi
 - **Search Performance:** While depth 4 is much better, deeper searches (depth 5+) might require a move to bitboards or a more optimized engine if professional-level play is desired.

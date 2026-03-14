@@ -570,7 +570,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { type LobsterChatMessage, type LobsterMinionCard, useOpenClawGateway } from '~/composables/useOpenClawGateway'
+import { createId, type LobsterChatMessage, type LobsterMinionCard, useOpenClawGateway } from '~/composables/useOpenClawGateway'
 import { renderSafeMarkdown } from '~/utils/safeRichText'
 
 definePageMeta({ layout: 'default' })
@@ -652,6 +652,7 @@ type StageSlot = {
 }
 
 const DISPATCH_PREFS_STORAGE_KEY = 'lobster_workshop_dispatch_prefs_v1'
+const RECENT_DISPATCHES_STORAGE_KEY = 'lobster_workshop_recent_dispatches_v1'
 const THINK_TAG_PATTERN = /<think>([\s\S]*?)<\/think>/gi
 const FINAL_TAG_PATTERN = /<final>([\s\S]*?)<\/final>/gi
 
@@ -953,23 +954,33 @@ const saveDispatchPrefs = () => {
     launchSubagents: launchSubagents.value,
     selectedWorkers: selectedWorkers.value
   }))
+  localStorage.setItem(RECENT_DISPATCHES_STORAGE_KEY, JSON.stringify(recentDispatches.value))
 }
 
 const loadDispatchPrefs = () => {
   if (!import.meta.client) return
   try {
     const raw = localStorage.getItem(DISPATCH_PREFS_STORAGE_KEY)
-    if (!raw) return
-    const parsed = JSON.parse(raw) as { launchSubagents?: boolean; selectedWorkers?: WorkerId[] }
-    if (typeof parsed.launchSubagents === 'boolean') {
-      launchSubagents.value = parsed.launchSubagents
+    if (raw) {
+      const parsed = JSON.parse(raw) as { launchSubagents?: boolean; selectedWorkers?: WorkerId[] }
+      if (typeof parsed.launchSubagents === 'boolean') {
+        launchSubagents.value = parsed.launchSubagents
+      }
+      if (Array.isArray(parsed.selectedWorkers)) {
+        const nextWorkers = parsed.selectedWorkers.filter((workerId): workerId is WorkerId =>
+          workerOptions.some(worker => worker.id === workerId)
+        )
+        if (nextWorkers.length > 0) {
+          selectedWorkers.value = nextWorkers
+        }
+      }
     }
-    if (Array.isArray(parsed.selectedWorkers)) {
-      const nextWorkers = parsed.selectedWorkers.filter((workerId): workerId is WorkerId =>
-        workerOptions.some(worker => worker.id === workerId)
-      )
-      if (nextWorkers.length > 0) {
-        selectedWorkers.value = nextWorkers
+
+    const rawDispatches = localStorage.getItem(RECENT_DISPATCHES_STORAGE_KEY)
+    if (rawDispatches) {
+      const parsed = JSON.parse(rawDispatches) as DispatchPlan[]
+      if (Array.isArray(parsed)) {
+        recentDispatches.value = parsed.slice(0, 10)
       }
     }
   } catch {
@@ -1283,17 +1294,25 @@ const handleSendOrder = async () => {
   if (!taskText || !canSendOrder.value) return
 
   const workers = launchSubagents.value ? [...selectedWorkers.value] : []
-  const runId = await sendMessage({
+  const initialRunId = createId()
+  registerDispatch(taskText, workers, initialRunId)
+
+  const finalRunId = await sendMessage({
     displayText: taskText,
-    gatewayText: buildGatewayMessage(taskText, workers)
+    gatewayText: buildGatewayMessage(taskText, workers),
+    idempotencyKey: initialRunId
   })
 
-  if (runId) {
-    registerDispatch(taskText, workers, runId)
+  if (finalRunId && finalRunId !== initialRunId) {
+    const dispatch = recentDispatches.value.find(d => d.runId === initialRunId)
+    if (dispatch) {
+      dispatch.runId = finalRunId
+      dispatch.id = finalRunId
+    }
   }
 }
 
-watch([launchSubagents, selectedWorkers], saveDispatchPrefs, { deep: true })
+watch([launchSubagents, selectedWorkers, recentDispatches], saveDispatchPrefs, { deep: true })
 
 onMounted(() => {
   loadDispatchPrefs()

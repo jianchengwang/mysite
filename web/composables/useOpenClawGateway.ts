@@ -147,7 +147,7 @@ const bytesToHex = (bytes: Uint8Array) =>
     .map((byte) => byte.toString(16).padStart(2, '0'))
     .join('')
 
-const createId = () =>
+export const createId = () =>
   (typeof crypto !== 'undefined' && 'randomUUID' in crypto && typeof crypto.randomUUID === 'function')
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
@@ -156,6 +156,7 @@ const toTrimmedString = (value: unknown) => {
   if (typeof value !== 'string') return ''
   return value.trim()
 }
+// ... (rest of helper functions unchanged)
 
 const truncateText = (value: string, limit = 180) =>
   value.length <= limit ? value : `${value.slice(0, limit - 1)}…`
@@ -704,13 +705,13 @@ export const useOpenClawGateway = () => {
       sessionKey: payloadSessionKey || undefined
     })
 
-    const isForeignRun = Boolean(runId && activeRunId.value && runId !== activeRunId.value)
-
-    if (isForeignRun) {
-      if (state === 'final' && normalizedMessage) {
-        messages.value = [...messages.value, normalizedMessage].slice(-MAX_MESSAGES)
+    if (runId && activeRunId.value && runId !== activeRunId.value) {
+      const oldId = activeRunId.value
+      activeRunId.value = runId
+      const userMsg = messages.value.find(m => m.runId === oldId && m.role === 'user')
+      if (userMsg) {
+        userMsg.runId = runId
       }
-      return state
     }
 
     if (state === 'delta') {
@@ -1052,24 +1053,23 @@ export const useOpenClawGateway = () => {
     resetPending(new Error('Gateway disconnected.'))
   }
 
-  const sendMessage = async (options: LobsterSendOptions = {}) => {
+  const sendMessage = async (options: LobsterSendOptions & { idempotencyKey?: string } = {}) => {
     const displayText = (options.displayText ?? draft.value).trim()
     const gatewayText = (options.gatewayText ?? displayText).trim()
     const text = displayText
     if (!text || status.value !== 'connected' || sending.value) return ''
 
-    const runId = createId()
-    messages.value = [
-      ...messages.value,
-      {
-        id: runId,
-        role: 'user',
-        blocks: [{ type: 'text', text }],
-        timestamp: Date.now(),
-        runId,
-        sessionKey: sessionKey.value.trim() || 'main'
-      }
-    ].slice(-MAX_MESSAGES)
+    const runId = options.idempotencyKey || createId()
+    const userMessage: LobsterChatMessage = {
+      id: runId,
+      role: 'user',
+      blocks: [{ type: 'text', text }],
+      timestamp: Date.now(),
+      runId,
+      sessionKey: sessionKey.value.trim() || 'main'
+    }
+
+    messages.value = [...messages.value, userMessage].slice(-MAX_MESSAGES)
     draft.value = ''
     sending.value = true
     activeRunId.value = runId
@@ -1077,12 +1077,21 @@ export const useOpenClawGateway = () => {
     lastError.value = ''
 
     try {
-      await request('chat.send', {
+      const response = await request<{ runId?: string }>('chat.send', {
         sessionKey: sessionKey.value.trim() || 'main',
         message: gatewayText,
         deliver: false,
         idempotencyKey: runId
       })
+
+      const serverRunId = toTrimmedString(response?.runId)
+      if (serverRunId && serverRunId !== runId) {
+        activeRunId.value = serverRunId
+        userMessage.id = serverRunId
+        userMessage.runId = serverRunId
+        return serverRunId
+      }
+
       return runId
     } catch (error) {
       const message = normalizeErrorMessage(error)
