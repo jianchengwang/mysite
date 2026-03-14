@@ -1,0 +1,8 @@
+Office background reference:
+- Source: Star-Office-UI by ringhyacinth
+- File adapted in this page: office-stage.webp
+- Upstream reference file: assets/room-reference.webp
+- Usage note from upstream: non-commercial / learning / demo use only
+
+This page keeps the office background separate from the lobster character art.
+The lobster character SVG files in this directory are original local assets for this project.

@@ -75,6 +75,11 @@ export type LobsterEventEntry = {
   summary: string
 }
 
+export type LobsterSendOptions = {
+  displayText?: string
+  gatewayText?: string
+}
+
 type DeviceIdentity = {
   deviceId: string
   publicKey: string
@@ -288,6 +293,8 @@ const getSubagentTail = (sessionKey: string) => {
 
 const inferMinionLabel = (payload: Record<string, unknown>, data: Record<string, unknown>) => {
   const explicit =
+    toTrimmedString(payload.label) ||
+    toTrimmedString(data.label) ||
     toTrimmedString(data.displayName) ||
     toTrimmedString(data.agentName) ||
     toTrimmedString(data.subagentName) ||
@@ -1004,8 +1011,10 @@ export const useOpenClawGateway = () => {
     resetPending(new Error('Gateway disconnected.'))
   }
 
-  const sendMessage = async () => {
-    const text = draft.value.trim()
+  const sendMessage = async (options: LobsterSendOptions = {}) => {
+    const displayText = (options.displayText ?? draft.value).trim()
+    const gatewayText = (options.gatewayText ?? displayText).trim()
+    const text = displayText
     if (!text || status.value !== 'connected' || sending.value) return false
 
     const runId = createId()
@@ -1029,7 +1038,7 @@ export const useOpenClawGateway = () => {
     try {
       await request('chat.send', {
         sessionKey: sessionKey.value.trim() || 'main',
-        message: text,
+        message: gatewayText,
         deliver: false,
         idempotencyKey: runId
       })

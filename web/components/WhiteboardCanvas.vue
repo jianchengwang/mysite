@@ -103,7 +103,7 @@
               Edit Selected Text
             </button>
             <p class="text-[11px] leading-relaxed text-zinc-500">
-              Click to place. Double-click to edit. <span class="font-bold text-zinc-700">Ctrl/Cmd + Enter</span> saves.
+              Click to place. <span class="font-bold text-zinc-700">Esc</span> cancels. <span class="font-bold text-zinc-700">Done</span> saves.
             </p>
           </div>
 
@@ -114,7 +114,7 @@
             Drag from one shape or image to another to connect them with arrows.
           </p>
           <p v-else-if="showTextEditor" class="text-xs text-zinc-500 italic">
-            Handwritten notes can be placed, edited, and moved later.
+            Saved notes stay editable and draggable.
           </p>
           </div>
         </div>
@@ -164,9 +164,7 @@
         </div>
 
         <div class="hidden text-xs italic text-zinc-500 lg:block lg:mt-auto sketch-card p-4">
-          Tip: Ctrl+Click to multi-select. <br>
-          Use Arrow mode to connect elements. <br>
-          Mouse wheel zooms selected images.
+          Tip: Ctrl/Cmd + Click multi-selects. Mouse wheel resizes the selected image.
         </div>
         </div>
       </div>
@@ -183,18 +181,50 @@
           @touchmove.prevent="handleTouchMove"
           @touchend.prevent="handleTouchEnd"
           @contextmenu.prevent="handleContextMenu"
-          class="h-full w-full cursor-crosshair bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px]"
+          :class="[
+            'h-full w-full cursor-crosshair bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px]',
+            textEditor ? 'pointer-events-none' : ''
+          ]"
         ></canvas>
-        <textarea
+        <div
           v-if="textEditor"
-          ref="textEditorRef"
-          v-model="textDraft"
+          ref="textEditorShellRef"
           :style="textEditorStyle"
-          class="absolute z-20 min-h-[56px] min-w-[180px] max-w-[min(320px,calc(100%-24px))] resize-none overflow-hidden rounded-2xl border-2 border-sky-500 bg-white/95 px-3 py-2 text-sm text-zinc-900 shadow-[6px_6px_0_0_rgba(14,165,233,0.18)] outline-none backdrop-blur"
-          placeholder="Type here..."
-          @keydown="handleInlineTextKeyDown"
-          @blur="commitTextEditor"
-        ></textarea>
+          class="pointer-events-auto absolute z-20 min-w-[180px] max-w-[min(340px,calc(100%-24px))] rounded-2xl border-2 border-sky-500 bg-white/95 p-2 text-sm text-zinc-900 shadow-[6px_6px_0_0_rgba(14,165,233,0.18)] backdrop-blur"
+          @pointerdown.stop
+        >
+          <div class="mb-2 flex items-center justify-between gap-2 border-b border-sky-100 px-1 pb-2">
+            <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-sky-700">
+              {{ textEditor.objectId ? 'Edit Note' : 'New Note' }}
+            </span>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="rounded-full border border-zinc-200 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500 hover:border-zinc-400 hover:text-zinc-900"
+                @mousedown.prevent
+                @click="cancelTextEditor"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                class="rounded-full border border-sky-200 bg-sky-600 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white hover:bg-sky-700"
+                @mousedown.prevent
+                @click="commitTextEditor"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+          <textarea
+            ref="textEditorRef"
+            v-model="textDraft"
+            class="min-h-[72px] w-full resize-none overflow-hidden rounded-xl border border-transparent bg-transparent px-2 py-1 text-sm text-zinc-900 outline-none"
+            placeholder="Type here..."
+            @keydown="handleInlineTextKeyDown"
+            @blur="handleTextEditorBlur"
+          ></textarea>
+        </div>
       </div>
     </div>
 
@@ -315,6 +345,7 @@ const canvas = ref<HTMLCanvasElement | null>(null)
 const canvasWrapper = ref<HTMLElement | null>(null)
 const ctx = ref<CanvasRenderingContext2D | null>(null)
 const textEditorRef = ref<HTMLTextAreaElement | null>(null)
+const textEditorShellRef = ref<HTMLElement | null>(null)
 
 const currentTool = ref<ToolId>('pencil')
 const currentColor = ref('#000000')
@@ -664,6 +695,22 @@ const editSelectedTextOnCanvas = () => {
   openTextEditor(selectedTextObject.value.pos, selectedTextObject.value)
 }
 
+const handleTextEditorBlur = (event: FocusEvent) => {
+  const nextTarget = event.relatedTarget
+  if (nextTarget instanceof Node && textEditorShellRef.value?.contains(nextTarget)) {
+    return
+  }
+
+  window.requestAnimationFrame(() => {
+    if (!textEditor.value) return
+    const activeTarget = document.activeElement
+    if (activeTarget instanceof Node && textEditorShellRef.value?.contains(activeTarget)) {
+      return
+    }
+    commitTextEditor()
+  })
+}
+
 const commitTextEditor = () => {
   const activeEditor = textEditor.value
   if (!activeEditor) return
@@ -671,6 +718,7 @@ const commitTextEditor = () => {
   const nextText = textDraft.value.trim()
   const existingObject = activeEditor.objectId ? getObjectById(activeEditor.objectId) : null
   textEditor.value = null
+  currentTool.value = 'select'
 
   if (!nextText) {
     textDraft.value = ''
@@ -720,6 +768,7 @@ const cancelTextEditor = () => {
   if (!textEditor.value) return
   const editingObjectId = textEditor.value.objectId
   textEditor.value = null
+  currentTool.value = 'select'
   if (editingObjectId) {
     selectedObjectIds.value = [editingObjectId]
   }
@@ -759,6 +808,14 @@ const handleWindowKeyDown = (event: KeyboardEvent) => {
   }
 }
 
+const handleWindowPointerDown = (event: PointerEvent) => {
+  if (!textEditor.value) return
+  if (event.target instanceof Node && textEditorShellRef.value?.contains(event.target)) {
+    return
+  }
+  commitTextEditor()
+}
+
 const syncApiKey = () => {
   apiKey.value = localStorage.getItem('global_openrouter_key') || ''
 }
@@ -775,6 +832,7 @@ onMounted(() => {
   window.addEventListener('storage', syncApiKey)
   window.addEventListener('resize', handleResize)
   window.addEventListener('keydown', handleWindowKeyDown)
+  window.addEventListener('pointerdown', handleWindowPointerDown, true)
   canvas.value.addEventListener('wheel', handleWheel, { passive: false })
 
   fetchModels()
@@ -786,6 +844,7 @@ onUnmounted(() => {
   window.removeEventListener('storage', syncApiKey)
   window.removeEventListener('resize', handleResize)
   window.removeEventListener('keydown', handleWindowKeyDown)
+  window.removeEventListener('pointerdown', handleWindowPointerDown, true)
   if (canvas.value) {
     canvas.value.removeEventListener('wheel', handleWheel)
   }

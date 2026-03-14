@@ -40,9 +40,9 @@
       </button>
     </div>
 
-    <div v-else class="mx-auto grid max-w-7xl grid-cols-1 items-start gap-6 lg:grid-cols-12 lg:gap-8">
-      <div class="order-2 space-y-5 lg:order-1 lg:col-span-5">
-        <div class="sketch-card bg-white p-4 md:p-5">
+    <div v-else class="mx-auto grid max-w-[1600px] grid-cols-1 items-start gap-6 lg:grid-cols-12 lg:gap-8">
+      <div class="order-2 space-y-5 lg:order-1 lg:col-span-7">
+        <div class="sketch-card bg-white p-4 md:p-5 lg:p-6">
           <div class="flex items-center justify-between gap-2 mb-3">
             <h2 class="text-2xl font-bold">{{ currentCharacterName }}</h2>
             <div class="flex items-center gap-3">
@@ -53,7 +53,7 @@
             </div>
           </div>
 
-          <div v-show="mobileCharacterExpanded || isDesktopViewport" class="character-container relative mx-auto aspect-[4/5] w-full max-w-[620px] overflow-hidden bg-[radial-gradient(circle_at_top,_#ffffff_0%,_#f4f4f5_58%,_#e4e4e7_100%)] p-0 sketch-border-3">
+          <div v-show="mobileCharacterExpanded || isDesktopViewport" class="character-container relative mx-auto aspect-[3.8/4.5] w-full max-w-[900px] overflow-hidden bg-[radial-gradient(circle_at_top,_#ffffff_0%,_#f4f4f5_58%,_#e4e4e7_100%)] p-0 sketch-border-3 lg:min-h-[800px]">
             <ClientOnly>
               <div id="L2dCanvas" class="w-full h-full relative"></div>
               <div v-if="live2dErrorMessage" class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white/88 p-5 text-center">
@@ -69,13 +69,13 @@
             </ClientOnly>
           </div>
 
-          <div v-if="characterResponse && (mobileCharacterExpanded || isDesktopViewport)" class="mt-4 sketch-border-3 p-4 bg-white max-w-[460px] mx-auto relative">
+          <div v-if="characterResponse && (mobileCharacterExpanded || isDesktopViewport)" class="mt-4 sketch-border-3 bg-white p-4 lg:max-w-[640px] mx-auto relative">
             <div class="absolute -top-3 left-10 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[12px] border-b-black"></div>
             <p class="text-sm leading-relaxed">{{ characterResponse }}</p>
           </div>
         </div>
 
-        <div class="sketch-card bg-white p-4 md:p-5">
+        <div class="sketch-card bg-white p-4 md:p-5 lg:p-6">
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-2xl font-bold">Model Switch Panel</h3>
             <div class="flex items-center gap-3">
@@ -117,7 +117,7 @@
         </div>
       </div>
 
-      <div class="order-1 flex min-h-[56vh] flex-col lg:order-2 lg:col-span-7 lg:h-[75vh] lg:min-h-[420px]">
+      <div class="order-1 flex min-h-[56vh] flex-col lg:order-2 lg:col-span-5 lg:h-[75vh] lg:min-h-[420px]">
         <div class="flex flex-1 flex-col overflow-hidden sketch-card bg-white p-0">
           <div ref="chatContainer" class="flex-1 space-y-5 overflow-y-auto p-4 scroll-smooth sm:p-6 sm:space-y-6">
             <div v-for="(msg, index) in messages" :key="index" :class="['flex', msg.role === 'user' ? 'justify-end' : 'justify-start']">
@@ -920,6 +920,12 @@ h1, h2, h3 {
   height: 100% !important;
   image-rendering: auto;
   transform-origin: center bottom;
+}
+
+@media (min-width: 1024px) {
+  :deep(#L2dCanvas canvas) {
+    transform: scale(1.1) translateY(2%);
+  }
 }
 
 .model-selector-container .sketch-border {
