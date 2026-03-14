@@ -574,6 +574,14 @@ export const useOpenClawGateway = () => {
 
     const toolCallId = toTrimmedString(data.toolCallId)
     const sessionKeyValue = toTrimmedString(record.sessionKey)
+    const hasSubagentContext =
+      sessionKeyValue.includes(':subagent:') ||
+      Boolean(toTrimmedString(data.subagentName))
+
+    if (!hasSubagentContext) {
+      return
+    }
+
     const minionId = toolCallId || `${stream}:${toTrimmedString(record.runId) || createId()}`
     const nextCard: LobsterMinionCard = {
       id: minionId,

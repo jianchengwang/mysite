@@ -111,22 +111,7 @@
                 </div>
               </div>
 
-              <div class="space-y-5">
-                <div class="rounded-[30px] border-2 border-zinc-900 bg-[#fffdf8] p-5 shadow-[5px_5px_0_0_rgba(0,0,0,1)]">
-                  <div class="flex items-start justify-between gap-3">
-                    <div>
-                      <p class="text-xs font-bold uppercase tracking-[0.22em] text-zinc-500">Workshop Status</p>
-                      <h2 class="mt-2 text-2xl font-bold text-zinc-900">{{ statusLabel }}</h2>
-                    </div>
-                    <button class="sketch-button px-4 py-2 text-sm" @click="showSettingsModal = true">
-                      Settings
-                    </button>
-                  </div>
-                  <p class="mt-4 text-sm leading-7 text-zinc-600">
-                    {{ status === 'connected' ? 'Gateway linked. Boss Lobster can dispatch helper runs.' : 'Open settings if needed, then connect the dock.' }}
-                  </p>
-                </div>
-
+              <div>
                 <div class="rounded-[30px] border-2 border-zinc-900 bg-[#fffdf8] p-5 shadow-[5px_5px_0_0_rgba(0,0,0,1)]">
                   <div class="flex items-start justify-between gap-3 border-b border-zinc-200 pb-4">
                     <div>
@@ -678,6 +663,8 @@ const helperRosterSummary = computed(() => {
   return `${selectedWorkers.value.length} helper ${selectedWorkers.value.length > 1 ? 'lobsters are' : 'lobster is'} armed: ${labels}.`
 })
 
+const latestDispatch = computed(() => recentDispatches.value[0] || null)
+
 const canSendOrder = computed(() =>
   status.value === 'connected' &&
   !sending.value &&
@@ -873,26 +860,33 @@ const buildCrewCardFromMinion = (card: LobsterMinionCard): CrewCardView => {
 }
 
 const crewCards = computed<CrewCardView[]>(() => {
-  const actualCards = minionCards.value.map(buildCrewCardFromMinion)
-  const placeholders = recentDispatches.value.flatMap((dispatch) =>
-    dispatch.workers
-      .filter(workerId => !matchingActualCard(dispatch, workerId))
-      .map((workerId) => {
-        const worker = workerOptionMap[workerId]
-        return {
-          id: `${dispatch.id}-${workerId}`,
-          title: worker.label,
-          shortLabel: worker.short,
-          taskLine: truncateTask(dispatch.task, 58),
-          note: 'Queued by Boss Lobster',
-          detail: dispatch.task,
-          status: 'queued' as const,
-          progress: progressFromStatus('queued'),
-          lastSeen: dispatch.createdAt,
-          variant: worker.variant
-        }
-      })
-  )
+  const dispatch = latestDispatch.value
+  if (!dispatch || dispatch.workers.length === 0) {
+    return []
+  }
+
+  const actualCards = dispatch.workers
+    .map((workerId) => matchingActualCard(dispatch, workerId))
+    .filter((card): card is LobsterMinionCard => Boolean(card))
+    .map(buildCrewCardFromMinion)
+
+  const placeholders = dispatch.workers
+    .filter(workerId => !matchingActualCard(dispatch, workerId))
+    .map((workerId) => {
+      const worker = workerOptionMap[workerId]
+      return {
+        id: `${dispatch.id}-${workerId}`,
+        title: worker.label,
+        shortLabel: worker.short,
+        taskLine: truncateTask(dispatch.task, 58),
+        note: 'Queued by Boss Lobster',
+        detail: dispatch.task,
+        status: 'queued' as const,
+        progress: progressFromStatus('queued'),
+        lastSeen: dispatch.createdAt,
+        variant: worker.variant
+      }
+    })
 
   return [...actualCards, ...placeholders]
     .sort((left, right) => right.lastSeen - left.lastSeen)
@@ -908,6 +902,10 @@ const stageWorkers = computed<StageWorkerView[]>(() => {
       note: card.note || card.taskLine,
       variant: card.variant
     }))
+  }
+
+  if (latestDispatch.value && latestDispatch.value.workers.length === 0 && !launchSubagents.value) {
+    return []
   }
 
   if (!launchSubagents.value) return []
