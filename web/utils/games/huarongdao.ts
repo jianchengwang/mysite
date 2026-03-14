@@ -143,6 +143,26 @@ export const invertHuarongdaoMove = (move: HuarongdaoMove): HuarongdaoMove => ({
 })
 
 const buildLevels = (): HuarongdaoLevel[] => {
+  const classicHengdaoLima: HuarongdaoLevel = {
+    id: 'level-classic-hengdao',
+    title: '横刀立马',
+    note: '华容道最经典、最知名的开局，曹操被众将重重包围。',
+    pieces: [
+      { id: 'cao', type: 'cao', label: '曹操', width: 2, height: 2, x: 1, y: 0 },
+      { id: 'guan', type: 'horizontal', label: '关羽', width: 2, height: 1, x: 1, y: 2 },
+      { id: 'zhang', type: 'vertical', label: '张飞', width: 1, height: 2, x: 0, y: 0 },
+      { id: 'zhao', type: 'vertical', label: '赵云', width: 1, height: 2, x: 3, y: 0 },
+      { id: 'ma', type: 'vertical', label: '马超', width: 1, height: 2, x: 0, y: 2 },
+      { id: 'huang', type: 'vertical', label: '黄忠', width: 1, height: 2, x: 3, y: 2 },
+      { id: 'soldier-1', type: 'soldier', label: '兵一', width: 1, height: 1, x: 1, y: 3 },
+      { id: 'soldier-2', type: 'soldier', label: '兵二', width: 1, height: 1, x: 2, y: 3 },
+      { id: 'soldier-3', type: 'soldier', label: '兵三', width: 1, height: 1, x: 0, y: 4 },
+      { id: 'soldier-4', type: 'soldier', label: '兵四', width: 1, height: 1, x: 3, y: 4 }
+    ],
+    estimatedDepth: 81,
+    pathFromSolved: [] // Path is only used for "replay" hints, which we don't need for this manual level
+  }
+
   const targetDepths = [2, 4, 6, 8, 10, 12, 14, 16]
   const titles = ['热身一', '交错', '回身', '横挪', '逼仄', '夹缝', '折返', '长局']
   const notes = [
@@ -156,7 +176,7 @@ const buildLevels = (): HuarongdaoLevel[] => {
     '已经接近完整长局，适合慢慢拆。'
   ]
 
-  const levels: HuarongdaoLevel[] = []
+  const levels: HuarongdaoLevel[] = [classicHengdaoLima]
   const visited = new Set<string>()
   const queue: Array<{ pieces: HuarongdaoPiece[]; depth: number; path: HuarongdaoMove[] }> = [
     { pieces: cloneHuarongdaoPieces(baseSolvedPieces), depth: 0, path: [] }

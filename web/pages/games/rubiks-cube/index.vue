@@ -154,12 +154,16 @@ const turningAngle = ref(0)
 // For the drag preview
 const previewFace = ref<CubeFace | null>(null)
 const previewAxis = ref<'x' | 'y' | 'z' | null>(null)
+const previewLayer = ref<number | null>(null)
 const previewAngle = ref(0)
+const previewMove = ref<CubeMove | null>(null)
 
 const clearFacePreview = () => {
   previewFace.value = null
   previewAxis.value = null
+  previewLayer.value = null
   previewAngle.value = 0
+  previewMove.value = null
 }
 
 const guide = computed(() => getCubeGuide(cube.value, moveHistory.value))
@@ -174,8 +178,10 @@ const cubieStyle = (cubie: any) => {
   const transforms = [`translate3d(calc(${x} * var(--cubie-size)), calc(${-y} * var(--cubie-size)), calc(${z} * var(--cubie-size)))`]
 
   // Apply either the active animation or the current drag preview
-  const axis = turningAxis.value || (previewFace.value ? faceTurnAxis[previewFace.value] : null)
-  if (axis && cubie.position[axis] === (turningLayer.value ?? (previewFace.value ? (previewFace.value === 'U' || previewFace.value === 'R' || previewFace.value === 'F' ? 1 : -1) : 0))) {
+  const axis = turningAxis.value || previewAxis.value
+  const layer = turningLayer.value ?? previewLayer.value
+  
+  if (axis && cubie.position[axis] === layer) {
     const angle = turningAngle.value || previewAngle.value
     transforms.unshift(`rotate${axis.toUpperCase()}(${angle}deg)`)
   }
@@ -189,6 +195,7 @@ const handleStickerPointerDown = (side: string, cubie: any, event: PointerEvent)
   const sideToFace: Record<string, CubeFace> = {
     py: 'U', ny: 'D', px: 'R', nx: 'L', pz: 'F', nz: 'B'
   }
+  activeCubie = cubie
   beginPointerInteraction('face', event, sideToFace[side])
 }
 
@@ -198,10 +205,29 @@ const performMove = (move: CubeMove, options: { animate?: boolean } = {}) => {
     const axis = faceTurnAxis[face]
     const layer = face === 'U' || face === 'R' || face === 'F' ? 1 : -1
     const direction = move.endsWith("'") ? -1 : 1
+    
+    // Fix direction mapping for certain faces/axes if needed based on moveDefinitions
+    // In utils: U: axis y, layer 1, turns -1. So direction 1 should be -90deg? 
+    // Actually, let's just use the move definition for the animation direction
+    const moveDefinitions: any = {
+      U: { axis: 'y', layer: 1, turns: -1 },
+      "U'": { axis: 'y', layer: 1, turns: 1 },
+      D: { axis: 'y', layer: -1, turns: 1 },
+      "D'": { axis: 'y', layer: -1, turns: -1 },
+      L: { axis: 'x', layer: -1, turns: 1 },
+      "L'": { axis: 'x', layer: -1, turns: -1 },
+      R: { axis: 'x', layer: 1, turns: -1 },
+      "R'": { axis: 'x', layer: 1, turns: 1 },
+      F: { axis: 'z', layer: 1, turns: -1 },
+      "F'": { axis: 'z', layer: 1, turns: 1 },
+      B: { axis: 'z', layer: -1, turns: 1 },
+      "B'": { axis: 'z', layer: -1, turns: -1 }
+    }
+    const def = moveDefinitions[move]
 
     activeTurnLabel.value = formatTurnLabel(move)
-    turningAxis.value = axis
-    turningLayer.value = layer
+    turningAxis.value = def.axis
+    turningLayer.value = def.layer
     turningAngle.value = 0
 
     const start = performance.now()
@@ -211,7 +237,7 @@ const performMove = (move: CubeMove, options: { animate?: boolean } = {}) => {
       const elapsed = time - start
       const progress = Math.min(elapsed / duration, 1)
       const ease = 1 - Math.pow(1 - progress, 3)
-      turningAngle.value = direction * 90 * ease
+      turningAngle.value = def.turns * 90 * ease
 
       if (progress < 1) {
         requestAnimationFrame(animate)
@@ -257,31 +283,75 @@ type PointerMode = 'orbit' | 'face' | null
 let pointerMode: PointerMode = null
 let activePointerId: number | null = null
 let activeFace: CubeFace | null = null
+let activeCubie: any = null
 let startX = 0
 let startY = 0
 let startRotationX = viewRotationX.value
 let startRotationY = viewRotationY.value
 
-const faceDragMap: Record<CubeFace, { horizontal: [CubeMove, CubeMove]; vertical: [CubeMove, CubeMove] }> = {
-  F: { horizontal: ["F'", 'F'], vertical: ["F'", 'F'] },
-  B: { horizontal: ['B', "B'"], vertical: ['B', "B'"] },
-  R: { horizontal: ["R'", 'R'], vertical: ['R', "R'"] },
-  L: { horizontal: ['L', "L'"], vertical: ["L'", 'L'] },
-  U: { horizontal: ["U'", 'U'], vertical: ["U'", 'U'] },
-  D: { horizontal: ['D', "D'"], vertical: ['D', "D'"] }
-}
+const resolveFaceMove = (face: CubeFace, cubie: any, dx: number, dy: number): CubeMove | null => {
+  if (!cubie) return null
+  const { x, y, z } = cubie.position
+  const absX = Math.abs(dx), absY = Math.abs(dy)
+  const threshold = 10
+  if (Math.max(absX, absY) < threshold) return null
 
-const resolveFaceMove = (face: CubeFace, dx: number, dy: number) => {
-  const map = faceDragMap[face]
-  if (Math.abs(dx) >= Math.abs(dy)) {
-    return dx < 0 ? map.horizontal[0] : map.horizontal[1]
+  if (face === 'F') {
+    if (absX >= absY) {
+      if (y === 1) return dx > 0 ? "U'" : 'U'
+      if (y === -1) return dx > 0 ? 'D' : "D'"
+    } else {
+      if (x === 1) return dy < 0 ? 'R' : "R'"
+      if (x === -1) return dy < 0 ? "L'" : 'L'
+    }
+  } else if (face === 'R') {
+    if (absX >= absY) {
+      if (y === 1) return dx > 0 ? 'U' : "U'"
+      if (y === -1) return dx > 0 ? "D'" : 'D'
+    } else {
+      if (z === 1) return dy < 0 ? "F'" : 'F'
+      if (z === -1) return dy < 0 ? 'B' : "B'"
+    }
+  } else if (face === 'U') {
+    if (absX >= absY) {
+      if (z === -1) return dx > 0 ? 'B' : "B'"
+      if (z === 1) return dx > 0 ? "F'" : 'F'
+    } else {
+      if (x === -1) return dy < 0 ? "L'" : 'L'
+      if (x === 1) return dy < 0 ? 'R' : "R'"
+    }
+  } else if (face === 'L') {
+    if (absX >= absY) {
+      if (y === 1) return dx > 0 ? "U'" : 'U'
+      if (y === -1) return dx > 0 ? 'D' : "D'"
+    } else {
+      if (z === 1) return dy < 0 ? 'F' : "F'"
+      if (z === -1) return dy < 0 ? "B'" : 'B'
+    }
+  } else if (face === 'D') {
+    if (absX >= absY) {
+      if (z === 1) return dx > 0 ? 'F' : "F'"
+      if (z === -1) return dx > 0 ? "B'" : 'B'
+    } else {
+      if (x === -1) return dy < 0 ? 'L' : "L'"
+      if (x === 1) return dy < 0 ? "R'" : 'R'
+    }
+  } else if (face === 'B') {
+    if (absX >= absY) {
+      if (y === 1) return dx > 0 ? 'U' : "U'"
+      if (y === -1) return dx > 0 ? "D'" : 'D'
+    } else {
+      if (x === 1) return dy < 0 ? "R'" : 'R'
+      if (x === -1) return dy < 0 ? 'L' : "L'"
+    }
   }
-  return dy < 0 ? map.vertical[0] : map.vertical[1]
+  return null
 }
 
 const endPointerInteraction = (preserveFaceAnimation = false) => {
   activePointerId = null
   activeFace = null
+  activeCubie = null
   pointerMode = null
   window.removeEventListener('pointermove', handlePointerMove)
   window.removeEventListener('pointerup', handlePointerUp)
@@ -296,12 +366,35 @@ const handlePointerMove = (event: PointerEvent) => {
   if (pointerMode === 'face' && activeFace) {
     const dx = event.clientX - startX
     const dy = event.clientY - startY
-    const dominantDelta = Math.abs(dx) >= Math.abs(dy) ? dx : -dy
-    previewFace.value = activeFace
-    previewAxis.value = faceTurnAxis[activeFace]
-    previewAngle.value = Math.max(-34, Math.min(34, dominantDelta * 0.28))
-    if (Math.max(Math.abs(dx), Math.abs(dy)) > 10) {
-      activeTurnLabel.value = formatTurnLabel(resolveFaceMove(activeFace, dx, dy))
+    const move = resolveFaceMove(activeFace, activeCubie, dx, dy)
+    
+    if (move) {
+      const moveDefinitions: any = {
+        U: { axis: 'y', layer: 1, turns: -1 },
+        "U'": { axis: 'y', layer: 1, turns: 1 },
+        D: { axis: 'y', layer: -1, turns: 1 },
+        "D'": { axis: 'y', layer: -1, turns: -1 },
+        L: { axis: 'x', layer: -1, turns: 1 },
+        "L'": { axis: 'x', layer: -1, turns: -1 },
+        R: { axis: 'x', layer: 1, turns: -1 },
+        "R'": { axis: 'x', layer: 1, turns: 1 },
+        F: { axis: 'z', layer: 1, turns: -1 },
+        "F'": { axis: 'z', layer: 1, turns: 1 },
+        B: { axis: 'z', layer: -1, turns: 1 },
+        "B'": { axis: 'z', layer: -1, turns: -1 }
+      }
+      const def = moveDefinitions[move]
+      const dominantDelta = Math.abs(dx) >= Math.abs(dy) ? dx : -dy
+      
+      previewFace.value = activeFace
+      previewAxis.value = def.axis
+      previewLayer.value = def.layer
+      previewAngle.value = def.turns * Math.max(0, Math.min(34, Math.abs(dominantDelta) * 0.45))
+      previewMove.value = move
+      activeTurnLabel.value = formatTurnLabel(move)
+    } else {
+      clearFacePreview()
+      activeTurnLabel.value = ''
     }
     return
   }
@@ -321,8 +414,9 @@ const handlePointerUp = (event: PointerEvent) => {
   if (pointerMode === 'face' && activeFace) {
     const dx = event.clientX - startX
     const dy = event.clientY - startY
-    if (Math.max(Math.abs(dx), Math.abs(dy)) > 18) {
-      performMove(resolveFaceMove(activeFace, dx, dy))
+    const move = resolveFaceMove(activeFace, activeCubie, dx, dy)
+    if (move && Math.max(Math.abs(dx), Math.abs(dy)) > 24) {
+      performMove(move)
       triggeredTurn = true
     }
   }

@@ -711,12 +711,21 @@ const {
   activeRunId,
   sending,
   minionCards,
-  connect,
-  disconnect,
+  connect: connectGateway,
+  disconnect: disconnectGateway,
   refreshDeck,
   sendMessage,
   abortActiveRun
 } = useOpenClawGateway()
+
+const connect = async () => {
+  clearChatWindow()
+  await connectGateway()
+}
+
+const disconnect = () => {
+  disconnectGateway()
+}
 
 const showSettingsModal = ref(false)
 const launchSubagents = ref(true)
@@ -980,8 +989,8 @@ const loadDispatchPrefs = () => {
     if (rawDispatches) {
       const parsed = JSON.parse(rawDispatches) as DispatchPlan[]
       if (Array.isArray(parsed)) {
-        // Only keep dispatches from the last 8 hours to avoid stale history.
-        const limit = Date.now() - 8 * 60 * 60 * 1000
+        // Only keep dispatches from the last hour to avoid stale history.
+        const limit = Date.now() - 1 * 60 * 60 * 1000
         recentDispatches.value = parsed.filter(d => d.createdAt > limit).slice(0, 10)
       }
     }
@@ -1228,7 +1237,6 @@ const chatMessages = computed<ChatCardView[]>(() =>
 
 const streamingChatCard = computed(() => {
   if (!streamingText.value.trim()) return null
-  if (activeDispatch.value?.workers.length) return null
 
   const rendered = buildRenderedReply(`stream-${activeRunId.value || 'boss'}`, streamingText.value, true)
   return {

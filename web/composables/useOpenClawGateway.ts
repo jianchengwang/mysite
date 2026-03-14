@@ -994,7 +994,7 @@ export const useOpenClawGateway = () => {
       if (hello.auth?.deviceToken && deviceIdentity) {
         writeDeviceToken(deviceIdentity.deviceId, hello.auth.role || role, hello.auth.deviceToken, hello.auth.scopes || [])
       }
-      await Promise.allSettled([loadHistory(), refreshDeck()])
+      await refreshDeck()
       startRefreshLoop()
     } catch (error) {
       lastError.value = normalizeErrorMessage(error)
@@ -1019,6 +1019,10 @@ export const useOpenClawGateway = () => {
     serverConnId.value = ''
     connectNonce = ''
     connectSent = false
+    messages.value = []
+    minionCards.value = []
+    streamingText.value = ''
+    activeRunId.value = ''
 
     if (ws) {
       ws.close()

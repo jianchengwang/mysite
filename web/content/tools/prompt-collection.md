@@ -509,3 +509,13 @@ A tall, realistic cheerful capsule floats horizontally. The left side is soft ne
 ```
 red and sumi ink painting. A front-facing low-angle shot of a girl wearing a traditional kimono and hakama, riding a motorcycle and leaning deeply into a sharp turn, replicating the exact pose and composition of a dramatic manga racing scene. The cloth is fluffy. The motorcycle is tilted nearly sideways, one knee close to the ground, handlebars turned, front wheel facing directly toward the viewer. Her hakama flows dramatically with the wind, hair streaming back, and a ribbon or obi fluttering behind her. Intense, focused expression. White or minimal background, strong motion blur and foreshortening, cel-shaded manga style, high-detail mechanical parts, dynamic shadows.performing an extreme hang-on maneuver. The rider is fully leaned over with their knee nearly touching the ground.
 ```
+
+### POV Vlog-style Video
+```
+POV vlog-style shot of a young woman walking across the Brooklyn Bridge in New York while live streaming. She is holding her phone and talking excitedly to the camera, naturally introducing and showing her Louis Vuitton handbag. She occasionally lifts the bag closer to the camera while walking. Natural body movement, casual gestures, authentic influencer-style delivery. Light wind moving her hair and red mini dress. Bright natural daylight, blue sky with soft white clouds, Brooklyn Bridge cables and Manhattan skyline in the background.
+
+Audio: clear, high-quality natural voice recording, balanced volume, no clipping or peaking, clean ambient city sounds (light wind, distant traffic), voice remains crisp and intelligible like a professional vlog microphone.
+
+Style: cinematic realism, handheld POV vlog aesthetic, natural skin texture, smooth motion, high detail, 4K, documentary / lifestyle influencer look.
+```
+

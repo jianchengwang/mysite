@@ -124,6 +124,7 @@ import GameShell from '~/components/games/GameShell.vue'
 import { getGameBySlug } from '~/utils/games/catalog'
 import {
   applyXiangqiMove,
+  calculateXiangqiHistoryKeys,
   createInitialXiangqiBoard,
   generateLegalXiangqiMoves,
   getOppositeSide,
@@ -271,6 +272,9 @@ const searchWithWorker = (currentBoard: XiangqiBoard, side: XiangqiSide, difficu
     return Promise.reject(new Error('Worker unavailable'))
   }
 
+  // Generate board history keys for repetition detection in search
+  const historyKeys = calculateXiangqiHistoryKeys(createInitialXiangqiBoard(), moveHistory.value)
+
   return new Promise<XiangqiSearchResult>((resolve, reject) => {
     const id = ++workerRequestId
     pendingSearches.set(id, { resolve, reject })
@@ -278,7 +282,9 @@ const searchWithWorker = (currentBoard: XiangqiBoard, side: XiangqiSide, difficu
       id,
       board: cloneBoardSnapshot(currentBoard),
       aiSide: side,
-      difficulty: { ...difficulty }
+      difficulty: { ...difficulty },
+      historyKeys,
+      timeLimit: 3000 // 3 seconds per move
     })
   })
 }

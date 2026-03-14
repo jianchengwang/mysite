@@ -35,6 +35,7 @@ export type XiangqiSearchResult = {
   move: XiangqiMove | null
   score: number
   nodes: number
+  isTimeout?: boolean
 }
 
 const MATE_SCORE = 100000000
@@ -424,15 +425,49 @@ const moveOrderingScore = (m: InternalMove, ttMove: number, depth: number): numb
   return historyTable[m.from * 90 + m.to]
 }
 
-export const searchBestXiangqiMove = (board: XiangqiBoard, aiSide: XiangqiSide, difficulty: XiangqiDifficulty): XiangqiSearchResult => {
+export const searchBestXiangqiMove = (
+  board: XiangqiBoard,
+  aiSide: XiangqiSide,
+  difficulty: XiangqiDifficulty,
+  historyKeys: bigint[] = [],
+  timeLimit: number = 3000
+): XiangqiSearchResult => {
   let nodes = 0
+  let isAborted = false
+  const startTime = Date.now()
   const isRed = aiSide === 'red'
   const ib = boardToInternal(board)
   let ck = getZobristKey(ib, isRed)
   killerMoves.fill(0); historyTable.fill(0); transpositionTable.fill(null)
 
+  // Track path for repetition detection
+  const currentPath = new BigUint64Array(256)
+  let pathLen = 0
+  for (const k of historyKeys) currentPath[pathLen++] = k
+
+  const checkAborted = () => {
+    if (nodes % 1024 === 0 && Date.now() - startTime > timeLimit) {
+      isAborted = true
+    }
+  }
+
+  const isRepetition = (key: bigint): boolean => {
+    // Check if current key exists in path (at least twice previously makes it 3-fold, but we can penalize even 2-fold)
+    let count = 0
+    for (let i = 0; i < pathLen; i++) {
+      if (currentPath[i] === key) {
+        count++
+        if (count >= 2) return true
+      }
+    }
+    return false
+  }
+
   const quiesce = (alpha: number, beta: number, sideRed: boolean): number => {
     nodes++
+    if (nodes % 1024 === 0) checkAborted()
+    if (isAborted) return alpha
+
     const standPat = evaluateInternal(ib, isRed)
     if (standPat >= beta) return beta
     if (alpha < standPat) alpha = standPat
@@ -441,6 +476,7 @@ export const searchBestXiangqiMove = (board: XiangqiBoard, aiSide: XiangqiSide, 
       const cap = ib[m.to]; ib[m.to] = m.piece; ib[m.from] = EMPTY
       const s = -quiesce(-beta, -alpha, !sideRed)
       ib[m.from] = m.piece; ib[m.to] = cap
+      if (isAborted) return alpha
       if (s >= beta) return beta
       if (s > alpha) alpha = s
     }
@@ -449,6 +485,11 @@ export const searchBestXiangqiMove = (board: XiangqiBoard, aiSide: XiangqiSide, 
 
   const negamax = (depth: number, alpha: number, beta: number, sideRed: boolean): number => {
     nodes++
+    if (nodes % 1024 === 0) checkAborted()
+    if (isAborted) return alpha
+
+    if (isRepetition(ck)) return 0
+
     const tt = transpositionTable[Number(ck & BigInt(TT_SIZE - 1))]
     if (tt && tt.key === ck && tt.depth >= depth) {
       if (tt.flag === 0) return tt.score
@@ -460,16 +501,25 @@ export const searchBestXiangqiMove = (board: XiangqiBoard, aiSide: XiangqiSide, 
     const moves = generateLegalInternalMoves(ib, sideRed)
     if (moves.length === 0) return isInternalInCheck(ib, sideRed) ? -MATE_SCORE + (difficulty.depth - depth) : 0
     moves.sort((a, b) => moveOrderingScore(b, tt?.key === ck ? tt.bestMove : 0, depth) - moveOrderingScore(a, tt?.key === ck ? tt.bestMove : 0, depth))
+    
     let bestS = -Infinity, bestM = 0, alphaOrig = alpha
     for (let i = 0; i < moves.length; i++) {
       const m = moves[i], cap = ib[m.to]
-      ib[m.to] = m.piece; ib[m.from] = EMPTY; ck ^= zobristSide[0]
+      ib[m.to] = m.piece; ib[m.from] = EMPTY; 
+      const oldCk = ck
+      ck ^= zobristSide[0]
       ck = updateZobristKey(ck, m.from, m.piece); ck = updateZobristKey(ck, m.to, m.piece); ck = updateZobristKey(ck, m.to, cap)
+      currentPath[pathLen++] = oldCk
+
       let s
       if (i === 0) s = -negamax(depth - 1, -beta, -alpha, !sideRed)
       else { s = -negamax(depth - 1, -alpha - 1, -alpha, !sideRed); if (s > alpha && s < beta) s = -negamax(depth - 1, -beta, -alpha, !sideRed) }
-      ib[m.from] = m.piece; ib[m.to] = cap; ck ^= zobristSide[0]
-      ck = updateZobristKey(ck, m.from, m.piece); ck = updateZobristKey(ck, m.to, m.piece); ck = updateZobristKey(ck, m.to, cap)
+      
+      pathLen--
+      ck = oldCk
+      ib[m.from] = m.piece; ib[m.to] = cap
+      
+      if (isAborted) return alpha
       if (s > bestS) { bestS = s; bestM = (m.from << 8) | m.to }
       alpha = Math.max(alpha, s)
       if (alpha >= beta) { if (cap === EMPTY) { killerMoves[depth * 2 + 1] = killerMoves[depth * 2]; killerMoves[depth * 2] = (m.from << 8) | m.to; historyTable[m.from * 90 + m.to] += depth * depth }; break }
@@ -482,24 +532,59 @@ export const searchBestXiangqiMove = (board: XiangqiBoard, aiSide: XiangqiSide, 
   for (let d = 1; d <= difficulty.depth; d++) {
     let alpha = -Infinity, beta = Infinity
     if (d > 2) { alpha = finalS - 50; beta = finalS + 50 }
+    
+    let bestDMove: InternalMove | null = null
+    let bestDScore = -Infinity
+
     while (true) {
       const tt = transpositionTable[Number(ck & BigInt(TT_SIZE - 1))]
       const root = generateLegalInternalMoves(ib, isRed).sort((a, b) => moveOrderingScore(b, tt?.key === ck ? tt.bestMove : 0, d) - moveOrderingScore(a, tt?.key === ck ? tt.bestMove : 0, d))
+      
       let bM = root[0], bS = -Infinity
       for (const m of root) {
-        const cap = ib[m.to]; ib[m.to] = m.piece; ib[m.from] = EMPTY; ck ^= zobristSide[0]
+        const cap = ib[m.to]; ib[m.to] = m.piece; ib[m.from] = EMPTY
+        const oldCk = ck
+        ck ^= zobristSide[0]
         ck = updateZobristKey(ck, m.from, m.piece); ck = updateZobristKey(ck, m.to, m.piece); ck = updateZobristKey(ck, m.to, cap)
-        const s = -negamax(d - 1, -beta, -alpha, !isRed)
-        ib[m.from] = m.piece; ib[m.to] = cap; ck ^= zobristSide[0]
-        ck = updateZobristKey(ck, m.from, m.piece); ck = updateZobristKey(ck, m.to, m.piece); ck = updateZobristKey(ck, m.to, cap)
+        currentPath[pathLen++] = oldCk
+        
+        let s = -negamax(d - 1, -beta, -alpha, !isRed)
+        
+        // Add small randomness to root scores for non-hard difficulties to vary play
+        if (d === 1 && difficulty.id !== 'hard') {
+          s += (Math.random() * 6 - 3) | 0
+        }
+
+        pathLen--
+        ck = oldCk
+        ib[m.from] = m.piece; ib[m.to] = cap
+        
+        if (isAborted) break
         if (s > bS) { bS = s; bM = m }
       }
+      
+      if (isAborted) break
+
       if (bS <= alpha || bS >= beta) { alpha = -Infinity; beta = Infinity; continue }
-      finalM = bM; finalS = bS; break
+      bestDMove = bM; bestDScore = bS; break
     }
+
+    if (isAborted) {
+      if (!finalM && bestDMove) { finalM = bestDMove; finalS = bestDScore }
+      break
+    }
+
+    finalM = bestDMove; finalS = bestDScore
     if (Math.abs(finalS) > MATE_SCORE / 2) break
+    if (Date.now() - startTime > timeLimit / 2) break
   }
-  return { move: finalM ? { from: { row: Math.floor(finalM.from / 9), col: finalM.from % 9 }, to: { row: Math.floor(finalM.to / 9), col: finalM.to % 9 }, piece: getExternalPiece(finalM.piece)!, captured: getExternalPiece(finalM.captured) } : null, score: finalS, nodes }
+
+  return { 
+    move: finalM ? { from: { row: Math.floor(finalM.from / 9), col: finalM.from % 9 }, to: { row: Math.floor(finalM.to / 9), col: finalM.to % 9 }, piece: getExternalPiece(finalM.piece)!, captured: getExternalPiece(finalM.captured) } : null, 
+    score: finalS, 
+    nodes,
+    isTimeout: isAborted
+  }
 }
 
 export const applyXiangqiMove = (board: XiangqiBoard, move: XiangqiMove): XiangqiBoard => {
@@ -519,4 +604,30 @@ export const generateLegalXiangqiMoves = (board: XiangqiBoard, side: XiangqiSide
 export const isXiangqiGameOver = (board: XiangqiBoard): boolean => {
   const ib = boardToInternal(board)
   return findInternalGeneral(ib, true) === -1 || findInternalGeneral(ib, false) === -1
+}
+
+export const calculateXiangqiHistoryKeys = (initialBoard: XiangqiBoard, moves: XiangqiMove[]): bigint[] => {
+  const keys: bigint[] = []
+  let ib = boardToInternal(initialBoard)
+  let isRed = true // Initial turn is red
+  let ck = getZobristKey(ib, isRed)
+  keys.push(ck)
+
+  for (const m of moves) {
+    const fromIdx = m.from.row * 9 + m.from.col
+    const toIdx = m.to.row * 9 + m.to.col
+    const piece = getInternalPiece(m.piece)
+    const cap = getInternalPiece(m.captured)
+
+    ib[toIdx] = piece
+    ib[fromIdx] = EMPTY
+    
+    ck ^= zobristSide[0]
+    ck = updateZobristKey(ck, fromIdx, piece)
+    ck = updateZobristKey(ck, toIdx, piece)
+    ck = updateZobristKey(ck, toIdx, cap)
+    keys.push(ck)
+    isRed = !isRed
+  }
+  return keys
 }

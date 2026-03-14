@@ -1,61 +1,45 @@
 # Game Optimizations & Visual Polish Progress
 
-## Recent Bugfix Pass (March 14, 2026)
+## Latest Bugfix Pass (March 14, 2026 - Pass 2)
 
-### 1. Gomoku AI
-- **Root Cause**: Search was using expensive string-based board hashing for every node, and depth settings were too shallow for Medium while too wide for Hard.
+### 1. Chinese Chess (Xiangqi) AI
+- **Root Cause**: Hard difficulty was performing iterative deepening without a strict time budget, leading to freezes. Medium difficulty was too deterministic (always picking the same highest score). AI was susceptible to perpetual chasing loops because it didn't track game history.
 - **Fixes**:
-    - Implemented **Zobrist Hashing** for O(1) board state keys.
-    - Optimized **Transposition Table** usage by removing depth from key and checking entry depth.
-    - Adjusted difficulty: Medium depth increased to 4 (stronger), Hard width reduced to 8 but depth increased to 6 (faster but deeper).
-    - Improved **nearby stone detection** radius for better candidate moves.
-- **Behavior Improvement**: Medium feels competent; Hard responds much faster and plays more deeply.
+    - Added **time limit (3 seconds)** and **abort check** in the search worker.
+    - Implemented **randomness (±3 score points)** at the root for Easy/Medium difficulties to vary openings.
+    - Added **repetition detection** using Zobrist history keys to prevent perpetual chasing.
+- **Behavior Improvement**: Hard difficulty returns moves reliably within 3s; play is more varied and less repetitive.
 
-### 2. Chinese Chess AI
-- **Root Cause**: Check detection (`isInternalInCheck`) was generating all legal moves for the opponent, which was O(N^2) and slow in JavaScript.
+### 2. Rubik's Cube
+- **Root Cause**: Drag-to-rotate logic used a fixed mapping that didn't account for cubie position or actual layer mechanics, making rotations feel unintuitive and physically impossible.
 - **Fixes**:
-    - Optimized `isInternalInCheck` to directly check threat lines/patterns (Horse, Rook, Cannon, Soldier) from the General's square.
-    - Balanced depth settings: Hard reduced from 7 to 6, Medium from 5 to 4 to ensure responsiveness in the browser.
-- **Behavior Improvement**: AI responds significantly faster, especially in complex positions.
+    - Overhauled **`resolveFaceMove`** with intelligent mapping: dragging a sticker now turns the specific horizontal/vertical layer it belongs to.
+    - Updated **`cubieStyle`** and preview logic to support turning any slice (x, y, or z axis) based on the drag direction.
+    - Improved visual feedback during drag with accurate layer-based rotation previews.
+- **Behavior Improvement**: Dragging feels natural and matches physical cube mechanics (e.g., dragging the top row of the front face moves the Top layer).
 
-### 3. Fish Pond
-- **Root Cause**: Movement logic was a simple X-axis oscillation with a fixed bobbing phase.
+### 3. Huarongdao
+- **Root Cause**: The game lacked the most famous starting configuration.
 - **Fixes**:
-    - Added **target-based vertical movement** with smooth interpolation.
-    - Implemented **state-based movement**: alternating between 'drifting' (slow) and 'darting' (fast).
-    - Added random direction changes and tilt/rotation based on vertical speed.
-- **Behavior Improvement**: Fish feel much more alive with varied, lifelike motion and unpredictable "darts".
+    - Added the classic **"横刀立马" (Hengdao Lima)** level as the first level in the game.
+- **Behavior Improvement**: Users can now play the definitive Huarongdao challenge.
 
-### 4. Rubik's Cube
-- **Root Cause**: Missing state variables (`previewFace`, `previewAxis`, `previewAngle`) and lack of visual feedback during dragging made rotations feel broken.
+### 4. Lobster Workshop
+- **Root Cause**: Boss replies were hidden in the UI while helper workers were active due to a logic flaw in `streamingChatCard`. Historical messages were being automatically loaded on every connection, cluttering new sessions.
 - **Fixes**:
-    - Fixed missing declarations and defined `clearFacePreview`.
-    - Integrated **drag preview** into the `cubieStyle` transform logic.
-    - Synced drag distance to a visual rotation angle (limited to 34 degrees) for immediate feedback.
-- **Behavior Improvement**: Dragging a face now shows it physically rotating in real-time before the move is committed.
-
-### 5. Huarongdao
-- **Root Cause**: Interaction layers were blocking each other, and drag thresholds were too sensitive for small screens.
-- **Fixes**:
-    - Added explicit **z-index** hierarchy: `hua-target` (20) > `hua-piece` (10).
-    - Increased drag threshold to **30px** and added a `hasDragged` guard to prevent accidental selection switches.
-    - Ensured state reset on `pointerdown` to keep pieces operable.
-- **Behavior Improvement**: Hit detection is reliable; pieces can be both dragged and clicked without becoming stuck.
-
-### 6. Lobster Workshop
-- **Root Cause**: Assistant replies for dispatch runs were being filtered out of the chat window, leading to "missing" replies. History was replaying stale local dispatches.
-- **Fixes**:
-    - Removed assistant message filtering: all replies now appear in the main chat flow.
-    - Added **8-hour expiration** for `recentDispatches` in local storage to prevent stale replay.
-    - Preserved visibility in both the Chat window and the Task Board.
-- **Behavior Improvement**: Immediate visibility of all replies; cleaner initial load without stale history.
+    - Fixed **`streamingChatCard` visibility** so boss replies show immediately even when subagents are armed.
+    - Removed automatic **`loadHistory`** on connect to ensure a clean slate for new sessions.
+    - Added explicit **state clearing** (messages, minion cards, dispatches) when starting a fresh connection.
+    - Reduced local dispatch history persistence from 8 hours to 1 hour.
+- **Behavior Improvement**: Messages appear instantly without refreshing; sessions start clean and focused.
 
 ## Verification Results
 - **Build Status**: `npx nuxi build` passed successfully.
 - **Files Changed**:
-    - `utils/games/gomoku.ts`
     - `utils/games/chineseChess.ts`
-    - `pages/games/fish-pond/index.vue`
+    - `utils/games/huarongdao.ts`
+    - `workers/xiangqi-search.worker.ts`
+    - `pages/games/chinese-chess/index.vue`
     - `pages/games/rubiks-cube/index.vue`
-    - `pages/games/huarongdao/index.vue`
     - `pages/tools/lobster-workshop/index.vue`
+    - `composables/useOpenClawGateway.ts`

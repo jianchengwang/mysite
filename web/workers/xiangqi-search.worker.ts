@@ -11,6 +11,8 @@ type XiangqiSearchRequest = {
   board: XiangqiBoard
   aiSide: XiangqiSide
   difficulty: XiangqiDifficulty
+  historyKeys?: bigint[]
+  timeLimit?: number
 }
 
 type XiangqiSearchResponse = {
@@ -21,8 +23,8 @@ type XiangqiSearchResponse = {
 const workerScope = self as DedicatedWorkerGlobalScope
 
 workerScope.onmessage = (event: MessageEvent<XiangqiSearchRequest>) => {
-  const { id, board, aiSide, difficulty } = event.data
-  const result = searchBestXiangqiMove(board, aiSide, difficulty)
+  const { id, board, aiSide, difficulty, historyKeys, timeLimit } = event.data
+  const result = searchBestXiangqiMove(board, aiSide, difficulty, historyKeys, timeLimit)
   workerScope.postMessage({
     id,
     result
