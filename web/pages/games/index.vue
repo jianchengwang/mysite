@@ -23,7 +23,7 @@
     </div>
 
     <div class="grid gap-6 sm:gap-8 md:grid-cols-2 xl:grid-cols-3">
-      <GameCatalogCard
+      <CatalogCard
         v-for="game in gamesCatalog"
         :key="game.slug"
         :to="gamePath(game.slug)"
@@ -31,14 +31,15 @@
         :subtitle="game.subtitle"
         :description="game.description"
         :detail="game.detail"
-        :tags="game.tags"
+        :tags="game.tags.map(t => ({ label: t.label, tone: t.tone as any }))"
+        :aria-label="'Play ' + game.title"
+        action-text="Play"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import GameCatalogCard from '~/components/games/GameCatalogCard.vue'
 import { gamePath, gamesCatalog } from '~/utils/games/catalog'
 
 definePageMeta({ layout: 'default' })

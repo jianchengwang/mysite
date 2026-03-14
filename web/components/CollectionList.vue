@@ -8,7 +8,9 @@
     <!-- Store Grid -->
     <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
       <NuxtLink v-for="item in list" :key="(item as any).path" :to="(item as any).path"
-        class="group sketch-card hover:sketch-shadow-hover transition-all duration-200">
+        class="group sketch-card hover:sketch-shadow-hover transition-all duration-200"
+        :aria-label="'Read more about ' + (item as any).title"
+      >
         <div class="p-2">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-2xl font-bold text-zinc-800 group-hover:text-zinc-600 font-hand underline decoration-wavy decoration-zinc-300 group-hover:decoration-zinc-800">

@@ -58,6 +58,7 @@
   padding: 20px 16px;
   min-width: 240px;
 }
+
 .back-to-top-btn {
   position: fixed;
   right: 32px;
@@ -74,33 +75,38 @@
   align-items: center;
   justify-content: center;
 }
+
 .back-to-top-btn:hover {
   transform: translateY(-4px);
   @apply bg-zinc-50;
 }
+
 .markdown-theme-btn {
   position: absolute;
-  top: 0px;
-  right: 0px;
+  top: 12px;
+  right: 12px;
   background: white;
   cursor: pointer;
   transition: all 0.2s;
 }
+
 .icon-dots {
   font-family: inherit;
   font-size: 1.5em;
   letter-spacing: 0.1em;
 }
+
 .markdown-theme-panel {
   position: absolute;
-  top: 48px;
+  top: 56px;
   right: 0;
   background: #fff;
-  min-width: 120px;
+  min-width: 140px;
   z-index: 100;
   padding: 8px 0;
-  overflow: hidden;
+  box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.1);
 }
+
 .markdown-theme-panel > div {
   padding: 8px 20px;
   cursor: pointer;
@@ -109,6 +115,7 @@
   color: #18181b;
   transition: all 0.2s;
 }
+
 .markdown-theme-panel > div.active,
 .markdown-theme-panel > div:hover {
   background: #f4f4f5;
@@ -157,94 +164,4 @@ function setTheme(theme) {
   currentTheme.value = theme
   showThemePanel.value = false
 }
-</script>
-
-<style scoped>
-.TableOfContents {
-  position: sticky;
-  top: 80px; /* 视实际header高度调整 */
-  align-self: flex-start;
-  max-height: calc(100vh - 100px);
-  overflow-y: auto;
-  z-index: 10;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-  padding: 16px 12px;
-  min-width: 240px;
-  max-width: 300px;
-}
-.back-to-top-btn {
-  position: fixed;
-  right: 32px;
-  bottom: 48px;
-  z-index: 50;
-  background: #fff;
-  color: #222;
-  border: 1px solid #e5e7eb;
-  border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  font-size: 1.5em;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  cursor: pointer;
-  opacity: 0.85;
-  transition: opacity 0.2s, background 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-}
-.back-to-top-btn:hover {
-  opacity: 1;
-  background: #f3f4f6;
-  color: #111;
-  border-color: #d1d5db;
-}
-.markdown-theme-btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: none;
-  border: none;
-  color: #bbb;
-  font-size: 1.5em;
-  cursor: pointer;
-  padding: 0 4px;
-  border-radius: 50%;
-  transition: background 0.2s, color 0.2s;
-}
-.markdown-theme-btn:hover {
-  background: #f3f4f6;
-  color: #222;
-}
-.icon-dots {
-  font-family: inherit;
-  font-size: 1.5em;
-  letter-spacing: 0.2em;
-}
-.markdown-theme-panel {
-  position: absolute;
-  top: 44px;
-  right: 0;
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  min-width: 100px;
-  z-index: 100;
-  padding: 6px 0;
-}
-.markdown-theme-panel > div {
-  padding: 6px 18px;
-  cursor: pointer;
-  font-size: 1em;
-  color: #444;
-  transition: background 0.2s, color 0.2s;
-}
-.markdown-theme-panel > div.active,
-.markdown-theme-panel > div:hover {
-  background: #f3f4f6;
-  color: #111;
-}
-</style> 
+</script> 

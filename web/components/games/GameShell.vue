@@ -3,7 +3,7 @@
     <section class="sketch-card overflow-hidden bg-[linear-gradient(140deg,#ffffff_0%,#fafaf9_58%,#eff6ff_100%)]">
       <div class="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
         <div class="min-w-0 space-y-4">
-          <NuxtLink to="/games" class="inline-flex items-center rounded-full border border-zinc-300 bg-white px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-zinc-600 transition hover:border-zinc-900 hover:text-zinc-900">
+          <NuxtLink to="/games" class="inline-flex items-center rounded-full border border-zinc-300 bg-white px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-zinc-600 transition hover:border-zinc-900 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2">
             ← Back to Games
           </NuxtLink>
           <div class="space-y-2">

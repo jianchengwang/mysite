@@ -8,7 +8,9 @@
           <a rel="noopener" href="https://beian.miit.gov.cn/" target="_blank" class="hover:underline">闽ICP备16000680号-2</a>
           <span class="mx-2 hidden sm:inline">|</span>
           <a class="text-tfh flex items-center"
-            href="https://www.upyun.com/?utm_source=lianmeng&amp;utm_medium=referral" target="blank" title="又拍云">
+            href="https://www.upyun.com/?utm_source=lianmeng&amp;utm_medium=referral" target="blank" title="又拍云"
+            aria-label="Visit UpYun"
+          >
             <img
               id="upyun" height="30" src="http://public.mysite.jianchengwang.info/upyun-logo.png" alt="upyun"
               style="height: 30px;" class="grayscale hover:grayscale-0 transition-all opacity-80 hover:opacity-100" />

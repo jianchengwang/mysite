@@ -24,6 +24,23 @@ A comprehensive review of the `mysite` web project, focusing on the `pages/tools
 - **Build Warnings**: Fixed a recurring build warning where Nuxt's auto-import system conflicted with local `lang` parameters in `Marked` highlight callbacks.
 
 ## 5. Summary of Changes
-- **Fixed**: Renamed `lang` parameter to `language` in `pages/tools/md-to-wechat/index.vue` and `pages/tools/prompt-collection/index.vue` to resolve Nuxt auto-import conflict.
-- **Verified**: Build warnings are resolved as confirmed by `npx nuxi build`.
-- **Reviewed**: Analyzed tools, games, and shared components for UX, performance, and code quality.
+### Pass 1: Data & Accessibility (Completed)
+- **Refactored Tools Data**: Moved hardcoded tool-card data from `pages/tools/index.vue` to a new typed data module `utils/tools/catalog.ts` for better maintainability, following the pattern used for games.
+- **Accessibility Improvements**: Added missing `aria-label` attributes to interactive elements in `pages/tools/index.vue`, `components/games/GameCatalogCard.vue`, `components/Footer.vue`, and `components/CollectionList.vue`.
+- **Build Verification**: Confirmed that the project builds successfully.
+
+### Pass 2: Component Unification & Keyboard Accessibility (Completed)
+- **Shared Catalog Component**: Created `components/CatalogCard.vue` as a unified, flexible card component for both tools and games, reducing duplication and improving maintainability.
+- **Keyboard Accessibility**: 
+    - Added global `:focus-visible` styles in `assets/css/sketch.css` to ensure consistent, high-contrast focus indicators for all interactive elements (buttons, links, cards).
+    - Integrated Tailwind `focus-visible:ring` for pill-shaped buttons in `components/games/GameShell.vue` to ensure polished focus states.
+- **UI Cleanup & Refinement**:
+    - Merged duplicate `<style scoped>` blocks in `components/CollectionArticle.vue`, cleaning up redundant CSS and refining the hand-drawn aesthetic for theme panels and back-to-top buttons.
+    - Updated `pages/tools/index.vue` and `pages/games/index.vue` to use the new `CatalogCard` component.
+- **Build Verification**: Confirmed that the project builds successfully with `npx nuxi build`.
+
+## 6. Recommended Next Steps
+- **Whiteboard Refactor**: Decouple the monolithic `components/WhiteboardCanvas.vue` (~1800 lines) into smaller, functional components (Toolbar, LayerManager, CanvasEngine) and a dedicated `useWhiteboard` composable.
+- **Form Validation**: Add more robust client-side validation and ARIA live regions for the global settings modal in `Header.vue`.
+- **Keyboard Shortcuts**: Add intuitive keyboard shortcuts for common actions in games (e.g., 'R' to restart, 'U' to undo) and tools (e.g., 'ESC' to close modals or clear inputs).
+- **Service Worker / PWA**: Consider adding a service worker for basic offline support for the board games and utility tools.
