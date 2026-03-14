@@ -425,13 +425,62 @@ const moveOrderingScore = (m: InternalMove, ttMove: number, depth: number): numb
   return historyTable[m.from * 90 + m.to]
 }
 
+// Opening Book
+const OPENING_BOOK: Record<string, string[]> = {
+  // Initial state: Red moves
+  '': [
+    '7744', // 炮二平五
+    '7144', // 炮八平五
+    '9172', // 马八进七
+    '9776', // 马二进三
+    '6252', // 兵三进一
+    '6656', // 兵七进一
+    '9674'  // 相三进五
+  ],
+  // After 炮二平五 (77-44)
+  '7744': [
+    '2124', // 炮8平5 (顺炮)
+    '0122', // 马8进7 (屏风马)
+    '0726'  // 马2进3
+  ],
+  // After 炮二平五, 马8进7
+  '7744,0122': [
+    '9172', // 马八进七
+    '9776'  // 马二进三
+  ]
+}
+
+const getOpeningMove = (history: XiangqiMove[]): string | null => {
+  if (history.length > 4) return null // Only for first 2-3 rounds
+  const key = history.map(m => `${m.from.row}${m.from.col}${m.to.row}${m.to.col}`).join(',')
+  const choices = OPENING_BOOK[key]
+  if (!choices || choices.length === 0) return null
+  return choices[Math.floor(Math.random() * choices.length)]
+}
+
 export const searchBestXiangqiMove = (
   board: XiangqiBoard,
   aiSide: XiangqiSide,
   difficulty: XiangqiDifficulty,
   historyKeys: bigint[] = [],
-  timeLimit: number = 3000
+  timeLimit: number = 3000,
+  history: XiangqiMove[] = []
 ): XiangqiSearchResult => {
+  // Check opening book first
+  const bookMoveStr = getOpeningMove(history)
+  if (bookMoveStr) {
+    const fromR = parseInt(bookMoveStr[0]), fromC = parseInt(bookMoveStr[1])
+    const toR = parseInt(bookMoveStr[2]), toC = parseInt(bookMoveStr[3])
+    const fromP = board[fromR][fromC]
+    if (fromP && fromP.side === aiSide) {
+      const legal = generateLegalXiangqiMoves(board, aiSide)
+      const found = legal.find(m => m.from.row === fromR && m.from.col === fromC && m.to.row === toR && m.to.col === toC)
+      if (found) {
+        return { move: found, score: 0, nodes: 0 }
+      }
+    }
+  }
+
   let nodes = 0
   let isAborted = false
   const startTime = Date.now()

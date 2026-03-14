@@ -106,18 +106,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import GameShell from '~/components/games/GameShell.vue'
 import { getGameBySlug } from '~/utils/games/catalog'
 import {
   applyHuarongdaoMove,
   cloneHuarongdaoPieces,
-  getHuarongdaoHint,
   getHuarongdaoLegalMoves,
   huarongdaoLevels,
   isHuarongdaoSolved,
   type HuarongdaoMove,
-  type HuarongdaoPiece
+  type HuarongdaoPiece,
+  type HuarongdaoHint
 } from '~/utils/games/huarongdao'
 
 definePageMeta({ layout: 'default' })
@@ -128,6 +128,22 @@ const currentPieces = ref<HuarongdaoPiece[]>(cloneHuarongdaoPieces(huarongdaoLev
 const history = ref<HuarongdaoPiece[][]>([])
 const selectedPieceId = ref<string | null>(null)
 const hintRequested = ref(false)
+const hintLoading = ref(false)
+const hint = ref<HuarongdaoHint | null>(null)
+
+let worker: Worker | null = null
+
+onMounted(() => {
+  worker = new Worker(new URL('/workers/huarongdao-search.worker.ts', import.meta.url), { type: 'module' })
+  worker.onmessage = (e) => {
+    hint.value = e.data
+    hintLoading.value = false
+  }
+})
+
+onUnmounted(() => {
+  worker?.terminate()
+})
 
 const currentLevel = computed(
   () => huarongdaoLevels.find((level) => level.id === selectedLevelId.value) || huarongdaoLevels[0]
@@ -140,7 +156,8 @@ const selectedMoves = computed(() =>
     ? getHuarongdaoLegalMoves(currentPieces.value).filter((move) => move.pieceId === selectedPieceId.value)
     : []
 )
-const hint = computed(() => (hintRequested.value ? getHuarongdaoHint(currentPieces.value) : null))
+// hint computed removed
+
 const hintMove = computed(() => hint.value?.move ?? null)
 const hintArrow = computed(() => {
   if (!hintMove.value) return ''
@@ -165,16 +182,18 @@ const directionLabel = (move: HuarongdaoMove) => {
 
 const hintTitle = computed(() => {
   if (isSolved.value) return 'Solved'
-  if (!hint.value) return 'Plan Next Move'
-  if (!hintMove.value) return 'Exploring'
+  if (hintLoading.value) return 'Calculating...'
+  if (!hintRequested.value) return 'Plan Next Move'
+  if (!hintMove.value) return 'No Path Found'
   const piece = currentPieces.value.find((item) => item.id === hintMove.value?.pieceId)
   return `${piece?.label || 'Piece'} · Move ${directionLabel(hintMove.value)}`
 })
 
 const hintDetail = computed(() => {
   if (isSolved.value) return 'Cao Cao has reached the exit.'
-  if (!hint.value) return 'Tap Hint to calculate the shortest path from the current board state.'
-  if (!hintMove.value || hint.value.remainingSteps === null) {
+  if (hintLoading.value) return 'Searching for the shortest path to the exit. This may take a moment...'
+  if (!hintRequested.value) return 'Tap Hint to calculate the shortest path from the current board state.'
+  if (!hintMove.value || hint.value?.remainingSteps === null) {
     return 'No predefined path found for this specific state. Keep trying!'
   }
   return `Follow the hint arrow. You are approximately ${hint.value.remainingSteps} steps from solving.`
@@ -203,6 +222,8 @@ const resetLevel = () => {
   history.value = []
   selectedPieceId.value = null
   hintRequested.value = false
+  hint.value = null
+  hintLoading.value = false
 }
 
 const changeLevel = (levelId: string) => {
@@ -257,6 +278,8 @@ const applyMove = (move: HuarongdaoMove) => {
   currentPieces.value = applyHuarongdaoMove(currentPieces.value, move)
   selectedPieceId.value = null
   hintRequested.value = false
+  hint.value = null
+  hintLoading.value = false
 }
 
 const undoMove = () => {
@@ -266,10 +289,18 @@ const undoMove = () => {
   history.value = history.value.slice(0, -1)
   selectedPieceId.value = null
   hintRequested.value = false
+  hint.value = null
+  hintLoading.value = false
 }
 
 const requestHint = () => {
+  if (isSolved.value || hintLoading.value) return
   hintRequested.value = true
+  hintLoading.value = true
+  worker?.postMessage({
+    pieces: JSON.parse(JSON.stringify(currentPieces.value)),
+    maxStates: 200000
+  })
 }
 </script>
 

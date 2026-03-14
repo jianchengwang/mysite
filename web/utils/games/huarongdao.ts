@@ -143,136 +143,207 @@ export const invertHuarongdaoMove = (move: HuarongdaoMove): HuarongdaoMove => ({
 })
 
 const buildLevels = (): HuarongdaoLevel[] => {
-  const classicHengdaoLima: HuarongdaoLevel = {
-    id: 'level-classic-hengdao',
-    title: '横刀立马',
-    note: '华容道最经典、最知名的开局，曹操被众将重重包围。',
-    pieces: [
-      { id: 'cao', type: 'cao', label: '曹操', width: 2, height: 2, x: 1, y: 0 },
-      { id: 'guan', type: 'horizontal', label: '关羽', width: 2, height: 1, x: 1, y: 2 },
-      { id: 'zhang', type: 'vertical', label: '张飞', width: 1, height: 2, x: 0, y: 0 },
-      { id: 'zhao', type: 'vertical', label: '赵云', width: 1, height: 2, x: 3, y: 0 },
-      { id: 'ma', type: 'vertical', label: '马超', width: 1, height: 2, x: 0, y: 2 },
-      { id: 'huang', type: 'vertical', label: '黄忠', width: 1, height: 2, x: 3, y: 2 },
-      { id: 'soldier-1', type: 'soldier', label: '兵一', width: 1, height: 1, x: 1, y: 3 },
-      { id: 'soldier-2', type: 'soldier', label: '兵二', width: 1, height: 1, x: 2, y: 3 },
-      { id: 'soldier-3', type: 'soldier', label: '兵三', width: 1, height: 1, x: 0, y: 4 },
-      { id: 'soldier-4', type: 'soldier', label: '兵四', width: 1, height: 1, x: 3, y: 4 }
-    ],
-    estimatedDepth: 81,
-    pathFromSolved: [] // Path is only used for "replay" hints, which we don't need for this manual level
-  }
-
-  const targetDepths = [2, 4, 6, 8, 10, 12, 14, 16]
-  const titles = ['热身一', '交错', '回身', '横挪', '逼仄', '夹缝', '折返', '长局']
-  const notes = [
-    '先感受一步步回溯的节奏，适合热手。',
-    '开始会出现空位交错，适合练细挪。',
-    '要学会先让长条，再挪大块。',
-    '需要几次横向腾挪才能把路让出来。',
-    '底部空间会更紧，需要耐心绕位。',
-    '这一关更像在和空位对话。',
-    '中段很容易走回头路，提示会更有价值。',
-    '已经接近完整长局，适合慢慢拆。'
-  ]
-
-  const levels: HuarongdaoLevel[] = [classicHengdaoLima]
-  const visited = new Set<string>()
-  const queue: Array<{ pieces: HuarongdaoPiece[]; depth: number; path: HuarongdaoMove[] }> = [
-    { pieces: cloneHuarongdaoPieces(baseSolvedPieces), depth: 0, path: [] }
-  ]
-
-  visited.add(serializeHuarongdaoState(baseSolvedPieces))
-
-  while (queue.length && levels.length < targetDepths.length) {
-    const current = queue.shift()!
-    if (current.depth >= targetDepths[levels.length] && !isHuarongdaoSolved(current.pieces)) {
-      levels.push({
-        id: `level-${levels.length + 1}`,
-        title: titles[levels.length],
-        note: notes[levels.length],
-        pieces: cloneHuarongdaoPieces(current.pieces),
-        estimatedDepth: current.depth,
-        pathFromSolved: [...current.path]
-      })
+  const levels: HuarongdaoLevel[] = [
+    {
+      id: 'level-classic-hengdao',
+      title: '横刀立马',
+      note: '最经典开局。曹操在上方，关羽横在中间，众将在两侧。',
+      pieces: [
+        { id: 'cao', type: 'cao', label: '曹操', width: 2, height: 2, x: 1, y: 0 },
+        { id: 'guan', type: 'horizontal', label: '关羽', width: 2, height: 1, x: 1, y: 2 },
+        { id: 'zhang', type: 'vertical', label: '张飞', width: 1, height: 2, x: 0, y: 0 },
+        { id: 'zhao', type: 'vertical', label: '赵云', width: 1, height: 2, x: 3, y: 0 },
+        { id: 'ma', type: 'vertical', label: '马超', width: 1, height: 2, x: 0, y: 2 },
+        { id: 'huang', type: 'vertical', label: '黄忠', width: 1, height: 2, x: 3, y: 2 },
+        { id: 'soldier-1', type: 'soldier', label: '兵一', width: 1, height: 1, x: 1, y: 3 },
+        { id: 'soldier-2', type: 'soldier', label: '兵二', width: 1, height: 1, x: 2, y: 3 },
+        { id: 'soldier-3', type: 'soldier', label: '兵三', width: 1, height: 1, x: 0, y: 4 },
+        { id: 'soldier-4', type: 'soldier', label: '兵四', width: 1, height: 1, x: 3, y: 4 }
+      ],
+      estimatedDepth: 81,
+      pathFromSolved: []
+    },
+    {
+      id: 'level-qitou-bingjin',
+      title: '齐头并进',
+      note: '关羽居中，张飞赵云分立左右。',
+      pieces: [
+        { id: 'cao', type: 'cao', label: '曹操', width: 2, height: 2, x: 1, y: 0 },
+        { id: 'guan', type: 'horizontal', label: '关羽', width: 2, height: 1, x: 1, y: 2 },
+        { id: 'zhang', type: 'vertical', label: '张飞', width: 1, height: 2, x: 0, y: 0 },
+        { id: 'zhao', type: 'vertical', label: '赵云', width: 1, height: 2, x: 3, y: 0 },
+        { id: 'ma', type: 'vertical', label: '马超', width: 1, height: 2, x: 1, y: 3 },
+        { id: 'huang', type: 'vertical', label: '黄忠', width: 1, height: 2, x: 2, y: 3 },
+        { id: 'soldier-1', type: 'soldier', label: '兵一', width: 1, height: 1, x: 0, y: 2 },
+        { id: 'soldier-2', type: 'soldier', label: '兵二', width: 1, height: 1, x: 3, y: 2 },
+        { id: 'soldier-3', type: 'soldier', label: '兵三', width: 1, height: 1, x: 0, y: 3 },
+        { id: 'soldier-4', type: 'soldier', label: '兵四', width: 1, height: 1, x: 3, y: 3 }
+      ],
+      estimatedDepth: 72,
+      pathFromSolved: []
+    },
+    {
+      id: 'level-bingfen-lianglu',
+      title: '兵分两路',
+      note: '士兵分列两路，护送曹操。',
+      pieces: [
+        { id: 'cao', type: 'cao', label: '曹操', width: 2, height: 2, x: 1, y: 0 },
+        { id: 'guan', type: 'horizontal', label: '关羽', width: 2, height: 1, x: 1, y: 2 },
+        { id: 'zhang', type: 'vertical', label: '张飞', width: 1, height: 2, x: 0, y: 0 },
+        { id: 'zhao', type: 'vertical', label: '赵云', width: 1, height: 2, x: 3, y: 0 },
+        { id: 'ma', type: 'vertical', label: '马超', width: 1, height: 2, x: 0, y: 2 },
+        { id: 'huang', type: 'vertical', label: '黄忠', width: 1, height: 2, x: 3, y: 2 },
+        { id: 'soldier-1', type: 'soldier', label: '兵一', width: 1, height: 1, x: 1, y: 3 },
+        { id: 'soldier-2', type: 'soldier', label: '兵二', width: 1, height: 1, x: 2, y: 3 },
+        { id: 'soldier-3', type: 'soldier', label: '兵三', width: 1, height: 1, x: 1, y: 4 },
+        { id: 'soldier-4', type: 'soldier', label: '兵四', width: 1, height: 1, x: 2, y: 4 }
+      ],
+      estimatedDepth: 77,
+      pathFromSolved: []
+    },
+    {
+      id: 'level-weiwo-duzun',
+      title: '唯我独尊',
+      note: '曹操被围在中心，关羽在最下方。',
+      pieces: [
+        { id: 'cao', type: 'cao', label: '曹操', width: 2, height: 2, x: 1, y: 1 },
+        { id: 'guan', type: 'horizontal', label: '关羽', width: 2, height: 1, x: 1, y: 0 },
+        { id: 'zhang', type: 'vertical', label: '张飞', width: 1, height: 2, x: 0, y: 0 },
+        { id: 'zhao', type: 'vertical', label: '赵云', width: 1, height: 2, x: 3, y: 0 },
+        { id: 'ma', type: 'vertical', label: '马超', width: 1, height: 2, x: 0, y: 2 },
+        { id: 'huang', type: 'vertical', label: '黄忠', width: 1, height: 2, x: 3, y: 2 },
+        { id: 'soldier-1', type: 'soldier', label: '兵一', width: 1, height: 1, x: 1, y: 3 },
+        { id: 'soldier-2', type: 'soldier', label: '兵二', width: 1, height: 1, x: 2, y: 3 },
+        { id: 'soldier-3', type: 'soldier', label: '兵三', width: 1, height: 1, x: 1, y: 4 },
+        { id: 'soldier-4', type: 'soldier', label: '兵四', width: 1, height: 1, x: 2, y: 4 }
+      ],
+      estimatedDepth: 62,
+      pathFromSolved: []
+    },
+    {
+      id: 'level-shuixie-butong',
+      title: '水泄不通',
+      note: '阵势严密，几乎没有腾挪空间。',
+      pieces: [
+        { id: 'cao', type: 'cao', label: '曹操', width: 2, height: 2, x: 1, y: 0 },
+        { id: 'guan', type: 'horizontal', label: '关羽', width: 2, height: 1, x: 1, y: 2 },
+        { id: 'zhang', type: 'vertical', label: '张飞', width: 1, height: 2, x: 0, y: 0 },
+        { id: 'zhao', type: 'vertical', label: '赵云', width: 1, height: 2, x: 3, y: 0 },
+        { id: 'ma', type: 'vertical', label: '马超', width: 1, height: 2, x: 0, y: 3 },
+        { id: 'huang', type: 'vertical', label: '黄忠', width: 1, height: 2, x: 3, y: 3 },
+        { id: 'soldier-1', type: 'soldier', label: '兵一', width: 1, height: 1, x: 1, y: 3 },
+        { id: 'soldier-2', type: 'soldier', label: '兵二', width: 1, height: 1, x: 2, y: 3 },
+        { id: 'soldier-3', type: 'soldier', label: '兵三', width: 1, height: 1, x: 1, y: 4 },
+        { id: 'soldier-4', type: 'soldier', label: '兵四', width: 1, height: 1, x: 2, y: 4 }
+      ],
+      estimatedDepth: 79,
+      pathFromSolved: []
+    },
+    {
+      id: 'level-silu-zongdui',
+      title: '四路纵队',
+      note: '四路大军纵向排列。',
+      pieces: [
+        { id: 'cao', type: 'cao', label: '曹操', width: 2, height: 2, x: 1, y: 0 },
+        { id: 'guan', type: 'horizontal', label: '关羽', width: 2, height: 1, x: 1, y: 2 },
+        { id: 'zhang', type: 'vertical', label: '张飞', width: 1, height: 2, x: 0, y: 0 },
+        { id: 'zhao', type: 'vertical', label: '赵云', width: 1, height: 2, x: 3, y: 0 },
+        { id: 'ma', type: 'vertical', label: '马超', width: 1, height: 2, x: 0, y: 2 },
+        { id: 'huang', type: 'vertical', label: '黄忠', width: 1, height: 2, x: 3, y: 2 },
+        { id: 'soldier-1', type: 'soldier', label: '兵一', width: 1, height: 1, x: 0, y: 4 },
+        { id: 'soldier-2', type: 'soldier', label: '兵二', width: 1, height: 1, x: 1, y: 3 },
+        { id: 'soldier-3', type: 'soldier', label: '兵三', width: 1, height: 1, x: 2, y: 3 },
+        { id: 'soldier-4', type: 'soldier', label: '兵四', width: 1, height: 1, x: 3, y: 4 }
+      ],
+      estimatedDepth: 75,
+      pathFromSolved: []
+    },
+    {
+      id: 'level-zuoyou-lunhu',
+      title: '左右轮虎',
+      note: '两侧将军交错。',
+      pieces: [
+        { id: 'cao', type: 'cao', label: '曹操', width: 2, height: 2, x: 1, y: 0 },
+        { id: 'guan', type: 'horizontal', label: '关羽', width: 2, height: 1, x: 1, y: 2 },
+        { id: 'zhang', type: 'vertical', label: '张飞', width: 1, height: 2, x: 0, y: 0 },
+        { id: 'zhao', type: 'vertical', label: '赵云', width: 1, height: 2, x: 3, y: 0 },
+        { id: 'ma', type: 'vertical', label: '马超', width: 1, height: 2, x: 0, y: 3 },
+        { id: 'huang', type: 'vertical', label: '黄忠', width: 1, height: 2, x: 3, y: 3 },
+        { id: 'soldier-1', type: 'soldier', label: '兵一', width: 1, height: 1, x: 1, y: 3 },
+        { id: 'soldier-2', type: 'soldier', label: '兵二', width: 1, height: 1, x: 2, y: 3 },
+        { id: 'soldier-3', type: 'soldier', label: '兵三', width: 1, height: 1, x: 0, y: 2 },
+        { id: 'soldier-4', type: 'soldier', label: '兵四', width: 1, height: 1, x: 3, y: 2 }
+      ],
+      estimatedDepth: 72,
+      pathFromSolved: []
+    },
+    {
+      id: 'level-qianfu-houji',
+      title: '前赴后继',
+      note: '阵型紧凑。',
+      pieces: [
+        { id: 'cao', type: 'cao', label: '曹操', width: 2, height: 2, x: 1, y: 0 },
+        { id: 'guan', type: 'horizontal', label: '关羽', width: 2, height: 1, x: 1, y: 2 },
+        { id: 'zhang', type: 'vertical', label: '张飞', width: 1, height: 2, x: 0, y: 0 },
+        { id: 'zhao', type: 'vertical', label: '赵云', width: 1, height: 2, x: 3, y: 0 },
+        { id: 'ma', type: 'vertical', label: '马超', width: 1, height: 2, x: 0, y: 2 },
+        { id: 'huang', type: 'vertical', label: '黄忠', width: 1, height: 2, x: 3, y: 2 },
+        { id: 'soldier-1', type: 'soldier', label: '兵一', width: 1, height: 1, x: 1, y: 3 },
+        { id: 'soldier-2', type: 'soldier', label: '兵二', width: 1, height: 1, x: 2, y: 3 },
+        { id: 'soldier-3', type: 'soldier', label: '兵三', width: 1, height: 1, x: 0, y: 4 },
+        { id: 'soldier-4', type: 'soldier', label: '兵四', width: 1, height: 1, x: 3, y: 4 }
+      ],
+      estimatedDepth: 73,
+      pathFromSolved: []
+    },
+    {
+      id: 'level-jinza-zhichi',
+      title: '近在咫尺',
+      note: '曹操距离出口很近。',
+      pieces: [
+        { id: 'cao', type: 'cao', label: '曹操', width: 2, height: 2, x: 1, y: 2 },
+        { id: 'guan', type: 'horizontal', label: '关羽', width: 2, height: 1, x: 1, y: 1 },
+        { id: 'zhang', type: 'vertical', label: '张飞', width: 1, height: 2, x: 0, y: 0 },
+        { id: 'zhao', type: 'vertical', label: '赵云', width: 1, height: 2, x: 3, y: 0 },
+        { id: 'ma', type: 'vertical', label: '马超', width: 1, height: 2, x: 0, y: 2 },
+        { id: 'huang', type: 'vertical', label: '黄忠', width: 1, height: 2, x: 3, y: 2 },
+        { id: 'soldier-1', type: 'soldier', label: '兵一', width: 1, height: 1, x: 1, y: 0 },
+        { id: 'soldier-2', type: 'soldier', label: '兵二', width: 1, height: 1, x: 2, y: 0 },
+        { id: 'soldier-3', type: 'soldier', label: '兵三', width: 1, height: 1, x: 1, y: 4 },
+        { id: 'soldier-4', type: 'soldier', label: '兵四', width: 1, height: 1, x: 2, y: 4 }
+      ],
+      estimatedDepth: 74,
+      pathFromSolved: []
+    },
+    {
+      id: 'level-jiefang-zhongyuan',
+      title: '解放中原',
+      note: '最具挑战性的开局之一。',
+      pieces: [
+        { id: 'cao', type: 'cao', label: '曹操', width: 2, height: 2, x: 1, y: 0 },
+        { id: 'guan', type: 'horizontal', label: '关羽', width: 2, height: 1, x: 1, y: 2 },
+        { id: 'zhang', type: 'vertical', label: '张飞', width: 1, height: 2, x: 0, y: 0 },
+        { id: 'zhao', type: 'vertical', label: '赵云', width: 1, height: 2, x: 3, y: 0 },
+        { id: 'ma', type: 'vertical', label: '马超', width: 1, height: 2, x: 0, y: 3 },
+        { id: 'huang', type: 'vertical', label: '黄忠', width: 1, height: 2, x: 3, y: 3 },
+        { id: 'soldier-1', type: 'soldier', label: '兵一', width: 1, height: 1, x: 0, y: 2 },
+        { id: 'soldier-2', type: 'soldier', label: '兵二', width: 1, height: 1, x: 3, y: 2 },
+        { id: 'soldier-3', type: 'soldier', label: '兵三', width: 1, height: 1, x: 1, y: 3 },
+        { id: 'soldier-4', type: 'soldier', label: '兵四', width: 1, height: 1, x: 2, y: 3 }
+      ],
+      estimatedDepth: 82,
+      pathFromSolved: []
     }
-
-    const moves = getHuarongdaoLegalMoves(current.pieces)
-    for (const move of moves) {
-      const next = applyHuarongdaoMove(current.pieces, move)
-      const key = serializeHuarongdaoState(next)
-      if (visited.has(key)) continue
-      visited.add(key)
-      queue.push({
-        pieces: next,
-        depth: current.depth + 1,
-        path: [...current.path, move]
-      })
-    }
-  }
-
-  if (!levels.length) {
-    return [
-      {
-        id: 'level-1',
-        title: '热身一',
-        note: '从接近完成的局面开始，先熟悉玩法。',
-        pieces: cloneHuarongdaoPieces(baseSolvedPieces),
-        estimatedDepth: 0,
-        pathFromSolved: []
-      }
-    ]
-  }
-
+  ]
   return levels
 }
 
 export const huarongdaoLevels = buildLevels()
 
 export const getHuarongdaoHint = (pieces: HuarongdaoPiece[]): HuarongdaoHint => {
-  if (isHuarongdaoSolved(pieces)) {
-    return { move: null, remainingSteps: 0, explored: 1 }
-  }
-
-  const queue: Array<{ pieces: HuarongdaoPiece[]; firstMove: HuarongdaoMove | null; depth: number }> = [
-    { pieces: cloneHuarongdaoPieces(pieces), firstMove: null, depth: 0 }
-  ]
-  const visited = new Set<string>([serializeHuarongdaoState(pieces)])
-  let explored = 0
-
-  while (queue.length) {
-    const current = queue.shift()!
-    explored++
-
-    for (const move of getHuarongdaoLegalMoves(current.pieces)) {
-      const nextPieces = applyHuarongdaoMove(current.pieces, move)
-      const key = serializeHuarongdaoState(nextPieces)
-      if (visited.has(key)) continue
-
-      const firstMove = current.firstMove ?? move
-      const depth = current.depth + 1
-      if (isHuarongdaoSolved(nextPieces)) {
-        return {
-          move: firstMove,
-          remainingSteps: depth,
-          explored
-        }
-      }
-
-      visited.add(key)
-      queue.push({
-        pieces: nextPieces,
-        firstMove,
-        depth
-      })
-    }
-  }
-
-  return {
-    move: null,
-    remainingSteps: null,
-    explored
-  }
+  // This is now handled by the Web Worker. This stub is kept for types if needed, 
+  // but it's not used in the UI anymore.
+  return { move: null, remainingSteps: null, explored: 0 }
 }
 
 export const getHuarongdaoReplayHint = (pathFromSolved: HuarongdaoMove[], playerMoves: HuarongdaoMove[]): HuarongdaoHint => {

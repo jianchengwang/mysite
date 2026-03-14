@@ -284,6 +284,7 @@ const searchWithWorker = (currentBoard: XiangqiBoard, side: XiangqiSide, difficu
       aiSide: side,
       difficulty: { ...difficulty },
       historyKeys,
+      history: JSON.parse(JSON.stringify(moveHistory.value)),
       timeLimit: 3000 // 3 seconds per move
     })
   })

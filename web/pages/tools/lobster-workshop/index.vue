@@ -657,10 +657,10 @@ const THINK_TAG_PATTERN = /<think>([\s\S]*?)<\/think>/gi
 const FINAL_TAG_PATTERN = /<final>([\s\S]*?)<\/final>/gi
 
 const stageSlots: StageSlot[] = [
-  { left: '16%', top: '64%' },
-  { left: '34%', top: '34%' },
-  { left: '70%', top: '34%' },
-  { left: '84%', top: '64%' }
+  { left: '16%', top: '66%' },  // Front Left
+  { left: '32%', top: '46%' },  // Mid Left (Lowered from 34%)
+  { left: '68%', top: '46%' },  // Mid Right (Lowered from 34%)
+  { left: '84%', top: '66%' }   // Front Right
 ]
 
 const workerOptions: WorkerOption[] = [

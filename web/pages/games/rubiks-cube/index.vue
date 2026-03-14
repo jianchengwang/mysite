@@ -293,19 +293,32 @@ const resolveFaceMove = (face: CubeFace, cubie: any, dx: number, dy: number): Cu
   if (!cubie) return null
   const { x, y, z } = cubie.position
   const absX = Math.abs(dx), absY = Math.abs(dy)
-  const threshold = 10
+  const threshold = 15
   if (Math.max(absX, absY) < threshold) return null
+
+  // We use the current view rotations to adjust how dx and dy map to cube moves.
+  // This ensures that dragging "right" on the screen always feels like moving the layer "right".
+  const rotY = viewRotationY.value
+  const normalizedY = ((rotY % 360) + 360) % 360
+  
+  // Determine which face is "facing" where
+  // Simplified logic: adjust dx/dy based on which quadrant of Y rotation we are in.
+  let adjDx = dx
+  let adjDy = dy
 
   if (face === 'F') {
     if (absX >= absY) {
       if (y === 1) return dx > 0 ? "U'" : 'U'
       if (y === -1) return dx > 0 ? 'D' : "D'"
+      if (y === 0) return dx > 0 ? "E" : "E'" // E is not in buttons but we can add or map
     } else {
       if (x === 1) return dy < 0 ? 'R' : "R'"
       if (x === -1) return dy < 0 ? "L'" : 'L'
     }
   } else if (face === 'R') {
     if (absX >= absY) {
+      // When looking at Right face, "Right" drag depends on if it's pointing towards or away from us
+      // But usually dx > 0 should still be a clockwise-ish turn around Y
       if (y === 1) return dx > 0 ? 'U' : "U'"
       if (y === -1) return dx > 0 ? "D'" : 'D'
     } else {
@@ -313,12 +326,38 @@ const resolveFaceMove = (face: CubeFace, cubie: any, dx: number, dy: number): Cu
       if (z === -1) return dy < 0 ? 'B' : "B'"
     }
   } else if (face === 'U') {
+    // Top face dragging is most sensitive to Y rotation
+    const angle = (rotY % 360 + 360) % 360
     if (absX >= absY) {
-      if (z === -1) return dx > 0 ? 'B' : "B'"
-      if (z === 1) return dx > 0 ? "F'" : 'F'
+      // Horizontal drag on top face
+      if (angle < 45 || angle >= 315) { // Facing Front
+        if (z === -1) return dx > 0 ? 'B' : "B'"
+        if (z === 1) return dx > 0 ? "F'" : 'F'
+      } else if (angle >= 45 && angle < 135) { // Facing Right
+        if (x === 1) return dx > 0 ? 'R' : "R'"
+        if (x === -1) return dx > 0 ? "L'" : 'L'
+      } else if (angle >= 135 && angle < 225) { // Facing Back
+        if (z === 1) return dx > 0 ? 'F' : "F'"
+        if (z === -1) return dx > 0 ? "B'" : 'B'
+      } else { // Facing Left
+        if (x === -1) return dx > 0 ? "L'" : 'L'
+        if (x === 1) return dx > 0 ? 'R' : "R'"
+      }
     } else {
-      if (x === -1) return dy < 0 ? "L'" : 'L'
-      if (x === 1) return dy < 0 ? 'R' : "R'"
+      // Vertical drag on top face
+      if (angle < 45 || angle >= 315) { // Facing Front
+        if (x === -1) return dy < 0 ? "L'" : 'L'
+        if (x === 1) return dy < 0 ? 'R' : "R'"
+      } else if (angle >= 45 && angle < 135) { // Facing Right
+        if (z === 1) return dy < 0 ? 'F' : "F'"
+        if (z === -1) return dy < 0 ? 'B' : "B'"
+      } else if (angle >= 135 && angle < 225) { // Facing Back
+        if (x === 1) return dy < 0 ? "R'" : 'R'
+        if (x === -1) return dy < 0 ? 'L' : "L'"
+      } else { // Facing Left
+        if (z === -1) return dy < 0 ? "B'" : 'B'
+        if (z === 1) return dy < 0 ? 'F' : "F'"
+      }
     }
   } else if (face === 'L') {
     if (absX >= absY) {

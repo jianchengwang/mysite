@@ -592,15 +592,20 @@ export const useOpenClawGateway = () => {
 
     const toolCallId = toTrimmedString(data.toolCallId)
     const sessionKeyValue = toTrimmedString(record.sessionKey)
+    const runIdValue = toTrimmedString(record.runId)
+
+    // Any session other than the main one or with an explicit subagent name is a minion.
+    // This makes the UI more reactive to any background work.
     const hasSubagentContext =
-      sessionKeyValue.includes(':subagent:') ||
-      Boolean(toTrimmedString(data.subagentName))
+      (sessionKeyValue && sessionKeyValue !== sessionKey.value.trim()) ||
+      Boolean(toTrimmedString(data.subagentName)) ||
+      sessionKeyValue.includes(':subagent:')
 
     if (!hasSubagentContext) {
       return
     }
 
-    const minionId = toolCallId || `${stream}:${toTrimmedString(record.runId) || createId()}`
+    const minionId = toolCallId || `${stream}:${runIdValue || createId()}`
     const nextCard: LobsterMinionCard = {
       id: minionId,
       label: inferMinionLabel(record, data),
@@ -609,7 +614,7 @@ export const useOpenClawGateway = () => {
       note: buildMinionNote(record),
       detail: buildMinionDetail(record),
       lastSeen: Date.now(),
-      runId: toTrimmedString(record.runId) || undefined,
+      runId: runIdValue || undefined,
       sessionKey: sessionKeyValue || undefined
     }
 
@@ -705,20 +710,30 @@ export const useOpenClawGateway = () => {
       sessionKey: payloadSessionKey || undefined
     })
 
+    // If we're waiting for a reply, and a new runId arrives for our session, 
+    // it's likely the server-generated runId for our request.
     if (runId && activeRunId.value && runId !== activeRunId.value) {
       const oldId = activeRunId.value
-      activeRunId.value = runId
-      const userMsg = messages.value.find(m => m.runId === oldId && m.role === 'user')
-      if (userMsg) {
-        userMsg.runId = runId
+      // If we see a chat delta for the same session, update activeRunId
+      if (state === 'delta' || state === 'final') {
+        activeRunId.value = runId
+        const userMsg = messages.value.find(m => m.runId === oldId && m.role === 'user')
+        if (userMsg) {
+          userMsg.runId = runId
+        }
       }
+    } else if (runId && !activeRunId.value && (state === 'delta' || state === 'final')) {
+      // Catch runs started elsewhere or missed by sendMessage
+      activeRunId.value = runId
     }
 
     if (state === 'delta') {
       const parts = normalizedMessage?.blocks.map(block => block.text) || []
       if (parts.length > 0) {
-        streamingText.value = parts.join('\n\n')
-        activeRunId.value = runId || activeRunId.value
+        // If it's for our active run, update streaming text
+        if (runId === activeRunId.value) {
+          streamingText.value = parts.join('\n\n')
+        }
       }
       return state
     }

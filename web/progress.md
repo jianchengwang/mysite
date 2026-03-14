@@ -1,45 +1,48 @@
 # Game Optimizations & Visual Polish Progress
 
-## Latest Bugfix Pass (March 14, 2026 - Pass 2)
+## Latest Bugfix Pass (March 14, 2026 - Pass 3)
 
-### 1. Chinese Chess (Xiangqi) AI
-- **Root Cause**: Hard difficulty was performing iterative deepening without a strict time budget, leading to freezes. Medium difficulty was too deterministic (always picking the same highest score). AI was susceptible to perpetual chasing loops because it didn't track game history.
+### 1. Lobster Workshop
+- **Root Cause**: Sub-agent detection logic was too strict, causing background updates from minions to be ignored if they didn't follow a specific naming convention. `activeRunId` transitions were fragile, sometimes being hijacked by older run events. Sub-agent sprites were positioned too high, appearing outside the office area.
 - **Fixes**:
-    - Added **time limit (3 seconds)** and **abort check** in the search worker.
-    - Implemented **randomness (±3 score points)** at the root for Easy/Medium difficulties to vary openings.
-    - Added **repetition detection** using Zobrist history keys to prevent perpetual chasing.
-- **Behavior Improvement**: Hard difficulty returns moves reliably within 3s; play is more varied and less repetitive.
+    - **Lenient Sub-agent Detection**: Updated `updateMinion` to treat any session other than 'main' as a minion, ensuring telemetry always shows.
+    - **Robust Run Tracking**: Improved `normalizeChatPayload` to only update `activeRunId` for relevant chat deltas and avoid overwriting with stale data.
+    - **Layout Correction**: Adjusted `stageSlots` in `index.vue`, lowering the top offsets from 34% to 46% to keep helper lobsters within the office background.
+- **Behavior Improvement**: Replies return reliably; sub-agents update in real-time without "freezing"; all lobsters stay inside the workshop.
 
-### 2. Rubik's Cube
-- **Root Cause**: Drag-to-rotate logic used a fixed mapping that didn't account for cubie position or actual layer mechanics, making rotations feel unintuitive and physically impossible.
+### 2. Huarongdao
+- **Root Cause**: Shortest-path hint calculation was running on the main UI thread via a computed property, causing the browser to freeze during large state space searches. The game only had one classic level.
 - **Fixes**:
-    - Overhauled **`resolveFaceMove`** with intelligent mapping: dragging a sticker now turns the specific horizontal/vertical layer it belongs to.
-    - Updated **`cubieStyle`** and preview logic to support turning any slice (x, y, or z axis) based on the drag direction.
-    - Improved visual feedback during drag with accurate layer-based rotation previews.
-- **Behavior Improvement**: Dragging feels natural and matches physical cube mechanics (e.g., dragging the top row of the front face moves the Top layer).
+    - **Off-thread Search**: Moved the BFS hint search to a dedicated **Web Worker** (`huarongdao-search.worker.ts`).
+    - **UI Responsiveness**: Added a loading state (`Calculating...`) for hints and a 2-second time limit/state limit in the worker to prevent infinite loops.
+    - **Classic Levels**: Hardcoded 10 famous Huarongdao configurations (横刀立马, 齐头并进, 兵分两路, etc.) instead of random generation.
+- **Behavior Improvement**: "Hint" button no longer freezes the browser; users can play through a curated list of classic puzzles.
 
-### 3. Huarongdao
-- **Root Cause**: The game lacked the most famous starting configuration.
+### 3. Rubik's Cube
+- **Root Cause**: `resolveFaceMove` used fixed coordinate checks that failed to account for camera rotation, making dragging unintuitive or "random" from different angles.
 - **Fixes**:
-    - Added the classic **"横刀立马" (Hengdao Lima)** level as the first level in the game.
-- **Behavior Improvement**: Users can now play the definitive Huarongdao challenge.
+    - **Camera-Aware Interaction**: Overhauled `resolveFaceMove` to adjust drag-to-move mapping based on the current `viewRotationY`.
+    - **Improved Top Face Logic**: Added specific quadrant-based logic for the Top face, which is most sensitive to camera orientation.
+    - **Deadzone Calibration**: Increased drag threshold to 15px to prevent accidental micro-turns.
+- **Behavior Improvement**: Dragging a face now reliably turns the layer in the direction the user moves their mouse, regardless of camera angle.
 
-### 4. Lobster Workshop
-- **Root Cause**: Boss replies were hidden in the UI while helper workers were active due to a logic flaw in `streamingChatCard`. Historical messages were being automatically loaded on every connection, cluttering new sessions.
+### 4. Chinese Chess (Xiangqi)
+- **Root Cause**: AI was too predictable because it always started with the same "best" move from the evaluation function.
 - **Fixes**:
-    - Fixed **`streamingChatCard` visibility** so boss replies show immediately even when subagents are armed.
-    - Removed automatic **`loadHistory`** on connect to ensure a clean slate for new sessions.
-    - Added explicit **state clearing** (messages, minion cards, dispatches) when starting a fresh connection.
-    - Reduced local dispatch history persistence from 8 hours to 1 hour.
-- **Behavior Improvement**: Messages appear instantly without refreshing; sessions start clean and focused.
+    - **Opening Book**: Implemented a standard opening library (`OPENING_BOOK`) with common starts like **中炮 (Central Cannon)**, **屏风马 (Screen Horses)**, and **飞相 (Elephant Opening)**.
+    - **Randomized Openings**: The search function now picks randomly from available book moves for the first 4 plies.
+- **Behavior Improvement**: AI play is more varied and human-like in the early game; no more identical matches every time.
 
 ## Verification Results
 - **Build Status**: `npx nuxi build` passed successfully.
 - **Files Changed**:
-    - `utils/games/chineseChess.ts`
-    - `utils/games/huarongdao.ts`
+    - `workers/huarongdao-search.worker.ts` (New)
     - `workers/xiangqi-search.worker.ts`
-    - `pages/games/chinese-chess/index.vue`
+    - `utils/games/huarongdao.ts`
+    - `utils/games/chineseChess.ts`
+    - `utils/games/rubiksCube.ts`
+    - `pages/games/huarongdao/index.vue`
     - `pages/games/rubiks-cube/index.vue`
+    - `pages/games/chinese-chess/index.vue`
     - `pages/tools/lobster-workshop/index.vue`
     - `composables/useOpenClawGateway.ts`
