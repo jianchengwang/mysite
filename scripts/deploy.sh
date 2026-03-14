@@ -50,7 +50,7 @@ deploy_web() {
     echo "==> Building frontend"
     (
       cd "${ROOT_DIR}/web"
-      npm run build
+      npm run generate
     )
   fi
 
