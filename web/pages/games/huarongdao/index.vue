@@ -1,30 +1,21 @@
 <template>
   <GameShell
     eyebrow="Puzzle Lane"
-    :title="game?.title || '华容道'"
+    :title="game?.title || 'Huarongdao'"
     :description="game?.description || ''"
-    :highlights="['Multiple Levels', 'Search Hint', 'Classic Sliding Puzzle']"
+    :highlights="['Multiple Levels', 'Replay Hint', 'Exit Arrow']"
     :stats="heroStats"
-    :controls="[
-      '点击棋子选中，再点击高亮目标区域移动一步。',
-      'Hint 会给出一个可靠的回退下一步，适合卡住时先退一步再看。',
-      '曹操移动到底部中央出口即算通关。'
-    ]"
-    :notes="[
-      currentLevel.note,
-      '这个版本更强调轻量交互和思路训练，不强求复杂拖拽。',
-      '如果卡住了，先让空位循环起来，再考虑让大块转身。'
-    ]"
   >
-    <div class="space-y-6">
-      <section class="sketch-card space-y-5">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-[0.2em] text-zinc-500">Level Select</p>
-            <h2 class="text-2xl font-bold text-zinc-900">多关卡华容道</h2>
+    <section class="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_21rem]">
+      <div class="sketch-card !p-4 sm:!p-6">
+        <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div class="space-y-1">
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Board State</p>
+            <h2 class="text-2xl font-bold text-zinc-900 sm:text-3xl">{{ hintTitle }}</h2>
+            <p class="max-w-3xl text-sm leading-relaxed text-zinc-600 sm:text-base">{{ hintDetail }}</p>
           </div>
 
-          <div class="flex flex-wrap gap-3">
+          <div class="flex flex-wrap items-center gap-3">
             <button class="sketch-button px-4 py-2 text-sm !bg-zinc-900 !text-white" @click="resetLevel">
               Restart
             </button>
@@ -37,31 +28,10 @@
           </div>
         </div>
 
-        <div class="grid gap-5 xl:grid-cols-[0.92fr_1.08fr]">
-          <div class="space-y-4">
-            <div class="grid gap-3 sm:grid-cols-2">
-              <button
-                v-for="level in huarongdaoLevels"
-                :key="level.id"
-                class="rounded-[24px] border-2 px-4 py-3 text-left transition"
-                :class="selectedLevelId === level.id ? 'border-zinc-900 bg-zinc-900 text-white shadow-[4px_4px_0_0_rgba(0,0,0,0.16)]' : 'border-zinc-300 bg-white text-zinc-800 hover:border-zinc-900'"
-                @click="changeLevel(level.id)"
-              >
-                <p class="text-sm font-bold">{{ level.title }}</p>
-                <p class="mt-1 text-xs opacity-80">Depth {{ level.estimatedDepth }}</p>
-              </button>
-            </div>
-
-            <div class="rounded-[28px] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4">
-              <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Hint</p>
-              <p class="mt-2 text-2xl font-bold text-zinc-900">{{ hintTitle }}</p>
-            <p class="mt-2 text-sm leading-relaxed text-zinc-600">{{ hintDetail }}</p>
-            </div>
-          </div>
-
-          <div class="rounded-[32px] border-2 border-zinc-900 bg-[linear-gradient(180deg,#ffffff_0%,#fafaf9_100%)] p-4 shadow-[6px_6px_0_0_rgba(0,0,0,0.12)]">
+        <div class="mt-6 rounded-[36px] border-2 border-zinc-900 bg-[linear-gradient(180deg,#ffffff_0%,#fafaf9_100%)] p-4 shadow-[8px_8px_0_0_rgba(0,0,0,0.1)]">
+          <div class="mx-auto w-full max-w-[34rem]">
             <div class="hua-board">
-              <div class="hua-exit">出口</div>
+              <div class="hua-exit">Exit</div>
 
               <button
                 v-for="move in selectedMoves"
@@ -71,13 +41,22 @@
                 @click="applyMove(move)"
               />
 
+              <div
+                v-if="hintMove"
+                class="hua-hint-arrow"
+                :style="moveTargetStyle(hintMove)"
+              >
+                {{ hintArrow }}
+              </div>
+
               <button
                 v-for="piece in currentPieces"
                 :key="piece.id"
                 class="hua-piece"
                 :class="[
                   `piece-${piece.type}`,
-                  selectedPieceId === piece.id ? 'is-selected' : ''
+                  selectedPieceId === piece.id ? 'is-selected' : '',
+                  hintMove?.pieceId === piece.id ? 'is-hint-piece' : ''
                 ]"
                 :style="pieceStyle(piece)"
                 @click="selectPiece(piece.id)"
@@ -87,33 +66,42 @@
             </div>
           </div>
         </div>
-      </section>
 
-      <section class="sketch-card">
-        <div class="flex items-center justify-between gap-3">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Puzzle Notes</p>
-            <h3 class="text-2xl font-bold text-zinc-900">当前局面</h3>
-          </div>
-          <p class="text-sm text-zinc-500">{{ history.length }} moves used</p>
-        </div>
-
-        <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <div class="rounded-[24px] border border-dashed border-zinc-300 px-4 py-3 text-sm text-zinc-700">
+        <div class="mt-5 grid gap-3 xl:grid-cols-3">
+          <div class="rounded-[28px] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4">
             <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">Level</p>
-            <p class="mt-1 font-bold text-zinc-900">{{ currentLevel.title }}</p>
+            <p class="mt-2 text-lg font-bold text-zinc-900">{{ currentLevel.title }}</p>
+            <p class="mt-1 text-sm text-zinc-500">{{ currentLevel.note }}</p>
           </div>
-          <div class="rounded-[24px] border border-dashed border-zinc-300 px-4 py-3 text-sm text-zinc-700">
-            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">State</p>
-            <p class="mt-1 font-bold text-zinc-900">{{ isSolved ? 'Solved' : 'In Progress' }}</p>
+          <div class="rounded-[28px] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4">
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">Selection</p>
+            <p class="mt-2 text-lg font-bold text-zinc-900">{{ selectedPieceLabel }}</p>
+            <p class="mt-1 text-sm text-zinc-500">Select a block to reveal valid one-step moves.</p>
           </div>
-          <div class="rounded-[24px] border border-dashed border-zinc-300 px-4 py-3 text-sm text-zinc-700">
-            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">Selected</p>
-            <p class="mt-1 font-bold text-zinc-900">{{ selectedPieceLabel }}</p>
+          <div class="rounded-[28px] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4">
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">Hint Marker</p>
+            <p class="mt-2 text-lg font-bold text-zinc-900">{{ hintMove ? directionLabel(hintMove) : 'Not active' }}</p>
+            <p class="mt-1 text-sm text-zinc-500">The arrow appears inside the board so the next action is easier to spot.</p>
           </div>
         </div>
-      </section>
-    </div>
+      </div>
+
+      <aside class="sketch-card !p-5">
+        <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Levels</p>
+        <div class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-1">
+          <button
+            v-for="level in huarongdaoLevels"
+            :key="level.id"
+            class="rounded-[24px] border-2 px-4 py-3 text-left transition"
+            :class="selectedLevelId === level.id ? 'border-zinc-900 bg-zinc-900 text-white shadow-[4px_4px_0_0_rgba(0,0,0,0.16)]' : 'border-zinc-300 bg-white text-zinc-800 hover:border-zinc-900'"
+            @click="changeLevel(level.id)"
+          >
+            <p class="text-sm font-bold">{{ level.title }}</p>
+            <p class="mt-1 text-xs opacity-80">Estimated depth {{ level.estimatedDepth }}</p>
+          </button>
+        </div>
+      </aside>
+    </section>
   </GameShell>
 </template>
 
@@ -154,35 +142,43 @@ const selectedMoves = computed(() =>
     : []
 )
 const hint = computed(() => (hintRequested.value ? getHuarongdaoReplayHint(currentLevel.value.pathFromSolved, moveLog.value) : null))
+const hintMove = computed(() => hint.value?.move ?? null)
+const hintArrow = computed(() => {
+  if (!hintMove.value) return ''
+  if (hintMove.value.dx === 1) return '→'
+  if (hintMove.value.dx === -1) return '←'
+  if (hintMove.value.dy === 1) return '↓'
+  return '↑'
+})
 
 const heroStats = computed(() => [
   { label: 'Level', value: currentLevel.value.title },
   { label: 'Moves', value: `${history.value.length}` },
-  { label: 'Status', value: isSolved.value ? 'Solved' : 'Thinking Space' }
+  { label: 'Status', value: isSolved.value ? 'Solved' : 'In Progress' }
 ])
 
 const directionLabel = (move: HuarongdaoMove) => {
-  if (move.dx === 1) return '向右'
-  if (move.dx === -1) return '向左'
-  if (move.dy === 1) return '向下'
-  return '向上'
+  if (move.dx === 1) return 'Move right'
+  if (move.dx === -1) return 'Move left'
+  if (move.dy === 1) return 'Move down'
+  return 'Move up'
 }
 
 const hintTitle = computed(() => {
-  if (isSolved.value) return '已经通关'
-  if (!hint.value) return '还没请求提示'
-  if (!hint.value.move) return '当前局面已经很接近完成'
-  const piece = currentPieces.value.find((item) => item.id === hint.value?.move?.pieceId)
-  return `${piece?.label || '当前棋子'} ${directionLabel(hint.value.move)}`
+  if (isSolved.value) return 'Puzzle solved'
+  if (!hint.value) return 'Plan the next route'
+  if (!hintMove.value) return 'Free play'
+  const piece = currentPieces.value.find((item) => item.id === hintMove.value?.pieceId)
+  return `${piece?.label || 'Selected block'} · ${directionLabel(hintMove.value)}`
 })
 
 const hintDetail = computed(() => {
-  if (isSolved.value) return '曹操已经来到出口，不需要再挪了。'
-  if (!hint.value) return '点一下 Hint，我会告诉你当前路径里最稳妥的回退下一步。'
-  if (!hint.value.move || hint.value.remainingSteps === null) {
-    return '已经没有可回退的既有路径了，可以自由尝试。'
+  if (isSolved.value) return 'Cao Cao is already at the exit.'
+  if (!hint.value) return 'Request a hint and the board will show a directional arrow inside the destination space.'
+  if (!hintMove.value || hint.value.remainingSteps === null) {
+    return 'You are already near the known path, so feel free to explore from here.'
   }
-  return `沿着提示继续回退，大约还需要 ${hint.value.remainingSteps} 步能回到已知解路径。`
+  return `Follow the arrow to step back toward the known route. About ${hint.value.remainingSteps} replay steps remain.`
 })
 
 const pieceStyle = (piece: HuarongdaoPiece) => ({
@@ -248,7 +244,7 @@ const requestHint = () => {
   position: relative;
   aspect-ratio: 4 / 5;
   overflow: hidden;
-  border-radius: 26px;
+  border-radius: 28px;
   border: 2px solid #18181b;
   background:
     linear-gradient(to right, rgba(39, 39, 42, 0.12) 1px, transparent 1px),
@@ -262,18 +258,20 @@ const requestHint = () => {
   left: 25%;
   bottom: 0;
   width: 50%;
-  padding: 0.3rem 0;
+  padding: 0.35rem 0;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.18em;
   color: #92400e;
-  background: rgba(255, 251, 235, 0.86);
+  text-transform: uppercase;
+  background: rgba(255, 251, 235, 0.88);
   border-top: 2px dashed rgba(146, 64, 14, 0.4);
 }
 
 .hua-piece,
-.hua-target {
+.hua-target,
+.hua-hint-arrow {
   position: absolute;
   margin: 0;
 }
@@ -285,8 +283,10 @@ const requestHint = () => {
   border: 2px solid rgba(24, 24, 27, 0.65);
   border-radius: 24px;
   box-shadow: 0 8px 14px rgba(24, 24, 27, 0.08);
-  font-size: clamp(0.82rem, 2vw, 1.05rem);
+  font-size: clamp(0.78rem, 1.5vw, 0.98rem);
   font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
   color: #18181b;
   transition: transform 140ms ease, box-shadow 140ms ease;
 }
@@ -298,6 +298,13 @@ const requestHint = () => {
 .hua-piece.is-selected {
   box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.14);
   border-color: rgba(14, 116, 144, 0.72);
+}
+
+.hua-piece.is-hint-piece {
+  box-shadow:
+    0 0 0 4px rgba(245, 158, 11, 0.16),
+    0 8px 14px rgba(24, 24, 27, 0.08);
+  border-color: rgba(217, 119, 6, 0.72);
 }
 
 .piece-cao {
@@ -317,5 +324,21 @@ const requestHint = () => {
   border-radius: 24px;
   border: 2px dashed rgba(14, 165, 233, 0.56);
   background: rgba(14, 165, 233, 0.12);
+}
+
+.hua-hint-arrow {
+  display: grid;
+  place-items: center;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 700;
+  color: #b45309;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+  animation: hint-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes hint-pulse {
+  0%, 100% { transform: scale(0.96); opacity: 0.9; }
+  50% { transform: scale(1.08); opacity: 1; }
 }
 </style>

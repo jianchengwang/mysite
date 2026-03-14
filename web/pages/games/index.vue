@@ -8,16 +8,16 @@
     <div class="mb-10 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
       <div class="sketch-card bg-[linear-gradient(140deg,#ffffff_0%,#fff7ed_100%)]">
         <p class="text-xs font-bold uppercase tracking-[0.22em] text-zinc-500">Now Available</p>
-        <p class="mt-3 text-2xl font-bold text-zinc-900 sm:text-3xl">五子棋、中国象棋、摸鱼池、3D 魔方、华容道</p>
+        <p class="mt-3 text-2xl font-bold text-zinc-900 sm:text-3xl">Gomoku, Xiangqi, Fish Pond, 3D Cube, and Huarongdao</p>
         <p class="mt-3 text-base text-zinc-600 sm:text-lg">
-          延续当前站点的手绘极简风格，优先做“打开就能玩”，再逐步补强搜索强度、提示和动画细节。
+          The hand-drawn minimal style stays intact, but the focus is on launching straight into play and learning by doing.
         </p>
       </div>
 
       <div class="sketch-card bg-[linear-gradient(140deg,#ffffff_0%,#f0fdf4_100%)]">
         <p class="text-xs font-bold uppercase tracking-[0.22em] text-zinc-500">Design Notes</p>
         <p class="mt-3 text-base leading-relaxed text-zinc-600 sm:text-lg">
-          所有对战逻辑都在前端，适合静态部署。交互尽量收敛到同一套按钮、卡片、提示条和手绘边框语言里。
+          The game logic runs on the front end and keeps the same sketch-border language as the rest of the site, while giving the play area priority.
         </p>
       </div>
     </div>

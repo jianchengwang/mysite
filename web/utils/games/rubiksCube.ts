@@ -78,11 +78,11 @@ const moveDefinitions: Record<CubeMove, { axis: Axis; layer: number; turns: 1 | 
 export const cubeMoveButtons: CubeMove[] = ['U', "U'", 'R', "R'", 'F', "F'", 'L', "L'", 'D', "D'", 'B', "B'"]
 
 export const cubeTutorialSteps = [
-  '先固定观察方向：白面朝上、绿面朝前。',
-  '第一阶段先做白十字，让 4 个白色棱块回到顶层且侧面颜色对齐。',
-  '接着放好白角块，完成第一层。',
-  '第二层用常见左右插入公式把 4 个中层棱块归位。',
-  '最后处理黄十字、顶面、换角、换棱。'
+  'Keep one viewing convention: white on top and green in front.',
+  'Build the white cross first and line up each side edge with its center color.',
+  'Insert the white corners to finish the first layer.',
+  'Use the common left and right insertion patterns for the four middle-layer edges.',
+  'Finish with the yellow cross, yellow face, corner swap, and edge swap.'
 ]
 
 const rotateVector = (vector: Vector, axis: Axis, turns: 1 | -1): Vector => {
@@ -280,7 +280,7 @@ export const getCubeGuide = (state: CubeState, history: CubeMove[]): CubeGuide =
   if (isCubeSolved(state)) {
     return {
       title: 'Cube Solved',
-      detail: '六个面都已经归位。可以打乱重新练习，或者慢慢回看自己的复原路径。',
+      detail: 'All six faces are solved. Scramble again for another round, or slowly walk back through your own solve path.',
       nextMove: null
     }
   }
@@ -292,7 +292,7 @@ export const getCubeGuide = (state: CubeState, history: CubeMove[]): CubeGuide =
   if (topCount < 5) {
     return {
       title: 'Step 1: Build The White Cross',
-      detail: '先只盯着顶层白色棱块，不急着管角块。把白色棱块送到顶面，再对齐侧面中心色。',
+      detail: 'Focus only on the white edge pieces first. Bring them to the top layer, then line them up with the matching side centers.',
       nextMove: rewindMove
     }
   }
@@ -300,7 +300,7 @@ export const getCubeGuide = (state: CubeState, history: CubeMove[]): CubeGuide =
   if (topCount < 9 || !topLayerAligned(state)) {
     return {
       title: 'Step 2: Finish The First Layer',
-      detail: '白色顶面已经有基础了，接着把白角块送回顶层并对齐四个侧面第一层。',
+      detail: 'The white face has a base now. Insert the white corners and finish matching the first layer around the sides.',
       nextMove: rewindMove
     }
   }
@@ -308,7 +308,7 @@ export const getCubeGuide = (state: CubeState, history: CubeMove[]): CubeGuide =
   if (!middleLayerAligned(state)) {
     return {
       title: 'Step 3: Insert Middle Edges',
-      detail: '现在优先处理中层棱块。判断目标边块该往左还是往右，再套常见插入公式。',
+      detail: 'Work on the middle-layer edges next. Decide whether the target edge needs the left or right insertion pattern, then execute it cleanly.',
       nextMove: rewindMove
     }
   }
@@ -316,7 +316,7 @@ export const getCubeGuide = (state: CubeState, history: CubeMove[]): CubeGuide =
   if (bottomCount < 5) {
     return {
       title: 'Step 4: Make The Yellow Cross',
-      detail: '只关注底面的黄色朝向，先做出黄十字，再去看角块方向。',
+      detail: 'Pay attention only to the yellow orientation on the bottom face for now. Build the yellow cross before you worry about the corners.',
       nextMove: rewindMove
     }
   }
@@ -324,14 +324,14 @@ export const getCubeGuide = (state: CubeState, history: CubeMove[]): CubeGuide =
   if (bottomCount < 9) {
     return {
       title: 'Step 5: Orient Last Layer',
-      detail: '黄面还没完全统一。继续做顶层朝向公式，让 9 个黄色都朝上。',
+      detail: 'The yellow face is not fully oriented yet. Keep working the last-layer orientation patterns until all nine yellow stickers face up.',
       nextMove: rewindMove
     }
   }
 
   return {
     title: 'Step 6: Permute The Last Layer',
-    detail: '颜色朝向差不多了，最后一步是换角和换棱，把顶层块送到正确位置。',
+    detail: 'Orientation is nearly done. The final stage is swapping the last-layer corners and edges into their correct positions.',
     nextMove: rewindMove
   }
 }

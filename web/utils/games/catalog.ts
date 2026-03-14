@@ -17,10 +17,10 @@ export type GameCatalogItem = {
 export const gamesCatalog: GameCatalogItem[] = [
   {
     slug: 'gomoku',
-    title: '五子棋',
-    subtitle: 'Gomoku Duel',
-    description: '15x15 极简棋盘，支持人机对战、先后手切换与难度选择。',
-    detail: '前端 alpha-beta 剪枝，强调开局布局、连珠封堵与局部攻防。',
+    title: 'Gomoku',
+    subtitle: 'Board Duel',
+    description: 'A minimalist 15x15 board with human vs AI play, side switching, and difficulty levels.',
+    detail: 'Front-end alpha-beta search focused on shape building, threat blocking, and local fights.',
     tags: [
       { label: 'AI Battle', tone: 'blue' },
       { label: 'Alpha-Beta', tone: 'green' }
@@ -28,10 +28,10 @@ export const gamesCatalog: GameCatalogItem[] = [
   },
   {
     slug: 'chinese-chess',
-    title: '中国象棋',
-    subtitle: 'Xiangqi Table',
-    description: '完整九宫与河界规则，支持人机对战和三档搜索强度。',
-    detail: '前端走法生成 + alpha-beta 剪枝评估，适合轻量对弈体验。',
+    title: 'Xiangqi',
+    subtitle: 'Classic Table',
+    description: 'Full river, palace, cannon, and check rules with human vs AI play and search levels.',
+    detail: 'Legal-move generation and alpha-beta evaluation run directly in the browser.',
     tags: [
       { label: 'Classic Board', tone: 'amber' },
       { label: 'AI Battle', tone: 'blue' }
@@ -39,10 +39,10 @@ export const gamesCatalog: GameCatalogItem[] = [
   },
   {
     slug: 'fish-pond',
-    title: '摸鱼池',
-    subtitle: 'Doodle Fish Pond',
-    description: '调起白板画一条鱼，保存后就会在池塘里慢悠悠游动。',
-    detail: '支持反复新增、漂浮动画与本地保存，适合放空和展示手绘涂鸦。',
+    title: 'Fish Pond',
+    subtitle: 'Doodle Pond',
+    description: 'Draw a fish on the whiteboard, save it, and watch it drift through the pond.',
+    detail: 'Layered pond motion, local persistence, and repeatable doodle drop-ins for slow moments.',
     tags: [
       { label: 'Whiteboard', tone: 'green' },
       { label: 'Relax', tone: 'rose' }
@@ -50,10 +50,10 @@ export const gamesCatalog: GameCatalogItem[] = [
   },
   {
     slug: 'rubiks-cube',
-    title: '3D 魔方',
+    title: '3D Cube',
     subtitle: 'Cube Studio',
-    description: '立体 3D 魔方，可旋转、打乱、单步操作，并给出下一步建议。',
-    detail: '内置新手玩法说明与撤销路径提示，帮助你边玩边理解复原思路。',
+    description: 'A 3D cube you can scramble, turn, inspect, and practice with guided next-step hints.',
+    detail: 'Built around a real cubie state with beginner-friendly guidance and rewind suggestions.',
     tags: [
       { label: '3D', tone: 'blue' },
       { label: 'Tutorial', tone: 'green' }
@@ -61,10 +61,10 @@ export const gamesCatalog: GameCatalogItem[] = [
   },
   {
     slug: 'huarongdao',
-    title: '华容道',
+    title: 'Huarongdao',
     subtitle: 'Sliding Strategy',
-    description: '多关卡经典益智推盘，支持提示、步数统计和复盘。',
-    detail: '预置多组局面，并可用搜索算法给出下一步最佳建议。',
+    description: 'A multi-level sliding-block puzzle with reliable hints, move tracking, and restarts.',
+    detail: 'Preset positions and board-aware guidance help you keep the exit route in view.',
     tags: [
       { label: 'Puzzle', tone: 'amber' },
       { label: 'Multi-Level', tone: 'green' }

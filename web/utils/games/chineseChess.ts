@@ -27,6 +27,8 @@ export type XiangqiDifficulty = {
   label: string
   depth: number
   note: string
+  rootMoveLimit?: number
+  branchLimit?: number
 }
 
 export type XiangqiSearchResult = {
@@ -40,9 +42,9 @@ const BOARD_ROWS = 10
 const BOARD_COLS = 9
 
 export const xiangqiDifficulties: XiangqiDifficulty[] = [
-  { id: 'easy', label: 'Easy', depth: 1, note: '适合练习规则和常见吃子。' },
-  { id: 'medium', label: 'Medium', depth: 2, note: '会明显更在意将帅安全和大子交换。' },
-  { id: 'hard', label: 'Hard', depth: 3, note: '会持续看几步后的捉子与牵制。' }
+  { id: 'easy', label: 'Easy', depth: 1, note: 'Fast replies for learning movement rules and common captures.', rootMoveLimit: 18, branchLimit: 16 },
+  { id: 'medium', label: 'Medium', depth: 2, note: 'Balances king safety, trades, and practical speed.', rootMoveLimit: 16, branchLimit: 12 },
+  { id: 'hard', label: 'Hard', depth: 3, note: 'Looks deeper, but still trims branches to stay browser-friendly.', rootMoveLimit: 14, branchLimit: 10 }
 ]
 
 const pieceValue: Record<XiangqiPieceType, number> = {
@@ -57,22 +59,22 @@ const pieceValue: Record<XiangqiPieceType, number> = {
 
 const pieceCodeMap: Record<XiangqiSide, Record<XiangqiPieceType, string>> = {
   red: {
-    general: '帅',
-    advisor: '仕',
-    elephant: '相',
-    horse: '马',
-    rook: '车',
-    cannon: '炮',
-    soldier: '兵'
+    general: 'K',
+    advisor: 'A',
+    elephant: 'E',
+    horse: 'H',
+    rook: 'R',
+    cannon: 'C',
+    soldier: 'S'
   },
   black: {
-    general: '将',
-    advisor: '士',
-    elephant: '象',
-    horse: '马',
-    rook: '车',
-    cannon: '炮',
-    soldier: '卒'
+    general: 'K',
+    advisor: 'A',
+    elephant: 'E',
+    horse: 'H',
+    rook: 'R',
+    cannon: 'C',
+    soldier: 'S'
   }
 }
 
@@ -514,7 +516,9 @@ export const searchBestXiangqiMove = (
     }
 
     let best = -Infinity
-    const orderedMoves = legalMoves.sort((a, b) => moveOrderingScore(b) - moveOrderingScore(a))
+    const orderedMoves = legalMoves
+      .sort((a, b) => moveOrderingScore(b) - moveOrderingScore(a))
+      .slice(0, depth > 1 ? difficulty.branchLimit ?? legalMoves.length : legalMoves.length)
 
     for (const move of orderedMoves) {
       const nextBoard = applyXiangqiMove(currentBoard, move)
@@ -528,7 +532,9 @@ export const searchBestXiangqiMove = (
     return best
   }
 
-  const rootMoves = generateLegalXiangqiMoves(board, aiSide).sort((a, b) => moveOrderingScore(b) - moveOrderingScore(a))
+  const rootMoves = generateLegalXiangqiMoves(board, aiSide)
+    .sort((a, b) => moveOrderingScore(b) - moveOrderingScore(a))
+    .slice(0, difficulty.rootMoveLimit ?? Number.POSITIVE_INFINITY)
   if (!rootMoves.length) {
     return { move: null, score: 0, nodes }
   }

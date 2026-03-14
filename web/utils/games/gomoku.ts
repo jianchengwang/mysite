@@ -34,9 +34,9 @@ const DIRECTIONS = [
 ] as const
 
 export const gomokuDifficulties: GomokuDifficulty[] = [
-  { id: 'easy', label: 'Easy', depth: 1, width: 10, note: '更偏即时攻防，适合快速下几手。' },
-  { id: 'medium', label: 'Medium', depth: 2, width: 10, note: '会同时考虑自己的进攻和你的反击。' },
-  { id: 'hard', label: 'Hard', depth: 3, width: 8, note: '更重视冲四、活三和先手节奏。' }
+  { id: 'easy', label: 'Easy', depth: 1, width: 10, note: 'Fast local play that is good for short practice rounds.' },
+  { id: 'medium', label: 'Medium', depth: 2, width: 10, note: 'Balances attack building with immediate defensive reading.' },
+  { id: 'hard', label: 'Hard', depth: 3, width: 8, note: 'Pays much more attention to forcing threats and initiative.' }
 ]
 
 export const createGomokuBoard = (): GomokuBoard =>

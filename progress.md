@@ -9,3 +9,11 @@ Original prompt: 顶部菜单Tools后面增加Games菜单，然后点击进去Ga
 - 2026-03-14: Implemented Huarongdao with multiple generated levels, click-to-move interactions, undo, and replay-based hints that always point back toward a known solvable path.
 - 2026-03-14: Verified with Node 25 production builds, logic smoke tests for Gomoku/Xiangqi/Cube/Huarongdao, and headless Chrome screenshots for `/games`, Gomoku, Xiangqi, Fish Pond, Rubik's Cube, and Huarongdao.
 - 2026-03-14: Environment note: the workspace default `node` / `npm` path can fall back to Node 20, so successful build commands were run with `PATH=/opt/homebrew/bin:$PATH` and `/opt/homebrew/bin/node`.
+- 2026-03-14: Reworked the game experience around larger play surfaces by simplifying `GameShell`, trimming sidebar-heavy copy, and moving more of the status UI into compact toolbars and footer cards.
+- 2026-03-14: Converted the game-facing copy in the games catalog/pages to English, updated the Tools landing title/subtitle to be category-accurate, and translated supporting game metadata/util strings that were still Chinese.
+- 2026-03-14: Gomoku now uses a much larger board and a strong ring marker on the latest stone; Xiangqi now uses larger board framing, clearer last-move highlights, and English piece glyphs.
+- 2026-03-14: Xiangqi AI search now runs inside `web/workers/xiangqi-search.worker.ts` instead of blocking the main thread, with branch caps added in `web/utils/games/chineseChess.ts` to keep browser response times practical.
+- 2026-03-14: Fish Pond was simplified to a single large pond stage with greener pond styling, and the modal close button was moved to the top-left so it no longer overlaps Whiteboard save controls.
+- 2026-03-14: Rubik's Cube now prioritizes the large 3D stage, supports direct face-drag turning (with empty-stage orbit drag), and reduces surrounding UI to hints, fallback buttons, and a slim beginner route list.
+- 2026-03-14: Huarongdao now centers a larger board, keeps levels in a compact side list, and renders hint arrows directly inside the board so the suggested direction is visible at a glance.
+- 2026-03-14: Rebuilt with explicit Node 25 after the Xiangqi worker change and validated via Playwright-based screenshot runs plus additional full-page visual checks for Gomoku, Xiangqi, Fish Pond modal, Rubik's Cube, Huarongdao, and Tools.

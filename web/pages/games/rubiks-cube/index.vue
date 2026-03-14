@@ -1,30 +1,23 @@
 <template>
   <GameShell
     eyebrow="3D Practice"
-    :title="game?.title || '3D 魔方'"
+    :title="game?.title || '3D Cube'"
     :description="game?.description || ''"
-    :highlights="['3D View', 'True Cubie State', 'Beginner Guide']"
+    :highlights="['Direct Face Drag', 'True Cubie State', 'Beginner Guide']"
     :stats="heroStats"
-    :controls="[
-      '拖拽舞台可以旋转观察视角。',
-      '点击下面的 U / R / F 等按钮操作对应面，撇号表示逆时针。',
-      'Hint 会给出当前阶段建议，同时提供一个可靠的回退下一步。'
-    ]"
-    :notes="[
-      '当前提示以新手分阶段方法为主，适合学习“先做哪一层”。',
-      'Next rewind move 总能把你往已知路径的上一步带回去，适合卡住时退一步再看。',
-      '如果只是想重新来一盘，直接用 Scramble 或 Reset 会更轻松。'
-    ]"
   >
-    <div class="space-y-6">
-      <section class="sketch-card space-y-5">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-[0.2em] text-zinc-500">Cube Controls</p>
-            <h2 class="text-2xl font-bold text-zinc-900">立体魔方实验台</h2>
+    <section class="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <div class="sketch-card !p-4 sm:!p-6">
+        <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div class="space-y-1">
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Cube Studio</p>
+            <h2 class="text-2xl font-bold text-zinc-900 sm:text-3xl">{{ guide.title }}</h2>
+            <p class="max-w-3xl text-sm leading-relaxed text-zinc-600 sm:text-base">
+              Drag a visible face to turn that layer. Drag empty stage space to orbit the camera. The buttons stay here only as a fallback.
+            </p>
           </div>
 
-          <div class="flex flex-wrap gap-3">
+          <div class="flex flex-wrap items-center gap-3">
             <button class="sketch-button px-4 py-2 text-sm !bg-zinc-900 !text-white" @click="scrambleCube">
               Scramble
             </button>
@@ -37,122 +30,70 @@
           </div>
         </div>
 
-        <div class="grid gap-5 xl:grid-cols-[1.2fr_0.88fr]">
-          <div class="rounded-[32px] border-2 border-zinc-900 bg-[linear-gradient(160deg,#ffffff_0%,#f8fafc_100%)] p-4 shadow-[6px_6px_0_0_rgba(0,0,0,0.12)]">
-            <div
-              class="cube-stage"
-              @pointerdown="handlePointerDown"
-            >
-              <div class="cube-model" :style="{ transform: `rotateX(${viewRotationX}deg) rotateY(${viewRotationY}deg)` }">
-                <div
-                  v-for="face in faceOrder"
-                  :key="face"
-                  class="cube-face"
-                  :class="`face-${face.toLowerCase()}`"
-                >
-                  <div
-                    v-for="(color, index) in faceMap[face]"
-                    :key="`${face}-${index}`"
-                    class="cube-sticker"
-                    :class="stickerClass(color)"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div class="mt-4 rounded-[26px] border border-dashed border-zinc-300 bg-white px-4 py-4">
-              <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Current Hint</p>
-              <p class="mt-2 text-2xl font-bold text-zinc-900">{{ guide.title }}</p>
-              <p class="mt-2 text-sm leading-relaxed text-zinc-600">{{ guide.detail }}</p>
-              <p class="mt-3 inline-flex rounded-full border border-zinc-300 bg-zinc-50 px-3 py-1 text-sm font-bold text-zinc-800">
-                {{ guide.nextMove ? `Next rewind move: ${guide.nextMove}` : 'No rewind needed' }}
-              </p>
-            </div>
-          </div>
-
-          <div class="space-y-4">
-            <div class="rounded-[28px] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4">
-              <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Moves</p>
-              <div class="mt-3 grid grid-cols-4 gap-2">
-                <button
-                  v-for="move in cubeMoveButtons"
-                  :key="move"
-                  class="rounded-[18px] border border-zinc-300 bg-white px-3 py-3 text-sm font-bold text-zinc-800 transition hover:-translate-y-0.5 hover:shadow-[3px_3px_0_0_rgba(0,0,0,0.16)]"
-                  @click="performMove(move)"
-                >
-                  {{ move }}
-                </button>
-              </div>
-            </div>
-
-            <div class="rounded-[28px] border border-dashed border-zinc-300 bg-white px-4 py-4">
-              <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Recent Sequence</p>
-              <div class="mt-3 flex flex-wrap gap-2">
-                <span
-                  v-for="(move, index) in recentMoves"
-                  :key="`${move}-${index}`"
-                  class="rounded-full border border-zinc-300 bg-zinc-50 px-3 py-1 text-sm font-bold text-zinc-800"
-                >
-                  {{ move }}
-                </span>
-                <span v-if="recentMoves.length === 0" class="text-sm text-zinc-500">还没开始转动。</span>
-              </div>
-            </div>
-
-            <div class="rounded-[28px] border border-dashed border-zinc-300 bg-white px-4 py-4">
-              <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">View</p>
-              <div class="mt-3 grid gap-3 sm:grid-cols-2">
-                <label class="space-y-2">
-                  <span class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">Rotate X</span>
-                  <input v-model.number="viewRotationX" type="range" min="-65" max="65" class="w-full accent-zinc-700" />
-                </label>
-                <label class="space-y-2">
-                  <span class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">Rotate Y</span>
-                  <input v-model.number="viewRotationY" type="range" min="-180" max="180" class="w-full accent-zinc-700" />
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <div class="sketch-card">
-          <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Beginner Method</p>
-          <div class="mt-4 space-y-3">
-            <div
-              v-for="(step, index) in cubeTutorialSteps"
-              :key="step"
-              class="rounded-[24px] border border-dashed border-zinc-300 px-4 py-3 text-sm text-zinc-700"
-            >
-              <p class="font-bold text-zinc-900">Step {{ index + 1 }}</p>
-              <p class="mt-1">{{ step }}</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="sketch-card">
-          <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">State Snapshot</p>
-          <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        <div
+          class="cube-stage mt-6"
+          @pointerdown="handleStagePointerDown"
+        >
+          <div class="cube-stage-note">drag a face to turn • drag empty space to orbit</div>
+          <div class="cube-model" :style="{ transform: `rotateX(${viewRotationX}deg) rotateY(${viewRotationY}deg)` }">
             <div
               v-for="face in faceOrder"
-              :key="`${face}-mini`"
-              class="rounded-[24px] border border-dashed border-zinc-300 px-4 py-3"
+              :key="face"
+              class="cube-face"
+              :class="`face-${face.toLowerCase()}`"
+              @pointerdown.stop="handleFacePointerDown(face, $event)"
             >
-              <p class="mb-3 text-sm font-bold text-zinc-900">{{ face }}</p>
-              <div class="grid grid-cols-3 gap-1">
-                <div
-                  v-for="(color, index) in faceMap[face]"
-                  :key="`${face}-${index}-mini`"
-                  class="h-5 rounded-md border border-zinc-300"
-                  :class="stickerClass(color)"
-                />
-              </div>
+              <div
+                v-for="(color, index) in faceMap[face]"
+                :key="`${face}-${index}`"
+                class="cube-sticker"
+                :class="stickerClass(color)"
+              />
             </div>
           </div>
         </div>
-      </section>
-    </div>
+
+        <div class="mt-5 grid gap-3 xl:grid-cols-3">
+          <div class="rounded-[28px] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4">
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">Current Hint</p>
+            <p class="mt-2 text-lg font-bold text-zinc-900">{{ guide.title }}</p>
+            <p class="mt-1 text-sm text-zinc-500">{{ guide.detail }}</p>
+          </div>
+          <div class="rounded-[28px] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4">
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">Next Suggested Undo</p>
+            <p class="mt-2 text-lg font-bold text-zinc-900">{{ guide.nextMove || 'None' }}</p>
+            <p class="mt-1 text-sm text-zinc-500">Useful when you want one dependable step backward.</p>
+          </div>
+          <div class="rounded-[28px] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4">
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">Fallback Buttons</p>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <button
+                v-for="move in cubeMoveButtons"
+                :key="move"
+                class="rounded-full border border-zinc-300 bg-white px-3 py-1 text-xs font-bold text-zinc-800 transition hover:-translate-y-0.5 hover:shadow-[3px_3px_0_0_rgba(0,0,0,0.12)]"
+                @click="performMove(move)"
+              >
+                {{ move }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="sketch-card !p-5">
+        <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Beginner Route</p>
+        <div class="mt-4 space-y-3">
+          <div
+            v-for="(step, index) in cubeTutorialSteps"
+            :key="step"
+            class="rounded-[24px] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-3 text-sm text-zinc-700"
+          >
+            <p class="font-bold text-zinc-900">Step {{ index + 1 }}</p>
+            <p class="mt-1">{{ step }}</p>
+          </div>
+        </div>
+      </aside>
+    </section>
   </GameShell>
 </template>
 
@@ -182,7 +123,7 @@ definePageMeta({ layout: 'default' })
 const game = getGameBySlug('rubiks-cube')
 const cube = ref(createSolvedCube())
 const moveHistory = ref<CubeMove[]>([])
-const viewRotationX = ref(-24)
+const viewRotationX = ref(-26)
 const viewRotationY = ref(34)
 const faceOrder: CubeFace[] = ['U', 'F', 'R', 'L', 'B', 'D']
 
@@ -196,7 +137,6 @@ const faceMap = computed<Record<CubeFace, StickerColor[]>>(() => ({
 }))
 
 const guide = computed(() => getCubeGuide(cube.value, moveHistory.value))
-const recentMoves = computed(() => moveHistory.value.slice(-12))
 const heroStats = computed(() => [
   { label: 'Solved Faces', value: `${countSolvedFaces(cube.value)} / 6` },
   { label: 'Solved Stickers', value: `${countSolvedStickers(cube.value)} / 54` },
@@ -229,14 +169,45 @@ const resetCube = () => {
   moveHistory.value = []
 }
 
-let pointerId: number | null = null
+type PointerMode = 'orbit' | 'face' | null
+
+let pointerMode: PointerMode = null
+let activePointerId: number | null = null
+let activeFace: CubeFace | null = null
 let startX = 0
 let startY = 0
 let startRotationX = viewRotationX.value
 let startRotationY = viewRotationY.value
 
+const faceDragMap: Record<CubeFace, { horizontal: [CubeMove, CubeMove]; vertical: [CubeMove, CubeMove] }> = {
+  F: { horizontal: ["F'", 'F'], vertical: ["F'", 'F'] },
+  B: { horizontal: ['B', "B'"], vertical: ['B', "B'"] },
+  R: { horizontal: ["R'", 'R'], vertical: ['R', "R'"] },
+  L: { horizontal: ['L', "L'"], vertical: ["L'", 'L'] },
+  U: { horizontal: ["U'", 'U'], vertical: ["U'", 'U'] },
+  D: { horizontal: ['D', "D'"], vertical: ['D', "D'"] }
+}
+
+const resolveFaceMove = (face: CubeFace, dx: number, dy: number) => {
+  const map = faceDragMap[face]
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    return dx < 0 ? map.horizontal[0] : map.horizontal[1]
+  }
+  return dy < 0 ? map.vertical[0] : map.vertical[1]
+}
+
+const endPointerInteraction = () => {
+  activePointerId = null
+  activeFace = null
+  pointerMode = null
+  window.removeEventListener('pointermove', handlePointerMove)
+  window.removeEventListener('pointerup', handlePointerUp)
+}
+
 const handlePointerMove = (event: PointerEvent) => {
-  if (pointerId === null || event.pointerId !== pointerId) return
+  if (activePointerId === null || event.pointerId !== activePointerId) return
+  if (pointerMode !== 'orbit') return
+
   const dx = event.clientX - startX
   const dy = event.clientY - startY
   viewRotationY.value = startRotationY + dx * 0.35
@@ -244,14 +215,23 @@ const handlePointerMove = (event: PointerEvent) => {
 }
 
 const handlePointerUp = (event: PointerEvent) => {
-  if (pointerId === null || event.pointerId !== pointerId) return
-  pointerId = null
-  window.removeEventListener('pointermove', handlePointerMove)
-  window.removeEventListener('pointerup', handlePointerUp)
+  if (activePointerId === null || event.pointerId !== activePointerId) return
+
+  if (pointerMode === 'face' && activeFace) {
+    const dx = event.clientX - startX
+    const dy = event.clientY - startY
+    if (Math.max(Math.abs(dx), Math.abs(dy)) > 18) {
+      performMove(resolveFaceMove(activeFace, dx, dy))
+    }
+  }
+
+  endPointerInteraction()
 }
 
-const handlePointerDown = (event: PointerEvent) => {
-  pointerId = event.pointerId
+const beginPointerInteraction = (mode: PointerMode, event: PointerEvent, face: CubeFace | null = null) => {
+  activePointerId = event.pointerId
+  activeFace = face
+  pointerMode = mode
   startX = event.clientX
   startY = event.clientY
   startRotationX = viewRotationX.value
@@ -260,9 +240,18 @@ const handlePointerDown = (event: PointerEvent) => {
   window.addEventListener('pointerup', handlePointerUp)
 }
 
+const handleStagePointerDown = (event: PointerEvent) => {
+  const target = event.target as HTMLElement
+  if (target.closest('.cube-face')) return
+  beginPointerInteraction('orbit', event)
+}
+
+const handleFacePointerDown = (face: CubeFace, event: PointerEvent) => {
+  beginPointerInteraction('face', event, face)
+}
+
 onUnmounted(() => {
-  window.removeEventListener('pointermove', handlePointerMove)
-  window.removeEventListener('pointerup', handlePointerUp)
+  endPointerInteraction()
 })
 </script>
 
@@ -271,25 +260,37 @@ onUnmounted(() => {
   position: relative;
   display: grid;
   place-items: center;
-  min-height: 360px;
+  min-height: 560px;
   overflow: hidden;
-  border-radius: 28px;
+  border-radius: 32px;
   border: 1px dashed rgba(113, 113, 122, 0.4);
   background:
-    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.9), transparent 26%),
-    linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
-  perspective: 1200px;
-  cursor: grab;
+    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.92), transparent 24%),
+    radial-gradient(circle at 72% 24%, rgba(255, 255, 255, 0.42), transparent 22%),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 44%, #e0f2fe 100%);
+  perspective: 1400px;
 }
 
-.cube-stage:active {
-  cursor: grabbing;
+.cube-stage-note {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  z-index: 2;
+  border-radius: 999px;
+  border: 1px solid rgba(24, 24, 27, 0.12);
+  background: rgba(255, 255, 255, 0.78);
+  padding: 0.45rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #334155;
 }
 
 .cube-model {
   position: relative;
-  width: 200px;
-  height: 200px;
+  width: 280px;
+  height: 280px;
   transform-style: preserve-3d;
   transition: transform 180ms ease;
 }
@@ -298,27 +299,32 @@ onUnmounted(() => {
   position: absolute;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-  width: 200px;
-  height: 200px;
-  padding: 10px;
-  border-radius: 20px;
-  background: rgba(24, 24, 27, 0.94);
-  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.14);
+  gap: 7px;
+  width: 280px;
+  height: 280px;
+  padding: 12px;
+  border-radius: 24px;
+  background: rgba(24, 24, 27, 0.95);
+  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.14);
   backface-visibility: hidden;
+  cursor: grab;
+}
+
+.cube-face:active {
+  cursor: grabbing;
 }
 
 .cube-sticker {
-  border-radius: 14px;
+  border-radius: 18px;
   border: 1px solid rgba(15, 23, 42, 0.18);
 }
 
-.face-f { transform: rotateY(0deg) translateZ(100px); }
-.face-b { transform: rotateY(180deg) translateZ(100px); }
-.face-r { transform: rotateY(90deg) translateZ(100px); }
-.face-l { transform: rotateY(-90deg) translateZ(100px); }
-.face-u { transform: rotateX(90deg) translateZ(100px); }
-.face-d { transform: rotateX(-90deg) translateZ(100px); }
+.face-f { transform: rotateY(0deg) translateZ(140px); }
+.face-b { transform: rotateY(180deg) translateZ(140px); }
+.face-r { transform: rotateY(90deg) translateZ(140px); }
+.face-l { transform: rotateY(-90deg) translateZ(140px); }
+.face-u { transform: rotateX(90deg) translateZ(140px); }
+.face-d { transform: rotateX(-90deg) translateZ(140px); }
 
 .sticker-white { background: #f8fafc; }
 .sticker-yellow { background: #fde68a; }
@@ -326,4 +332,29 @@ onUnmounted(() => {
 .sticker-red { background: #f87171; }
 .sticker-green { background: #86efac; }
 .sticker-blue { background: #93c5fd; }
+
+@media (max-width: 640px) {
+  .cube-stage {
+    min-height: 420px;
+  }
+
+  .cube-model {
+    width: 220px;
+    height: 220px;
+  }
+
+  .cube-face {
+    width: 220px;
+    height: 220px;
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .face-f { transform: rotateY(0deg) translateZ(110px); }
+  .face-b { transform: rotateY(180deg) translateZ(110px); }
+  .face-r { transform: rotateY(90deg) translateZ(110px); }
+  .face-l { transform: rotateY(-90deg) translateZ(110px); }
+  .face-u { transform: rotateX(90deg) translateZ(110px); }
+  .face-d { transform: rotateX(-90deg) translateZ(110px); }
+}
 </style>
