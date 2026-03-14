@@ -102,6 +102,8 @@ type PendingRequest = {
   reject: (reason?: unknown) => void
 }
 
+type ChatEventState = '' | 'delta' | 'final' | 'aborted' | 'error'
+
 const WS_URL_STORAGE_KEY = 'lobster_workshop_ws_url'
 const SESSION_STORAGE_KEY = 'lobster_workshop_session_key'
 const TOKEN_STORAGE_KEY = 'lobster_workshop_token'
@@ -280,8 +282,23 @@ const formatPreview = (value: unknown) => {
   try {
     return truncateText(JSON.stringify(value))
   } catch {
-    return truncateText(String(value))
+  return truncateText(String(value))
+}
+
+const isAssistantLikeChatMessage = (message: unknown) => {
+  if (!message || typeof message !== 'object') return false
+  const candidate = message as Record<string, unknown>
+  const role = toTrimmedString(candidate.role).toLowerCase()
+  if (role && role !== 'assistant') return false
+  return Array.isArray(candidate.content) || typeof candidate.text === 'string'
+}
+
+const shouldReloadHistoryForFinalEvent = (payload: Record<string, unknown>) => {
+  if (toTrimmedString(payload.state) !== 'final') {
+    return false
   }
+  return !isAssistantLikeChatMessage(payload.message)
+}
 }
 
 const getSubagentTail = (sessionKey: string) => {
@@ -671,11 +688,11 @@ export const useOpenClawGateway = () => {
     })
   }
 
-  const normalizeChatPayload = (payload: Record<string, unknown>) => {
-    const state = toTrimmedString(payload.state)
+  const normalizeChatPayload = (payload: Record<string, unknown>): ChatEventState => {
+    const state = toTrimmedString(payload.state) as ChatEventState
     const payloadSessionKey = toTrimmedString(payload.sessionKey)
     if (payloadSessionKey && payloadSessionKey !== sessionKey.value.trim()) {
-      return
+      return ''
     }
 
     const runId = toTrimmedString(payload.runId)
@@ -687,13 +704,22 @@ export const useOpenClawGateway = () => {
       sessionKey: payloadSessionKey || undefined
     })
 
+    const isForeignRun = Boolean(runId && activeRunId.value && runId !== activeRunId.value)
+
+    if (isForeignRun) {
+      if (state === 'final' && normalizedMessage) {
+        messages.value = [...messages.value, normalizedMessage].slice(-MAX_MESSAGES)
+      }
+      return state
+    }
+
     if (state === 'delta') {
       const parts = normalizedMessage?.blocks.map(block => block.text) || []
       if (parts.length > 0) {
         streamingText.value = parts.join('\n\n')
         activeRunId.value = runId || activeRunId.value
       }
-      return
+      return state
     }
 
     if (state === 'final') {
@@ -714,7 +740,7 @@ export const useOpenClawGateway = () => {
       }
       streamingText.value = ''
       activeRunId.value = ''
-      return
+      return state
     }
 
     if (state === 'aborted') {
@@ -735,7 +761,7 @@ export const useOpenClawGateway = () => {
       }
       streamingText.value = ''
       activeRunId.value = ''
-      return
+      return state
     }
 
     if (state === 'error') {
@@ -745,7 +771,10 @@ export const useOpenClawGateway = () => {
       }
       streamingText.value = ''
       activeRunId.value = ''
+      return state
     }
+
+    return state
   }
 
   const loadHistory = async () => {
@@ -816,7 +845,11 @@ export const useOpenClawGateway = () => {
 
       pushEventLog(parsed)
       if (parsed.event === 'chat' && parsed.payload && typeof parsed.payload === 'object') {
-        normalizeChatPayload(parsed.payload as Record<string, unknown>)
+        const chatPayload = parsed.payload as Record<string, unknown>
+        const chatState = normalizeChatPayload(chatPayload)
+        if (chatState === 'final' && shouldReloadHistoryForFinalEvent(chatPayload)) {
+          void loadHistory()
+        }
       } else if (parsed.event === 'agent') {
         updateMinion(parsed)
       } else if (parsed.event === 'presence') {

@@ -171,13 +171,22 @@
               <p class="text-xs font-bold uppercase tracking-[0.22em] text-zinc-500">Boss Channel</p>
               <h2 class="text-2xl font-bold text-zinc-900">Chat With Boss Lobster</h2>
             </div>
-            <button
-              class="sketch-button border-red-200 px-4 py-2 text-sm text-red-600"
-              :disabled="!activeRunId"
-              @click="abortActiveRun"
-            >
-              Stop Run
-            </button>
+            <div class="flex flex-wrap gap-3">
+              <button
+                class="sketch-button px-4 py-2 text-sm"
+                :disabled="!canClearChat"
+                @click="clearChatWindow"
+              >
+                Clear Chat
+              </button>
+              <button
+                class="sketch-button border-red-200 px-4 py-2 text-sm text-red-600"
+                :disabled="!activeRunId"
+                @click="abortActiveRun"
+              >
+                Stop Run
+              </button>
+            </div>
           </div>
 
           <div class="mt-4 flex-1 space-y-4 overflow-y-auto pr-1">
@@ -484,7 +493,7 @@
                 v-if="!todoItems.length"
                 class="rounded-[22px] border-2 border-dashed border-zinc-300 bg-[#fffdf8] px-5 py-10 text-center text-sm text-zinc-500"
               >
-                Send an order and the workshop will turn it into a live checklist.
+                Launch helper lobsters and send an order to turn the deck into a live checklist.
               </div>
             </div>
           </article>
@@ -647,10 +656,10 @@ const THINK_TAG_PATTERN = /<think>([\s\S]*?)<\/think>/gi
 const FINAL_TAG_PATTERN = /<final>([\s\S]*?)<\/final>/gi
 
 const stageSlots: StageSlot[] = [
-  { left: '15%', top: '62%' },
-  { left: '34%', top: '24%' },
-  { left: '68%', top: '23%' },
-  { left: '83%', top: '62%' }
+  { left: '16%', top: '64%' },
+  { left: '34%', top: '34%' },
+  { left: '70%', top: '34%' },
+  { left: '84%', top: '64%' }
 ]
 
 const workerOptions: WorkerOption[] = [
@@ -786,6 +795,17 @@ const canSendOrder = computed(() =>
   !sending.value &&
   draft.value.trim().length > 0 &&
   (!launchSubagents.value || selectedWorkers.value.length > 0)
+)
+
+const canClearChat = computed(() =>
+  !sending.value &&
+  !activeRunId.value &&
+  (
+    messages.value.length > 0 ||
+    streamingText.value.trim().length > 0 ||
+    recentDispatches.value.length > 0 ||
+    minionCards.value.length > 0
+  )
 )
 
 const normalizeWorkerText = (value: string) =>
@@ -967,9 +987,7 @@ const registerDispatch = (task: string, workers: WorkerId[], runId: string) => {
   }
 
   recentDispatches.value = [dispatch, ...recentDispatches.value].slice(0, 6)
-  openTodoIds.value = workers.length
-    ? workers.map(workerId => `${dispatch.id}-${workerId}`)
-    : [`${dispatch.id}-boss`]
+  openTodoIds.value = workers.map(workerId => `${dispatch.id}-${workerId}`)
 }
 
 const matchingActualCard = (dispatch: DispatchPlan, workerId: WorkerId) =>
@@ -1002,14 +1020,13 @@ const crewCards = computed<CrewCardView[]>(() => {
     return []
   }
 
-  const actualCards = dispatch.workers
-    .map((workerId) => matchingActualCard(dispatch, workerId))
-    .filter((card): card is LobsterMinionCard => Boolean(card))
-    .map(buildCrewCardFromMinion)
-
-  const placeholders = dispatch.workers
-    .filter(workerId => !matchingActualCard(dispatch, workerId))
+  return dispatch.workers
     .map((workerId) => {
+      const actualCard = matchingActualCard(dispatch, workerId)
+      if (actualCard) {
+        return buildCrewCardFromMinion(actualCard)
+      }
+
       const worker = workerOptionMap[workerId]
       return {
         id: `${dispatch.id}-${workerId}`,
@@ -1024,9 +1041,6 @@ const crewCards = computed<CrewCardView[]>(() => {
         variant: worker.variant
       }
     })
-
-  return [...actualCards, ...placeholders]
-    .sort((left, right) => right.lastSeen - left.lastSeen)
     .slice(0, 8)
 })
 
@@ -1113,12 +1127,65 @@ const buildRenderedReply = (id: string, rawText: string, isStreaming = false): R
   }
 }
 
+const inferredRunIdByMessageId = computed(() => {
+  const nextMap = new Map<string, string>()
+  const assignedAssistantIds = new Set<string>()
+  const messagesByTime = [...messages.value].sort((left, right) => left.timestamp - right.timestamp)
+  const userMessages = messagesByTime.filter(message => message.role === 'user')
+  const assistantMessages = messagesByTime.filter(message => message.role === 'assistant')
+
+  recentDispatches.value
+    .slice()
+    .sort((left, right) => left.createdAt - right.createdAt)
+    .forEach((dispatch) => {
+      if (!dispatch.runId) return
+      if (assistantMessages.some(message => message.runId === dispatch.runId)) return
+
+      const loweredTask = dispatch.task.toLowerCase()
+      const userMatch = userMessages
+        .filter((message) => {
+          const text = flattenMessageText(message).toLowerCase()
+          if (!text) return false
+          if (!text.includes(loweredTask)) return false
+          return Math.abs(message.timestamp - dispatch.createdAt) < 10 * 60 * 1000
+        })
+        .sort((left, right) =>
+          Math.abs(left.timestamp - dispatch.createdAt) - Math.abs(right.timestamp - dispatch.createdAt)
+        )[0]
+
+      if (!userMatch) return
+
+      const nextUserTimestamp = userMessages
+        .filter(message => message.timestamp > userMatch.timestamp)
+        .map(message => message.timestamp)
+        .sort((left, right) => left - right)[0] || Number.POSITIVE_INFINITY
+
+      const assistantMatch = assistantMessages.find((message) =>
+        !assignedAssistantIds.has(message.id) &&
+        !message.runId &&
+        message.timestamp >= userMatch.timestamp - 1000 &&
+        message.timestamp < nextUserTimestamp
+      )
+
+      if (!assistantMatch) return
+
+      assignedAssistantIds.add(assistantMatch.id)
+      nextMap.set(assistantMatch.id, dispatch.runId)
+    })
+
+  return nextMap
+})
+
+const resolvedRunIdForMessage = (message: LobsterChatMessage) =>
+  message.runId || inferredRunIdByMessageId.value.get(message.id) || ''
+
 const renderedRepliesByRunId = computed(() => {
   const nextMap = new Map<string, RenderedReplyView>()
 
   messages.value.forEach((message) => {
-    if (message.role !== 'assistant' || !message.runId) return
-    nextMap.set(message.runId, buildRenderedReply(message.id, flattenMessageText(message)))
+    const resolvedRunId = resolvedRunIdForMessage(message)
+    if (message.role !== 'assistant' || !resolvedRunId) return
+    nextMap.set(resolvedRunId, buildRenderedReply(message.id, flattenMessageText(message)))
   })
 
   if (activeRunId.value && streamingText.value.trim()) {
@@ -1133,7 +1200,7 @@ const isHelperDispatchRun = (runId?: string) =>
 
 const chatMessages = computed<ChatCardView[]>(() =>
   messages.value
-    .filter((message) => !(message.role === 'assistant' && isHelperDispatchRun(message.runId)))
+    .filter((message) => !(message.role === 'assistant' && isHelperDispatchRun(resolvedRunIdForMessage(message))))
     .map((message) => {
       const rendered = buildRenderedReply(message.id, flattenMessageText(message))
       return {
@@ -1172,47 +1239,44 @@ const dispatchFallbackStatus = (dispatch: DispatchPlan): CrewStatus => {
 }
 
 const todoItems = computed<TodoItem[]>(() => {
-  const items = recentDispatches.value.flatMap((dispatch) => {
-    const reply = dispatch.runId ? renderedRepliesByRunId.value.get(dispatch.runId) || null : null
+  const items = recentDispatches.value
+    .filter(dispatch => dispatch.workers.length > 0)
+    .flatMap((dispatch) => {
+      const reply = dispatch.runId ? renderedRepliesByRunId.value.get(dispatch.runId) || null : null
+      return dispatch.workers.map((workerId) => {
+        const worker = workerOptionMap[workerId]
+        const actualCard = matchingActualCard(dispatch, workerId)
+        const statusValue: CrewStatus = actualCard?.status || dispatchFallbackStatus(dispatch)
 
-    if (dispatch.workers.length === 0) {
-      const statusValue = dispatchFallbackStatus(dispatch)
-      return [{
-        id: `${dispatch.id}-boss`,
-        label: truncateTask(dispatch.task, 68),
-        workerLabel: 'Boss Lobster',
-        summary: statusValue === 'working'
-          ? 'Boss Lobster is still composing a direct reply.'
-          : 'Handled directly by the boss without helper lobsters.',
-        detail: dispatch.task,
-        status: statusValue,
-        progress: progressFromStatus(statusValue),
-        response: reply
-      }]
-    }
-
-    return dispatch.workers.map((workerId) => {
-      const worker = workerOptionMap[workerId]
-      const actualCard = matchingActualCard(dispatch, workerId)
-      const statusValue: CrewStatus = actualCard?.status || dispatchFallbackStatus(dispatch)
-
-      return {
-        id: `${dispatch.id}-${workerId}`,
-        label: truncateTask(dispatch.task, 68),
-        workerLabel: worker.label,
-        summary: actualCard?.note || (statusValue === 'working'
-          ? 'Helper run is active. Open this item to follow the latest boss reply.'
-          : 'Queued for helper dispatch. Waiting for telemetry from OpenClaw.'),
-        detail: actualCard?.detail || dispatch.task,
-        status: statusValue,
-        progress: progressFromStatus(statusValue),
-        response: reply
-      }
+        return {
+          id: `${dispatch.id}-${workerId}`,
+          label: truncateTask(dispatch.task, 68),
+          workerLabel: worker.label,
+          summary: actualCard?.note || (statusValue === 'working'
+            ? 'Helper run is active. Open this item to follow the latest boss reply.'
+            : 'Queued for helper dispatch. Waiting for telemetry from OpenClaw.'),
+          detail: actualCard?.detail || dispatch.task,
+          status: statusValue,
+          progress: progressFromStatus(statusValue),
+          response: reply
+        }
+      })
     })
-  })
 
   return items.slice(0, 10)
 })
+
+const clearChatWindow = () => {
+  messages.value = []
+  streamingText.value = ''
+  activeRunId.value = ''
+  draft.value = ''
+  minionCards.value = []
+  recentDispatches.value = []
+  openThoughtIds.value = []
+  openTodoIds.value = []
+  lastError.value = ''
+}
 
 const handleSendOrder = async () => {
   const taskText = draft.value.trim()
