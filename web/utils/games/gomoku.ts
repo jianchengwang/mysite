@@ -34,9 +34,9 @@ const DIRECTIONS = [
 ] as const
 
 export const gomokuDifficulties: GomokuDifficulty[] = [
-  { id: 'easy', label: 'Easy', depth: 1, width: 10, note: 'Fast local play that is good for short practice rounds.' },
-  { id: 'medium', label: 'Medium', depth: 2, width: 10, note: 'Balances attack building with immediate defensive reading.' },
-  { id: 'hard', label: 'Hard', depth: 3, width: 8, note: 'Pays much more attention to forcing threats and initiative.' }
+  { id: 'easy', label: 'Easy', depth: 1, width: 12, note: 'Fast local play that is good for short practice rounds.' },
+  { id: 'medium', label: 'Medium', depth: 2, width: 14, note: 'Balances attack building with immediate defensive reading.' },
+  { id: 'hard', label: 'Hard', depth: 3, width: 18, note: 'Pays much more attention to forcing threats and initiative.' }
 ]
 
 export const createGomokuBoard = (): GomokuBoard =>
@@ -177,7 +177,34 @@ const scoreBoardForColor = (board: GomokuBoard, color: GomokuColor) => {
 
 export const evaluateGomokuBoard = (board: GomokuBoard, aiColor: GomokuColor) => {
   const opponent = getOpponentColor(aiColor)
-  return scoreBoardForColor(board, aiColor) - scoreBoardForColor(board, opponent) * 0.92
+  return scoreBoardForColor(board, aiColor) - scoreBoardForColor(board, opponent) * 1.06
+}
+
+const isWinningMove = (board: GomokuBoard, move: GomokuMove) => {
+  const nextBoard = applyGomokuMove(board, move)
+  return checkGomokuWin(nextBoard, move.row, move.col, move.color)
+}
+
+const getImmediateWinningMoves = (board: GomokuBoard, color: GomokuColor, maxCandidates: number) =>
+  getCandidateMoves(board, color, maxCandidates).filter((move) => isWinningMove(board, move))
+
+const moveKey = (move: GomokuMove) => `${move.row}:${move.col}`
+
+const getUrgentDefensiveMoves = (
+  board: GomokuBoard,
+  aiColor: GomokuColor,
+  opponentWinningMoves: GomokuMove[],
+  maxCandidates: number
+) => {
+  const opponent = getOpponentColor(aiColor)
+  const threatKeys = new Set(opponentWinningMoves.map(moveKey))
+
+  return getCandidateMoves(board, aiColor, maxCandidates).filter((move) => {
+    if (threatKeys.has(moveKey(move))) return true
+
+    const nextBoard = applyGomokuMove(board, move)
+    return getImmediateWinningMoves(nextBoard, opponent, maxCandidates).length === 0
+  })
 }
 
 const getCandidateMoves = (board: GomokuBoard, color: GomokuColor, maxCandidates: number): GomokuMove[] => {
@@ -218,6 +245,7 @@ export const searchBestGomokuMove = (
 ): GomokuSearchResult => {
   const cache = new Map<string, number>()
   let nodes = 0
+  const tacticalWidth = Math.max(difficulty.width * 2, 24)
 
   const negamax = (
     currentBoard: GomokuBoard,
@@ -233,6 +261,12 @@ export const searchBestGomokuMove = (
       return lastMove.color === aiColor ? WIN_SCORE + depth : -WIN_SCORE - depth
     }
 
+    const opponent = getOpponentColor(currentColor)
+    const immediateWins = getImmediateWinningMoves(currentBoard, currentColor, tacticalWidth)
+    if (immediateWins.length) {
+      return currentColor === aiColor ? WIN_SCORE + depth : -WIN_SCORE - depth
+    }
+
     const filled = countStones(currentBoard)
     if (depth === 0 || filled === GOMOKU_SIZE * GOMOKU_SIZE) {
       return evaluateGomokuBoard(currentBoard, aiColor)
@@ -244,27 +278,49 @@ export const searchBestGomokuMove = (
       return cached
     }
 
-    const moves = getCandidateMoves(currentBoard, currentColor, difficulty.width)
+    const opponentWinningMoves = getImmediateWinningMoves(currentBoard, opponent, tacticalWidth)
+    const moves =
+      opponentWinningMoves.length > 0
+        ? getUrgentDefensiveMoves(currentBoard, currentColor, opponentWinningMoves, tacticalWidth)
+        : getCandidateMoves(currentBoard, currentColor, difficulty.width)
     if (!moves.length) {
       return evaluateGomokuBoard(currentBoard, aiColor)
     }
 
     let best = -Infinity
-    const opponent = getOpponentColor(currentColor)
+    let searchedAllMoves = true
 
     for (const move of moves) {
       const nextBoard = applyGomokuMove(currentBoard, move)
       const score = -negamax(nextBoard, opponent, depth - 1, -beta, -alpha, move)
       if (score > best) best = score
       if (score > alpha) alpha = score
-      if (alpha >= beta) break
+      if (alpha >= beta) {
+        searchedAllMoves = false
+        break
+      }
     }
 
-    cache.set(key, best)
+    if (searchedAllMoves) {
+      cache.set(key, best)
+    }
     return best
   }
 
-  const rootMoves = getCandidateMoves(board, aiColor, difficulty.width)
+  const immediateWins = getImmediateWinningMoves(board, aiColor, tacticalWidth)
+  if (immediateWins.length) {
+    return {
+      move: immediateWins[0],
+      score: WIN_SCORE,
+      nodes
+    }
+  }
+
+  const opponentWinningMoves = getImmediateWinningMoves(board, getOpponentColor(aiColor), tacticalWidth)
+  const rootMoves =
+    opponentWinningMoves.length > 0
+      ? getUrgentDefensiveMoves(board, aiColor, opponentWinningMoves, tacticalWidth)
+      : getCandidateMoves(board, aiColor, difficulty.width)
   if (!rootMoves.length) {
     return { move: null, score: 0, nodes }
   }

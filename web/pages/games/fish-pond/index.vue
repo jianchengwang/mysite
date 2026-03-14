@@ -34,10 +34,8 @@
         <div class="pond-ripple ripple-one" />
         <div class="pond-ripple ripple-two" />
         <div class="pond-ripple ripple-three" />
-        <div class="pond-lily lily-left" />
-        <div class="pond-lily lily-right" />
-        <div class="pond-reed reed-left" />
-        <div class="pond-reed reed-right" />
+        <div class="pond-foam foam-left" />
+        <div class="pond-foam foam-right" />
 
         <div class="pond-status">
           <span>{{ fishes.length }} fish</span>
@@ -236,10 +234,10 @@ onUnmounted(() => {
   border-radius: 40px;
   border: 2px solid #18181b;
   background:
-    radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.62), transparent 22%),
-    radial-gradient(circle at 82% 16%, rgba(255, 255, 255, 0.38), transparent 16%),
-    radial-gradient(circle at 50% 40%, rgba(187, 247, 208, 0.16), transparent 40%),
-    linear-gradient(180deg, #ecfccb 0%, #bbf7d0 18%, #86efac 42%, #4ade80 74%, #22c55e 100%);
+    radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.72), transparent 22%),
+    radial-gradient(circle at 82% 16%, rgba(255, 255, 255, 0.42), transparent 18%),
+    radial-gradient(circle at 50% 40%, rgba(186, 230, 253, 0.22), transparent 42%),
+    linear-gradient(180deg, #f8fbff 0%, #e0f2fe 20%, #cfeeff 52%, #bae6fd 78%, #93c5fd 100%);
   box-shadow: 8px 8px 0 0 rgba(0, 0, 0, 0.12);
 }
 
@@ -247,8 +245,8 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 18%),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0, rgba(255, 255, 255, 0.06) 2px, transparent 2px, transparent 72px);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent 18%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0, rgba(255, 255, 255, 0.08) 2px, transparent 2px, transparent 72px);
   opacity: 0.9;
 }
 
@@ -273,13 +271,13 @@ onUnmounted(() => {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #14532d;
+  color: #0f3d63;
 }
 
 .pond-ripple {
   position: absolute;
   border-radius: 999px;
-  border: 2px dashed rgba(255, 255, 255, 0.34);
+  border: 2px dashed rgba(255, 255, 255, 0.42);
 }
 
 .ripple-one {
@@ -303,47 +301,27 @@ onUnmounted(() => {
   height: 64px;
 }
 
-.pond-lily {
+.pond-foam {
   position: absolute;
-  border-radius: 999px 999px 999px 120px;
-  background: linear-gradient(135deg, #d9f99d 0%, #16a34a 100%);
-  border: 2px solid rgba(21, 128, 61, 0.34);
-}
-
-.lily-left {
-  left: 34px;
-  bottom: 34px;
-  width: 122px;
-  height: 82px;
-  transform: rotate(-10deg);
-}
-
-.lily-right {
-  right: 48px;
-  top: 48px;
-  width: 90px;
-  height: 62px;
-  transform: rotate(18deg);
-}
-
-.pond-reed {
-  position: absolute;
-  bottom: -6px;
-  width: 120px;
-  height: 160px;
+  width: 160px;
+  height: 78px;
+  border-radius: 999px;
   background:
-    linear-gradient(78deg, transparent 0 22%, rgba(22, 101, 52, 0.52) 22% 26%, transparent 26% 44%, rgba(22, 101, 52, 0.56) 44% 48%, transparent 48% 66%, rgba(22, 101, 52, 0.48) 66% 70%, transparent 70%),
-    linear-gradient(102deg, transparent 0 26%, rgba(34, 197, 94, 0.46) 26% 30%, transparent 30% 52%, rgba(34, 197, 94, 0.38) 52% 56%, transparent 56%);
-  opacity: 0.7;
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.86) 0 8px, transparent 9px),
+    radial-gradient(circle at 42% 42%, rgba(255, 255, 255, 0.78) 0 7px, transparent 8px),
+    radial-gradient(circle at 64% 56%, rgba(255, 255, 255, 0.8) 0 8px, transparent 9px),
+    radial-gradient(circle at 82% 40%, rgba(255, 255, 255, 0.7) 0 6px, transparent 7px);
+  opacity: 0.62;
 }
 
-.reed-left {
-  left: 10px;
+.foam-left {
+  left: 26px;
+  bottom: 28px;
 }
 
-.reed-right {
-  right: 10px;
-  transform: scaleX(-1);
+.foam-right {
+  right: 32px;
+  top: 40px;
 }
 
 .pond-fish {
@@ -360,7 +338,7 @@ onUnmounted(() => {
   height: auto;
   user-select: none;
   pointer-events: none;
-  filter: drop-shadow(0 12px 14px rgba(20, 83, 45, 0.16));
+  filter: drop-shadow(0 12px 14px rgba(14, 116, 144, 0.18));
 }
 
 .empty-pond {

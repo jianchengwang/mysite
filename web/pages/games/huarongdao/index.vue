@@ -1,29 +1,29 @@
 <template>
   <GameShell
-    eyebrow="Puzzle Lane"
-    :title="game?.title || 'Huarongdao'"
+    eyebrow="经典益智"
+    :title="game?.title || '华容道'"
     :description="game?.description || ''"
-    :highlights="['Multiple Levels', 'Replay Hint', 'Exit Arrow']"
+    :highlights="['多关卡', '最短提示', '棋盘箭头']"
     :stats="heroStats"
   >
     <section class="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_21rem]">
       <div class="sketch-card !p-4 sm:!p-6">
         <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div class="space-y-1">
-            <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Board State</p>
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">棋盘状态</p>
             <h2 class="text-2xl font-bold text-zinc-900 sm:text-3xl">{{ hintTitle }}</h2>
             <p class="max-w-3xl text-sm leading-relaxed text-zinc-600 sm:text-base">{{ hintDetail }}</p>
           </div>
 
           <div class="flex flex-wrap items-center gap-3">
             <button class="sketch-button px-4 py-2 text-sm !bg-zinc-900 !text-white" @click="resetLevel">
-              Restart
+              重开
             </button>
             <button class="sketch-button px-4 py-2 text-sm" :disabled="history.length === 0" @click="undoMove">
-              Undo
+              悔一步
             </button>
             <button class="sketch-button px-4 py-2 text-sm" @click="requestHint">
-              Hint
+              提示
             </button>
           </div>
         </div>
@@ -31,7 +31,7 @@
         <div class="mt-6 rounded-[36px] border-2 border-zinc-900 bg-[linear-gradient(180deg,#ffffff_0%,#fafaf9_100%)] p-4 shadow-[8px_8px_0_0_rgba(0,0,0,0.1)]">
           <div class="mx-auto w-full max-w-[34rem]">
             <div class="hua-board">
-              <div class="hua-exit">Exit</div>
+              <div class="hua-exit">出口</div>
 
               <button
                 v-for="move in selectedMoves"
@@ -69,25 +69,25 @@
 
         <div class="mt-5 grid gap-3 xl:grid-cols-3">
           <div class="rounded-[28px] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4">
-            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">Level</p>
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">关卡</p>
             <p class="mt-2 text-lg font-bold text-zinc-900">{{ currentLevel.title }}</p>
             <p class="mt-1 text-sm text-zinc-500">{{ currentLevel.note }}</p>
           </div>
           <div class="rounded-[28px] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4">
-            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">Selection</p>
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">当前选子</p>
             <p class="mt-2 text-lg font-bold text-zinc-900">{{ selectedPieceLabel }}</p>
-            <p class="mt-1 text-sm text-zinc-500">Select a block to reveal valid one-step moves.</p>
+            <p class="mt-1 text-sm text-zinc-500">点击棋子后，会直接显示它当前能走的一步。</p>
           </div>
           <div class="rounded-[28px] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4">
-            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">Hint Marker</p>
-            <p class="mt-2 text-lg font-bold text-zinc-900">{{ hintMove ? directionLabel(hintMove) : 'Not active' }}</p>
-            <p class="mt-1 text-sm text-zinc-500">The arrow appears inside the board so the next action is easier to spot.</p>
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">提示方向</p>
+            <p class="mt-2 text-lg font-bold text-zinc-900">{{ hintMove ? directionLabel(hintMove) : '未开启' }}</p>
+            <p class="mt-1 text-sm text-zinc-500">提示箭头会直接落在棋盘目标位置里，方便跟着操作。</p>
           </div>
         </div>
       </div>
 
       <aside class="sketch-card !p-5">
-        <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Levels</p>
+        <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">关卡列表</p>
         <div class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-1">
           <button
             v-for="level in huarongdaoLevels"
@@ -97,7 +97,7 @@
             @click="changeLevel(level.id)"
           >
             <p class="text-sm font-bold">{{ level.title }}</p>
-            <p class="mt-1 text-xs opacity-80">Estimated depth {{ level.estimatedDepth }}</p>
+            <p class="mt-1 text-xs opacity-80">预计深度 {{ level.estimatedDepth }}</p>
           </button>
         </div>
       </aside>
@@ -112,8 +112,8 @@ import { getGameBySlug } from '~/utils/games/catalog'
 import {
   applyHuarongdaoMove,
   cloneHuarongdaoPieces,
+  getHuarongdaoHint,
   getHuarongdaoLegalMoves,
-  getHuarongdaoReplayHint,
   huarongdaoLevels,
   isHuarongdaoSolved,
   type HuarongdaoMove,
@@ -127,7 +127,6 @@ const selectedLevelId = ref(huarongdaoLevels[0].id)
 const currentPieces = ref<HuarongdaoPiece[]>(cloneHuarongdaoPieces(huarongdaoLevels[0].pieces))
 const history = ref<HuarongdaoPiece[][]>([])
 const selectedPieceId = ref<string | null>(null)
-const moveLog = ref<HuarongdaoMove[]>([])
 const hintRequested = ref(false)
 
 const currentLevel = computed(
@@ -135,13 +134,13 @@ const currentLevel = computed(
 )
 const isSolved = computed(() => isHuarongdaoSolved(currentPieces.value))
 const selectedPiece = computed(() => currentPieces.value.find((piece) => piece.id === selectedPieceId.value) || null)
-const selectedPieceLabel = computed(() => selectedPiece.value?.label || 'None')
+const selectedPieceLabel = computed(() => selectedPiece.value?.label || '未选择')
 const selectedMoves = computed(() =>
   selectedPieceId.value
     ? getHuarongdaoLegalMoves(currentPieces.value).filter((move) => move.pieceId === selectedPieceId.value)
     : []
 )
-const hint = computed(() => (hintRequested.value ? getHuarongdaoReplayHint(currentLevel.value.pathFromSolved, moveLog.value) : null))
+const hint = computed(() => (hintRequested.value ? getHuarongdaoHint(currentPieces.value) : null))
 const hintMove = computed(() => hint.value?.move ?? null)
 const hintArrow = computed(() => {
   if (!hintMove.value) return ''
@@ -152,33 +151,33 @@ const hintArrow = computed(() => {
 })
 
 const heroStats = computed(() => [
-  { label: 'Level', value: currentLevel.value.title },
-  { label: 'Moves', value: `${history.value.length}` },
-  { label: 'Status', value: isSolved.value ? 'Solved' : 'In Progress' }
+  { label: '关卡', value: currentLevel.value.title },
+  { label: '步数', value: `${history.value.length}` },
+  { label: '状态', value: isSolved.value ? '已通关' : '进行中' }
 ])
 
 const directionLabel = (move: HuarongdaoMove) => {
-  if (move.dx === 1) return 'Move right'
-  if (move.dx === -1) return 'Move left'
-  if (move.dy === 1) return 'Move down'
-  return 'Move up'
+  if (move.dx === 1) return '向右'
+  if (move.dx === -1) return '向左'
+  if (move.dy === 1) return '向下'
+  return '向上'
 }
 
 const hintTitle = computed(() => {
-  if (isSolved.value) return 'Puzzle solved'
-  if (!hint.value) return 'Plan the next route'
-  if (!hintMove.value) return 'Free play'
+  if (isSolved.value) return '已经通关'
+  if (!hint.value) return '规划下一步'
+  if (!hintMove.value) return '当前局面可自由尝试'
   const piece = currentPieces.value.find((item) => item.id === hintMove.value?.pieceId)
-  return `${piece?.label || 'Selected block'} · ${directionLabel(hintMove.value)}`
+  return `${piece?.label || '当前棋子'} · ${directionLabel(hintMove.value)}`
 })
 
 const hintDetail = computed(() => {
-  if (isSolved.value) return 'Cao Cao is already at the exit.'
-  if (!hint.value) return 'Request a hint and the board will show a directional arrow inside the destination space.'
+  if (isSolved.value) return '曹操已经抵达出口。'
+  if (!hint.value) return '点一下 Hint，会直接从当前局面计算一条可行路径，并在棋盘里标出第一步。'
   if (!hintMove.value || hint.value.remainingSteps === null) {
-    return 'You are already near the known path, so feel free to explore from here.'
+    return '当前没有找到更短的现成路径，可以继续自己试。'
   }
-  return `Follow the arrow to step back toward the known route. About ${hint.value.remainingSteps} replay steps remain.`
+  return `按着提示先走这一步，距离通关大约还剩 ${hint.value.remainingSteps} 步。`
 })
 
 const pieceStyle = (piece: HuarongdaoPiece) => ({
@@ -202,7 +201,6 @@ const moveTargetStyle = (move: HuarongdaoMove) => {
 const resetLevel = () => {
   currentPieces.value = cloneHuarongdaoPieces(currentLevel.value.pieces)
   history.value = []
-  moveLog.value = []
   selectedPieceId.value = null
   hintRequested.value = false
 }
@@ -219,7 +217,6 @@ const selectPiece = (pieceId: string) => {
 const applyMove = (move: HuarongdaoMove) => {
   history.value = [...history.value, cloneHuarongdaoPieces(currentPieces.value)]
   currentPieces.value = applyHuarongdaoMove(currentPieces.value, move)
-  moveLog.value = [...moveLog.value, move]
   selectedPieceId.value = null
   hintRequested.value = false
 }
@@ -229,7 +226,6 @@ const undoMove = () => {
   if (!last) return
   currentPieces.value = cloneHuarongdaoPieces(last)
   history.value = history.value.slice(0, -1)
-  moveLog.value = moveLog.value.slice(0, -1)
   selectedPieceId.value = null
   hintRequested.value = false
 }

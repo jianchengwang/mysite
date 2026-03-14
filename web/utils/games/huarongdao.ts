@@ -42,16 +42,16 @@ const moveVectors = [
 ] as const
 
 const baseSolvedPieces: HuarongdaoPiece[] = [
-  { id: 'cao', type: 'cao', label: 'Cao Cao', width: 2, height: 2, x: 1, y: 3 },
-  { id: 'guan', type: 'horizontal', label: 'Guan Yu', width: 2, height: 1, x: 1, y: 0 },
-  { id: 'zhang', type: 'vertical', label: 'Zhang Fei', width: 1, height: 2, x: 0, y: 0 },
-  { id: 'zhao', type: 'vertical', label: 'Zhao Yun', width: 1, height: 2, x: 3, y: 0 },
-  { id: 'ma', type: 'vertical', label: 'Ma Chao', width: 1, height: 2, x: 0, y: 2 },
-  { id: 'huang', type: 'vertical', label: 'Huang Zhong', width: 1, height: 2, x: 3, y: 2 },
-  { id: 'soldier-1', type: 'soldier', label: 'S1', width: 1, height: 1, x: 1, y: 2 },
-  { id: 'soldier-2', type: 'soldier', label: 'S2', width: 1, height: 1, x: 2, y: 2 },
-  { id: 'soldier-3', type: 'soldier', label: 'S3', width: 1, height: 1, x: 0, y: 4 },
-  { id: 'soldier-4', type: 'soldier', label: 'S4', width: 1, height: 1, x: 3, y: 4 }
+  { id: 'cao', type: 'cao', label: '曹操', width: 2, height: 2, x: 1, y: 3 },
+  { id: 'guan', type: 'horizontal', label: '关羽', width: 2, height: 1, x: 1, y: 0 },
+  { id: 'zhang', type: 'vertical', label: '张飞', width: 1, height: 2, x: 0, y: 0 },
+  { id: 'zhao', type: 'vertical', label: '赵云', width: 1, height: 2, x: 3, y: 0 },
+  { id: 'ma', type: 'vertical', label: '马超', width: 1, height: 2, x: 0, y: 2 },
+  { id: 'huang', type: 'vertical', label: '黄忠', width: 1, height: 2, x: 3, y: 2 },
+  { id: 'soldier-1', type: 'soldier', label: '兵一', width: 1, height: 1, x: 1, y: 2 },
+  { id: 'soldier-2', type: 'soldier', label: '兵二', width: 1, height: 1, x: 2, y: 2 },
+  { id: 'soldier-3', type: 'soldier', label: '兵三', width: 1, height: 1, x: 0, y: 4 },
+  { id: 'soldier-4', type: 'soldier', label: '兵四', width: 1, height: 1, x: 3, y: 4 }
 ]
 
 export const cloneHuarongdaoPieces = (pieces: HuarongdaoPiece[]) => pieces.map((piece) => ({ ...piece }))
@@ -144,16 +144,16 @@ export const invertHuarongdaoMove = (move: HuarongdaoMove): HuarongdaoMove => ({
 
 const buildLevels = (): HuarongdaoLevel[] => {
   const targetDepths = [2, 4, 6, 8, 10, 12, 14, 16]
-  const titles = ['Warmup', 'Crosswind', 'Turnback', 'Side Step', 'Tight Space', 'Narrow Gate', 'Return Path', 'Long Game']
+  const titles = ['热身一', '交错', '回身', '横挪', '逼仄', '夹缝', '折返', '长局']
   const notes = [
-    'A near-finish position to warm up your movement reading.',
-    'Empty cells start crossing paths, so precision matters more.',
-    'Make room for the long blocks before you ask the large block to turn.',
-    'Several sideways shuffles are needed before the route opens.',
-    'The lower half gets tighter, so patience matters more than speed.',
-    'This level is mostly about managing the empty cells well.',
-    'It is easy to loop here, so hints become more valuable.',
-    'A longer puzzle line for slow, deliberate play.'
+    '先感受一步步回溯的节奏，适合热手。',
+    '开始会出现空位交错，适合练细挪。',
+    '要学会先让长条，再挪大块。',
+    '需要几次横向腾挪才能把路让出来。',
+    '底部空间会更紧，需要耐心绕位。',
+    '这一关更像在和空位对话。',
+    '中段很容易走回头路，提示会更有价值。',
+    '已经接近完整长局，适合慢慢拆。'
   ]
 
   const levels: HuarongdaoLevel[] = []
@@ -195,8 +195,8 @@ const buildLevels = (): HuarongdaoLevel[] => {
     return [
       {
         id: 'level-1',
-        title: 'Warmup',
-        note: 'Start from a nearly solved board and learn the movement rhythm first.',
+        title: '热身一',
+        note: '从接近完成的局面开始，先熟悉玩法。',
         pieces: cloneHuarongdaoPieces(baseSolvedPieces),
         estimatedDepth: 0,
         pathFromSolved: []
@@ -208,6 +208,52 @@ const buildLevels = (): HuarongdaoLevel[] => {
 }
 
 export const huarongdaoLevels = buildLevels()
+
+export const getHuarongdaoHint = (pieces: HuarongdaoPiece[]): HuarongdaoHint => {
+  if (isHuarongdaoSolved(pieces)) {
+    return { move: null, remainingSteps: 0, explored: 1 }
+  }
+
+  const queue: Array<{ pieces: HuarongdaoPiece[]; firstMove: HuarongdaoMove | null; depth: number }> = [
+    { pieces: cloneHuarongdaoPieces(pieces), firstMove: null, depth: 0 }
+  ]
+  const visited = new Set<string>([serializeHuarongdaoState(pieces)])
+  let explored = 0
+
+  while (queue.length) {
+    const current = queue.shift()!
+    explored++
+
+    for (const move of getHuarongdaoLegalMoves(current.pieces)) {
+      const nextPieces = applyHuarongdaoMove(current.pieces, move)
+      const key = serializeHuarongdaoState(nextPieces)
+      if (visited.has(key)) continue
+
+      const firstMove = current.firstMove ?? move
+      const depth = current.depth + 1
+      if (isHuarongdaoSolved(nextPieces)) {
+        return {
+          move: firstMove,
+          remainingSteps: depth,
+          explored
+        }
+      }
+
+      visited.add(key)
+      queue.push({
+        pieces: nextPieces,
+        firstMove,
+        depth
+      })
+    }
+  }
+
+  return {
+    move: null,
+    remainingSteps: null,
+    explored
+  }
+}
 
 export const getHuarongdaoReplayHint = (pathFromSolved: HuarongdaoMove[], playerMoves: HuarongdaoMove[]): HuarongdaoHint => {
   const combined = [...pathFromSolved, ...playerMoves]

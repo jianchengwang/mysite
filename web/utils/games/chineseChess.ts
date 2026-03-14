@@ -42,9 +42,9 @@ const BOARD_ROWS = 10
 const BOARD_COLS = 9
 
 export const xiangqiDifficulties: XiangqiDifficulty[] = [
-  { id: 'easy', label: 'Easy', depth: 1, note: 'Fast replies for learning movement rules and common captures.', rootMoveLimit: 18, branchLimit: 16 },
-  { id: 'medium', label: 'Medium', depth: 2, note: 'Balances king safety, trades, and practical speed.', rootMoveLimit: 16, branchLimit: 12 },
-  { id: 'hard', label: 'Hard', depth: 3, note: 'Looks deeper, but still trims branches to stay browser-friendly.', rootMoveLimit: 14, branchLimit: 10 }
+  { id: 'easy', label: 'Easy', depth: 1, note: 'Fast replies for learning movement rules and common captures.', rootMoveLimit: 28, branchLimit: 22 },
+  { id: 'medium', label: 'Medium', depth: 3, note: 'Looks deeper for practical tactics while keeping reply times reasonable in the browser worker.', rootMoveLimit: 18, branchLimit: 12 },
+  { id: 'hard', label: 'Hard', depth: 3, note: 'Keeps more tactical branches alive so the AI can press initiative and defend cleaner.', rootMoveLimit: 20, branchLimit: 14 }
 ]
 
 const pieceValue: Record<XiangqiPieceType, number> = {
@@ -59,22 +59,22 @@ const pieceValue: Record<XiangqiPieceType, number> = {
 
 const pieceCodeMap: Record<XiangqiSide, Record<XiangqiPieceType, string>> = {
   red: {
-    general: 'K',
-    advisor: 'A',
-    elephant: 'E',
-    horse: 'H',
-    rook: 'R',
-    cannon: 'C',
-    soldier: 'S'
+    general: '帅',
+    advisor: '仕',
+    elephant: '相',
+    horse: '马',
+    rook: '车',
+    cannon: '炮',
+    soldier: '兵'
   },
   black: {
-    general: 'K',
-    advisor: 'A',
-    elephant: 'E',
-    horse: 'H',
-    rook: 'R',
-    cannon: 'C',
-    soldier: 'S'
+    general: '将',
+    advisor: '士',
+    elephant: '象',
+    horse: '马',
+    rook: '车',
+    cannon: '炮',
+    soldier: '卒'
   }
 }
 
@@ -430,33 +430,62 @@ export const evaluateXiangqiBoard = (board: XiangqiBoard, perspective: XiangqiSi
       const sign = piece.side === perspective ? 1 : -1
       const base = pieceValue[piece.type]
       const positional = getPiecePositionalValue(piece, row, col)
-      const mobility = getMobility(board, row, col) * (piece.type === 'rook' ? 4 : piece.type === 'horse' ? 3 : 2)
+      const mobility = getMobility(board, row, col) * (
+        piece.type === 'rook'
+          ? 2
+          : piece.type === 'horse' || piece.type === 'cannon'
+            ? 1
+            : 0
+      )
       score += sign * (base + positional + mobility)
     }
   }
 
   if (isXiangqiInCheck(board, getOppositeSide(perspective))) {
-    score += 90
+    score += 160
   }
   if (isXiangqiInCheck(board, perspective)) {
-    score -= 90
+    score -= 220
   }
 
   return score
 }
 
-const moveOrderingScore = (move: XiangqiMove) => {
-  const captureScore = move.captured ? pieceValue[move.captured.type] : 0
-  const moverPenalty = pieceValue[move.piece.type] * 0.08
+const moveOrderingScore = (board: XiangqiBoard, move: XiangqiMove) => {
+  if (move.captured?.type === 'general') return MATE_SCORE
+
+  const captureScore = move.captured ? pieceValue[move.captured.type] * 1.4 : 0
+  const moverPenalty = pieceValue[move.piece.type] * 0.05
   const advanceBonus =
     move.piece.type === 'soldier'
       ? move.piece.side === 'red'
         ? move.from.row - move.to.row
         : move.to.row - move.from.row
       : 0
+  const centerBonus =
+    move.piece.type === 'horse' || move.piece.type === 'cannon' || move.piece.type === 'rook'
+      ? (4 - Math.abs(4 - move.to.col)) * 6
+      : 0
+  const nextBoard = applyXiangqiMove(board, move)
+  const checkBonus = isXiangqiInCheck(nextBoard, getOppositeSide(move.piece.side)) ? 180 : 0
 
-  return captureScore - moverPenalty + advanceBonus * 10
+  return captureScore + checkBonus + centerBonus + advanceBonus * 12 - moverPenalty
 }
+
+const isWinningXiangqiMove = (board: XiangqiBoard, move: XiangqiMove) => {
+  if (move.captured?.type === 'general') return true
+
+  const nextBoard = applyXiangqiMove(board, move)
+  const enemy = getOppositeSide(move.piece.side)
+  const enemyGeneral = findGeneral(nextBoard, enemy)
+  if (!enemyGeneral) return true
+
+  const enemyReplies = generateLegalXiangqiMoves(nextBoard, enemy)
+  return enemyReplies.length === 0 && isXiangqiInCheck(nextBoard, enemy)
+}
+
+const getImmediateWinningXiangqiMoves = (board: XiangqiBoard, side: XiangqiSide) =>
+  generateLegalXiangqiMoves(board, side).filter((move) => isWinningXiangqiMove(board, move))
 
 const boardKey = (board: XiangqiBoard, side: XiangqiSide, depth: number) =>
   `${side}:${depth}:${board
@@ -505,6 +534,10 @@ export const searchBestXiangqiMove = (
       return currentSide === aiSide ? -MATE_SCORE - depth : MATE_SCORE + depth
     }
 
+    if (legalMoves.some((move) => move.captured?.type === 'general')) {
+      return currentSide === aiSide ? MATE_SCORE + depth : -MATE_SCORE - depth
+    }
+
     if (depth === 0) {
       return evaluateXiangqiBoard(currentBoard, aiSide)
     }
@@ -516,8 +549,9 @@ export const searchBestXiangqiMove = (
     }
 
     let best = -Infinity
+    let searchedAllMoves = true
     const orderedMoves = legalMoves
-      .sort((a, b) => moveOrderingScore(b) - moveOrderingScore(a))
+      .sort((a, b) => moveOrderingScore(currentBoard, b) - moveOrderingScore(currentBoard, a))
       .slice(0, depth > 1 ? difficulty.branchLimit ?? legalMoves.length : legalMoves.length)
 
     for (const move of orderedMoves) {
@@ -525,15 +559,38 @@ export const searchBestXiangqiMove = (
       const score = -negamax(nextBoard, enemy, depth - 1, -beta, -alpha)
       if (score > best) best = score
       if (score > alpha) alpha = score
-      if (alpha >= beta) break
+      if (alpha >= beta) {
+        searchedAllMoves = false
+        break
+      }
     }
 
-    cache.set(key, best)
+    if (searchedAllMoves) {
+      cache.set(key, best)
+    }
     return best
   }
 
-  const rootMoves = generateLegalXiangqiMoves(board, aiSide)
-    .sort((a, b) => moveOrderingScore(b) - moveOrderingScore(a))
+  const immediateWins = getImmediateWinningXiangqiMoves(board, aiSide)
+    .sort((a, b) => moveOrderingScore(board, b) - moveOrderingScore(board, a))
+  if (immediateWins.length) {
+    return {
+      move: immediateWins[0],
+      score: MATE_SCORE,
+      nodes
+    }
+  }
+
+  const legalRootMoves = generateLegalXiangqiMoves(board, aiSide)
+  const opponent = getOppositeSide(aiSide)
+  const opponentWinningMoves = getImmediateWinningXiangqiMoves(board, opponent)
+  const urgentDefensiveMoves =
+    opponentWinningMoves.length > 0
+      ? legalRootMoves.filter((move) => getImmediateWinningXiangqiMoves(applyXiangqiMove(board, move), opponent).length === 0)
+      : []
+
+  const rootMoves = (urgentDefensiveMoves.length ? urgentDefensiveMoves : legalRootMoves)
+    .sort((a, b) => moveOrderingScore(board, b) - moveOrderingScore(board, a))
     .slice(0, difficulty.rootMoveLimit ?? Number.POSITIVE_INFINITY)
   if (!rootMoves.length) {
     return { move: null, score: 0, nodes }
