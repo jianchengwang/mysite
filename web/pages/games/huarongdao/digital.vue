@@ -53,9 +53,9 @@
         <div class="mt-5 grid gap-3 xl:grid-cols-2">
           <div class="rounded-[28px] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4">
             <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">Grid Size</p>
-            <div class="mt-3 flex gap-2">
+            <div class="mt-3 flex flex-wrap gap-2">
               <button 
-                v-for="s in [3, 4, 5]" 
+                v-for="s in [3, 4, 5, 6, 7, 8]" 
                 :key="s"
                 class="rounded-full border px-4 py-1 text-sm font-bold transition"
                 :class="state.size === s ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-700 hover:border-zinc-900'"
@@ -66,9 +66,23 @@
             </div>
           </div>
           <div class="rounded-[28px] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4">
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">Pattern</p>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <button 
+                v-for="p in (['classic', 'snake', 'spiral'] as const)" 
+                :key="p"
+                class="rounded-full border px-4 py-1 text-sm font-bold transition capitalize"
+                :class="state.pattern === p ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-700 hover:border-zinc-900'"
+                @click="changePattern(p)"
+              >
+                {{ p }}
+              </button>
+            </div>
+          </div>
+          <div class="rounded-[28px] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4">
             <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">Goal</p>
             <p class="mt-2 text-sm text-zinc-600">
-              Restore the numbers to their ascending order from top-left to bottom-right.
+              Restore the numbers to their specific pattern order.
             </p>
           </div>
         </div>
@@ -145,11 +159,15 @@ const shuffleBoard = () => {
 }
 
 const resetBoard = () => {
-  state.value = createInitialDigitalHuarongdao(state.value.size)
+  state.value = createInitialDigitalHuarongdao(state.value.size, state.value.pattern)
 }
 
-const changeSize = (size: number) => {
-  state.value = createInitialDigitalHuarongdao(size)
+const changeSize = (s: number) => {
+  state.value = createInitialDigitalHuarongdao(s, state.value.pattern)
+}
+
+const changePattern = (p: any) => {
+  state.value = createInitialDigitalHuarongdao(state.value.size, p)
 }
 </script>
 

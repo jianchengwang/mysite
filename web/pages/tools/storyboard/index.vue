@@ -21,7 +21,7 @@
       </div>
 
       <div v-else class="grid grid-cols-1 items-start gap-6 xl:grid-cols-12 xl:gap-8">
-        <div class="xl:col-span-5 space-y-6">
+        <div class="xl:col-span-5 space-y-6 xl:sticky xl:top-24">
           <section id="story-setup" class="sketch-card bg-white p-4 sm:p-5 space-y-4 scroll-mt-24">
             <div class="flex items-center justify-between gap-3">
               <h2 class="text-2xl font-bold">Story Setup</h2>

@@ -336,7 +336,7 @@ type LinkObject = {
 type WbObject = PathObject | ShapeObject | ImageObject | TextObject | LinkObject
 type ConnectableObject = ShapeObject | ImageObject
 type MoveableObject = ShapeObject | ImageObject | TextObject
-type ToolId = 'pencil' | 'rect' | 'circle' | 'diamond' | 'text' | 'arrow' | 'eraser' | 'image' | 'select' | 'crop'
+type ToolId = 'pencil' | 'rect' | 'circle' | 'diamond' | 'text' | 'arrow' | 'eraser' | 'image' | 'select' | 'crop' | 'laser' | 'spotlight'
 
 const GUIDE_THRESHOLD = 10
 const MIN_IMAGE_DIMENSION = 24
@@ -355,8 +355,13 @@ const textDraft = ref('')
 const mobileToolsExpanded = ref(true)
 const mobileAiExpanded = ref(false)
 
+const laserPoints = ref<{ x: number, y: number, time: number }[]>([])
+const spotlightPos = ref<Point | null>(null)
+
 const tools = [
   { id: 'pencil', name: 'Pencil', icon: '✎' },
+  { id: 'laser', name: 'Laser Pointer', icon: '🔦' },
+  { id: 'spotlight', name: 'Spotlight', icon: '🔆' },
   { id: 'rect', name: 'Rectangle', icon: '▭' },
   { id: 'circle', name: 'Circle', icon: '◯' },
   { id: 'diamond', name: 'Diamond', icon: '♢' },
@@ -387,6 +392,29 @@ const historyIndex = ref(0)
 
 const canUndo = computed(() => historyIndex.value > 0)
 const canRedo = computed(() => historyIndex.value < history.value.length - 1)
+
+const tickLaser = () => {
+  const now = Date.now()
+  const prevLen = laserPoints.value.length
+  laserPoints.value = laserPoints.value.filter(p => now - p.time < 800)
+  if (laserPoints.value.length > 0 || (currentTool.value === 'spotlight' && spotlightPos.value) || prevLen > 0) {
+    render()
+    if (laserPoints.value.length > 0 || (currentTool.value === 'spotlight' && spotlightPos.value)) {
+      requestAnimationFrame(tickLaser)
+    }
+  }
+}
+
+watch(currentTool, (next, prev) => {
+  if (next === 'laser' || next === 'spotlight') {
+    tickLaser()
+  }
+  if (prev === 'spotlight') {
+    spotlightPos.value = null
+    render()
+  }
+})
+
 const selectedTextObject = computed(() => {
   if (selectedObjectIds.value.length !== 1) return null
   const obj = getObjectById(selectedObjectIds.value[0])
@@ -1032,6 +1060,20 @@ const handleMouseDown = (e: MouseEvent) => {
   flushPendingWheelHistoryCommit()
   const pos = getMousePos(e)
 
+  if (currentTool.value === 'spotlight') {
+    spotlightPos.value = pos
+    render()
+    return
+  }
+  
+  if (currentTool.value === 'laser') {
+    isDragging.value = true
+    laserPoints.value = [{ ...pos, time: Date.now() }]
+    tickLaser()
+    render()
+    return
+  }
+
   if (currentTool.value === 'select') {
     const clicked = findSelectableObjectAt(pos)
     if (!clicked) {
@@ -1130,6 +1172,18 @@ const handleMouseDown = (e: MouseEvent) => {
 const handleMouseMove = (e: MouseEvent) => {
   const pos = getMousePos(e)
 
+  if (currentTool.value === 'spotlight') {
+    spotlightPos.value = pos
+    render()
+    return
+  }
+  
+  if (currentTool.value === 'laser' && isDragging.value) {
+    laserPoints.value.push({ ...pos, time: Date.now() })
+    render()
+    return
+  }
+
   if (isDragging.value && dragStartPoint.value) {
     const delta = {
       x: pos.x - dragStartPoint.value.x,
@@ -1221,6 +1275,12 @@ const finishDrag = (pos?: Point) => {
 }
 
 const handleMouseUp = (e?: MouseEvent | Touch) => {
+  if (currentTool.value === 'spotlight') return
+  if (currentTool.value === 'laser') {
+    isDragging.value = false
+    return
+  }
+  
   const pos = e ? getMousePos(e) : startPoint.value
   if (isDragging.value) {
     finishDrag(pos || undefined)
@@ -1485,6 +1545,43 @@ const renderScene = (
 
   if (activeLink.value) {
     drawPreviewLink(targetCtx, activeLink.value.fromId, activeLink.value.current)
+  }
+
+  if (laserPoints.value.length > 1) {
+    targetCtx.save()
+    targetCtx.beginPath()
+    targetCtx.lineCap = 'round'
+    targetCtx.lineJoin = 'round'
+    const now = Date.now()
+    for (let i = 1; i < laserPoints.value.length; i++) {
+      const p1 = laserPoints.value[i - 1]
+      const p2 = laserPoints.value[i]
+      const age = now - p2.time
+      const opacity = Math.max(0, 1 - age / 800)
+      targetCtx.strokeStyle = `rgba(239, 68, 68, ${opacity})`
+      targetCtx.lineWidth = currentSize.value * 1.5
+      targetCtx.beginPath()
+      targetCtx.moveTo(p1.x, p1.y)
+      targetCtx.lineTo(p2.x, p2.y)
+      targetCtx.stroke()
+    }
+    targetCtx.restore()
+  }
+
+  if (currentTool.value === 'spotlight' && spotlightPos.value) {
+    targetCtx.save()
+    targetCtx.beginPath()
+    targetCtx.rect(0, 0, targetCanvas.width, targetCanvas.height)
+    targetCtx.arc(spotlightPos.value.x, spotlightPos.value.y, 120, 0, Math.PI * 2, true)
+    targetCtx.fillStyle = 'rgba(0, 0, 0, 0.45)'
+    targetCtx.fill()
+    
+    targetCtx.beginPath()
+    targetCtx.arc(spotlightPos.value.x, spotlightPos.value.y, 120, 0, Math.PI * 2)
+    targetCtx.strokeStyle = 'rgba(255, 255, 255, 0.5)'
+    targetCtx.lineWidth = 2
+    targetCtx.stroke()
+    targetCtx.restore()
   }
 
   if (options.includeCropOverlay && cropSelection.value) {

@@ -98,7 +98,7 @@
                             {{ worker.statusLabel }}
                           </span>
                         </div>
-                        <WorkshopActorSprite :variant="worker.variant" :status="worker.status" :scale="1.55" size="stage" />
+                        <WorkshopActorSprite :variant="worker.variant" :status="worker.status" :scale="worker.scale" size="stage" />
                         <p class="max-w-[9rem] text-center text-[11px] uppercase tracking-[0.14em] text-zinc-600">
                           {{ worker.note }}
                         </p>
@@ -615,6 +615,7 @@ type StageWorkerView = {
   statusLabel: string
   note: string
   variant: 'worker' | 'codex' | 'claude' | 'gemini'
+  scale: number
 }
 
 type RenderedReplyView = {
@@ -649,6 +650,7 @@ type ActorVariant = 'boss' | 'worker' | 'codex' | 'claude' | 'gemini'
 type StageSlot = {
   left: string
   top: string
+  scale: number
 }
 
 const DISPATCH_PREFS_STORAGE_KEY = 'lobster_workshop_dispatch_prefs_v1'
@@ -657,10 +659,11 @@ const THINK_TAG_PATTERN = /<think>([\s\S]*?)<\/think>/gi
 const FINAL_TAG_PATTERN = /<final>([\s\S]*?)<\/final>/gi
 
 const stageSlots: StageSlot[] = [
-  { left: '16%', top: '66%' },  // Front Left
-  { left: '32%', top: '66%' },  // Mid Left (Lowered to align with workstations)
-  { left: '68%', top: '66%' },  // Mid Right (Lowered to align with workstations)
-  { left: '84%', top: '66%' }   // Front Right
+  { left: '16%', top: '74%', scale: 1.65 }, // Front Left (part of big workstation)
+  { left: '32%', top: '74%', scale: 1.65 }, // Mid Left (part of big workstation)
+  { left: '20%', top: '50%', scale: 1.35 }, // Back Left Workstation
+  { left: '74%', top: '50%', scale: 1.35 }, // Back Right Workstation
+  { left: '86%', top: '78%', scale: 1.75 }  // Bottom Right Workstation
 ]
 
 const workerOptions: WorkerOption[] = [
@@ -1071,13 +1074,14 @@ const crewCards = computed<CrewCardView[]>(() => {
 
 const stageWorkers = computed<StageWorkerView[]>(() => {
   if (crewCards.value.length > 0) {
-    return crewCards.value.slice(0, 4).map((card) => ({
+    return crewCards.value.slice(0, 5).map((card, index) => ({
       id: card.id,
       title: card.title,
       status: card.status,
       statusLabel: card.status,
       note: card.note || card.taskLine,
-      variant: card.variant
+      variant: card.variant,
+      scale: stageSlots[index]?.scale || 1.55
     }))
   }
 
@@ -1087,7 +1091,7 @@ const stageWorkers = computed<StageWorkerView[]>(() => {
 
   if (!launchSubagents.value) return []
 
-  return selectedWorkers.value.slice(0, 4).map((workerId) => {
+  return selectedWorkers.value.slice(0, 5).map((workerId, index) => {
     const worker = workerOptionMap[workerId]
     return {
       id: `stage-${workerId}`,
@@ -1095,7 +1099,8 @@ const stageWorkers = computed<StageWorkerView[]>(() => {
       status: 'armed' as const,
       statusLabel: 'armed',
       note: worker.short,
-      variant: worker.variant
+      variant: worker.variant,
+      scale: stageSlots[index]?.scale || 1.55
     }
   })
 })

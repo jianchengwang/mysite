@@ -4,22 +4,59 @@ export type DigitalHuarongdaoMove = {
   value: number
 }
 
+export type DigitalHuarongdaoPattern = 'classic' | 'snake' | 'spiral'
+
 export type DigitalHuarongdaoState = {
   board: number[] // 0 for empty
   size: number // 3 for 3x3, 4 for 4x4
   moves: number
+  pattern: DigitalHuarongdaoPattern
 }
 
-export const createInitialDigitalHuarongdao = (size = 4): DigitalHuarongdaoState => {
-  const board = Array.from({ length: size * size }, (_, i) => (i === size * size - 1 ? 0 : i + 1))
-  return { board, size, moves: 0 }
+export const getTargetBoard = (size: number, pattern: DigitalHuarongdaoPattern): number[] => {
+  const count = size * size
+  const board = new Array(count).fill(0)
+  
+  if (pattern === 'classic') {
+    for (let i = 0; i < count - 1; i++) board[i] = i + 1
+    board[count - 1] = 0
+  } else if (pattern === 'snake') {
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        const val = r * size + (r % 2 === 0 ? c : size - 1 - c) + 1
+        if (val < count) board[r * size + c] = val
+        else board[r * size + c] = 0
+      }
+    }
+  } else if (pattern === 'spiral') {
+    let top = 0, bottom = size - 1, left = 0, right = size - 1
+    let val = 1
+    while (val < count) {
+      for (let i = left; i <= right && val < count; i++) board[top * size + i] = val++
+      top++
+      for (let i = top; i <= bottom && val < count; i++) board[i * size + right] = val++
+      right--
+      for (let i = right; i >= left && val < count; i--) board[bottom * size + i] = val++
+      bottom--
+      for (let i = bottom; i >= top && val < count; i--) board[i * size + left] = val++
+      left++
+    }
+    // Find where 0 is (already 0 because initialized with 0)
+  }
+  return board
+}
+
+export const createInitialDigitalHuarongdao = (size = 4, pattern: DigitalHuarongdaoPattern = 'classic'): DigitalHuarongdaoState => {
+  const board = getTargetBoard(size, pattern)
+  return { board, size, moves: 0, pattern }
 }
 
 export const isDigitalHuarongdaoSolved = (state: DigitalHuarongdaoState): boolean => {
-  for (let i = 0; i < state.board.length - 1; i++) {
-    if (state.board[i] !== i + 1) return false
+  const target = getTargetBoard(state.size, state.pattern)
+  for (let i = 0; i < state.board.length; i++) {
+    if (state.board[i] !== target[i]) return false
   }
-  return state.board[state.board.length - 1] === 0
+  return true
 }
 
 export const getDigitalHuarongdaoLegalMoves = (state: DigitalHuarongdaoState): DigitalHuarongdaoMove[] => {

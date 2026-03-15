@@ -696,8 +696,10 @@ export const useOpenClawGateway = () => {
 
   const normalizeChatPayload = (payload: Record<string, unknown>): ChatEventState => {
     const state = toTrimmedString(payload.state) as ChatEventState
-    const payloadSessionKey = toTrimmedString(payload.sessionKey)
-    if (payloadSessionKey && payloadSessionKey !== sessionKey.value.trim()) {
+    const currentSessionKey = sessionKey.value.trim() || 'main'
+    const payloadSessionKey = toTrimmedString(payload.sessionKey) || 'main'
+    
+    if (payloadSessionKey !== currentSessionKey) {
       return ''
     }
 

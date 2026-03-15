@@ -202,13 +202,7 @@ const handleStickerPointerDown = (side: string, cubie: any, event: PointerEvent)
 const performMove = (move: CubeMove, options: { animate?: boolean } = {}) => {
   if (options.animate !== false) {
     const face = move[0] as CubeFace
-    const axis = faceTurnAxis[face]
-    const layer = face === 'U' || face === 'R' || face === 'F' ? 1 : -1
-    const direction = move.endsWith("'") ? -1 : 1
     
-    // Fix direction mapping for certain faces/axes if needed based on moveDefinitions
-    // In utils: U: axis y, layer 1, turns -1. So direction 1 should be -90deg? 
-    // Actually, let's just use the move definition for the animation direction
     const moveDefinitions: any = {
       U: { axis: 'y', layer: 1, turns: -1 },
       "U'": { axis: 'y', layer: 1, turns: 1 },
@@ -231,12 +225,12 @@ const performMove = (move: CubeMove, options: { animate?: boolean } = {}) => {
     turningAngle.value = 0
 
     const start = performance.now()
-    const duration = 200
+    const duration = 160 // Slightly faster for smoother feel
 
     const animate = (time: number) => {
       const elapsed = time - start
       const progress = Math.min(elapsed / duration, 1)
-      const ease = 1 - Math.pow(1 - progress, 3)
+      const ease = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2
       turningAngle.value = def.turns * 90 * ease
 
       if (progress < 1) {
@@ -291,89 +285,23 @@ let startRotationY = viewRotationY.value
 
 const resolveFaceMove = (face: CubeFace, cubie: any, dx: number, dy: number): CubeMove | null => {
   if (!cubie) return null
-  const { x, y, z } = cubie.position
   const absX = Math.abs(dx), absY = Math.abs(dy)
-  const threshold = 15
+  const threshold = 12
   if (Math.max(absX, absY) < threshold) return null
 
-  // We use the current view rotations to adjust how dx and dy map to cube moves.
-  // This ensures that dragging "right" on the screen always feels like moving the layer "right".
-  const rotY = viewRotationY.value
-  const normalizedY = ((rotY % 360) + 360) % 360
+  const { x, y, z } = cubie.position
   
-  // Determine which face is "facing" where
-  // Simplified logic: adjust dx/dy based on which quadrant of Y rotation we are in.
-  let adjDx = dx
-  let adjDy = dy
-
+  // Logic: for each face, determine if drag is primarily horizontal or vertical on the screen,
+  // then map that to the correct rotation based on the cubie's position on that face.
   if (face === 'F') {
     if (absX >= absY) {
       if (y === 1) return dx > 0 ? "U'" : 'U'
       if (y === -1) return dx > 0 ? 'D' : "D'"
-      if (y === 0) return dx > 0 ? "E" : "E'" // E is not in buttons but we can add or map
+      if (y === 0) return dx > 0 ? "U'" : 'U'
     } else {
       if (x === 1) return dy < 0 ? 'R' : "R'"
       if (x === -1) return dy < 0 ? "L'" : 'L'
-    }
-  } else if (face === 'R') {
-    if (absX >= absY) {
-      // When looking at Right face, "Right" drag depends on if it's pointing towards or away from us
-      // But usually dx > 0 should still be a clockwise-ish turn around Y
-      if (y === 1) return dx > 0 ? 'U' : "U'"
-      if (y === -1) return dx > 0 ? "D'" : 'D'
-    } else {
-      if (z === 1) return dy < 0 ? "F'" : 'F'
-      if (z === -1) return dy < 0 ? 'B' : "B'"
-    }
-  } else if (face === 'U') {
-    // Top face dragging is most sensitive to Y rotation
-    const angle = (rotY % 360 + 360) % 360
-    if (absX >= absY) {
-      // Horizontal drag on top face
-      if (angle < 45 || angle >= 315) { // Facing Front
-        if (z === -1) return dx > 0 ? 'B' : "B'"
-        if (z === 1) return dx > 0 ? "F'" : 'F'
-      } else if (angle >= 45 && angle < 135) { // Facing Right
-        if (x === 1) return dx > 0 ? 'R' : "R'"
-        if (x === -1) return dx > 0 ? "L'" : 'L'
-      } else if (angle >= 135 && angle < 225) { // Facing Back
-        if (z === 1) return dx > 0 ? 'F' : "F'"
-        if (z === -1) return dx > 0 ? "B'" : 'B'
-      } else { // Facing Left
-        if (x === -1) return dx > 0 ? "L'" : 'L'
-        if (x === 1) return dx > 0 ? 'R' : "R'"
-      }
-    } else {
-      // Vertical drag on top face
-      if (angle < 45 || angle >= 315) { // Facing Front
-        if (x === -1) return dy < 0 ? "L'" : 'L'
-        if (x === 1) return dy < 0 ? 'R' : "R'"
-      } else if (angle >= 45 && angle < 135) { // Facing Right
-        if (z === 1) return dy < 0 ? 'F' : "F'"
-        if (z === -1) return dy < 0 ? 'B' : "B'"
-      } else if (angle >= 135 && angle < 225) { // Facing Back
-        if (x === 1) return dy < 0 ? "R'" : 'R'
-        if (x === -1) return dy < 0 ? 'L' : "L'"
-      } else { // Facing Left
-        if (z === -1) return dy < 0 ? "B'" : 'B'
-        if (z === 1) return dy < 0 ? 'F' : "F'"
-      }
-    }
-  } else if (face === 'L') {
-    if (absX >= absY) {
-      if (y === 1) return dx > 0 ? "U'" : 'U'
-      if (y === -1) return dx > 0 ? 'D' : "D'"
-    } else {
-      if (z === 1) return dy < 0 ? 'F' : "F'"
-      if (z === -1) return dy < 0 ? "B'" : 'B'
-    }
-  } else if (face === 'D') {
-    if (absX >= absY) {
-      if (z === 1) return dx > 0 ? 'F' : "F'"
-      if (z === -1) return dx > 0 ? "B'" : 'B'
-    } else {
-      if (x === -1) return dy < 0 ? 'L' : "L'"
-      if (x === 1) return dy < 0 ? "R'" : 'R'
+      if (x === 0) return dy < 0 ? 'R' : "R'"
     }
   } else if (face === 'B') {
     if (absX >= absY) {
@@ -383,7 +311,40 @@ const resolveFaceMove = (face: CubeFace, cubie: any, dx: number, dy: number): Cu
       if (x === 1) return dy < 0 ? "R'" : 'R'
       if (x === -1) return dy < 0 ? 'L' : "L'"
     }
+  } else if (face === 'U') {
+    if (absX >= absY) {
+      if (z === 1) return dx > 0 ? "F'" : 'F'
+      if (z === -1) return dx > 0 ? 'B' : "B'"
+    } else {
+      if (x === 1) return dy < 0 ? 'R' : "R'"
+      if (x === -1) return dy < 0 ? "L'" : 'L'
+    }
+  } else if (face === 'D') {
+    if (absX >= absY) {
+      if (z === 1) return dx > 0 ? 'F' : "F'"
+      if (z === -1) return dx > 0 ? "B'" : 'B'
+    } else {
+      if (x === 1) return dy < 0 ? "R'" : 'R'
+      if (x === -1) return dy < 0 ? 'L' : "L'"
+    }
+  } else if (face === 'R') {
+    if (absX >= absY) {
+      if (y === 1) return dx > 0 ? "U'" : 'U'
+      if (y === -1) return dx > 0 ? 'D' : "D'"
+    } else {
+      if (z === 1) return dy < 0 ? "F'" : 'F'
+      if (z === -1) return dy < 0 ? 'B' : "B'"
+    }
+  } else if (face === 'L') {
+    if (absX >= absY) {
+      if (y === 1) return dx > 0 ? 'U' : "U'"
+      if (y === -1) return dx > 0 ? "D'" : 'D'
+    } else {
+      if (z === 1) return dy < 0 ? 'F' : "F'"
+      if (z === -1) return dy < 0 ? "B'" : 'B'
+    }
   }
+  
   return null
 }
 

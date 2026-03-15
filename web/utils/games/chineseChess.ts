@@ -256,7 +256,7 @@ const advisorPST = new Int16Array([
   0, 0, 0, 0, 8, 0, 0, 0, 0
 ])
 
-const getPieceValue = (p: number, pos: number): number => {
+const getPieceValue = (p: number, pos: number, board: InternalBoard): number => {
   const type = Math.abs(p)
   const isRed = p > 0
   const r = Math.floor(pos / 9)
@@ -273,6 +273,11 @@ const getPieceValue = (p: number, pos: number): number => {
     case 6: val = 480 + cannonPST[pstIdx]; break
     case 7: val = 100 + soldierPST[pstIdx]; break
   }
+
+  // Basic mobility evaluation: count pseudo-moves
+  const mobility = generateInternalPseudoMoves(board, pos).length
+  val += mobility * 2
+
   return isRed ? val : -val
 }
 
@@ -427,7 +432,7 @@ const evaluateInternal = (board: InternalBoard, perspectiveIsRed: boolean): numb
   let score = 0
   for (let i = 0; i < 90; i++) {
     const p = board[i]
-    if (p !== EMPTY) score += getPieceValue(p, i)
+    if (p !== EMPTY) score += getPieceValue(p, i, board)
   }
   return perspectiveIsRed ? score : -score
 }
@@ -482,13 +487,16 @@ const OPENING_BOOK: Record<string, string[]> = {
   '7744,0122,9776': [
     '0001', // 车9进1
     '0818', // 车1进1
-    '2724'  // 炮2平5
+    '2724', // 炮2平5
+    '7161', // 炮八进一
+    '9172'  // 马八进七
   ],
   // After 炮二平五, 马8进7, 马八进七
   '7744,0122,9172': [
     '0001', // 车9进1
     '0818', // 车1进1
-    '3040'  // 卒1进1
+    '3040', // 卒1进1
+    '0726'  // 马2进3
   ],
   // After 马二进三
   '9776': [
