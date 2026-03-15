@@ -551,7 +551,6 @@ onUnmounted(() => {
   width: 90px;
   height: 90px;
   transform-style: preserve-3d;
-  transition: transform 0.05s linear;
   left: -45px;
   top: -45px;
 }

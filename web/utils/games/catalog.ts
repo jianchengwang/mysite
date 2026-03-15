@@ -69,6 +69,17 @@ export const gamesCatalog: GameCatalogItem[] = [
       { label: 'Puzzle', tone: 'amber' },
       { label: 'Multi-Level', tone: 'green' }
     ]
+  },
+  {
+    slug: 'huarongdao/digital',
+    title: 'Digital Huarongdao',
+    subtitle: 'Number Slide',
+    description: 'A classic 15-puzzle where you slide numbered tiles to reach the sorted order.',
+    detail: 'Dynamic grid sizes and move tracking let you practice speed and strategy.',
+    tags: [
+      { label: 'Puzzle', tone: 'amber' },
+      { label: 'Classic', tone: 'blue' }
+    ]
   }
 ]
 

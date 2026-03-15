@@ -658,8 +658,8 @@ const FINAL_TAG_PATTERN = /<final>([\s\S]*?)<\/final>/gi
 
 const stageSlots: StageSlot[] = [
   { left: '16%', top: '66%' },  // Front Left
-  { left: '32%', top: '46%' },  // Mid Left (Lowered from 34%)
-  { left: '68%', top: '46%' },  // Mid Right (Lowered from 34%)
+  { left: '32%', top: '66%' },  // Mid Left (Lowered to align with workstations)
+  { left: '68%', top: '66%' },  // Mid Right (Lowered to align with workstations)
   { left: '84%', top: '66%' }   // Front Right
 ]
 
@@ -688,9 +688,9 @@ const workerOptions: WorkerOption[] = [
 ]
 
 const workerAliasMap: Record<WorkerId, string[]> = {
-  codex: ['codex', 'codex-lobster'],
-  'claude-code': ['claude', 'claude code', 'claude-code', 'claude_code', 'claude-lobster'],
-  'gemini-cli': ['gemini', 'gemini cli', 'gemini-cli', 'gemini_cli', 'gemini-lobster']
+  codex: ['codex', 'codex-lobster', 'code-agent', 'code_agent', 'developer'],
+  'claude-code': ['claude', 'claude code', 'claude-code', 'claude_code', 'claude-lobster', 'anthropic'],
+  'gemini-cli': ['gemini', 'gemini cli', 'gemini-cli', 'gemini_cli', 'gemini-lobster', 'google']
 }
 
 const workerOptionMap = workerOptions.reduce<Record<WorkerId, WorkerOption>>((acc, worker) => {
@@ -821,13 +821,16 @@ const canClearChat = computed(() =>
 const normalizeWorkerText = (value: string) =>
   value
     .toLowerCase()
-    .replace(/[_\s]+/g, '-')
+    .replace(/[_\s-]+/g, ' ')
     .trim()
 
 const detectWorkerId = (...parts: string[]) => {
   const joined = normalizeWorkerText(parts.filter(Boolean).join(' '))
   return workerOptions.find(worker =>
-    workerAliasMap[worker.id].some(alias => joined.includes(normalizeWorkerText(alias)))
+    workerAliasMap[worker.id].some(alias => {
+      const normalizedAlias = normalizeWorkerText(alias)
+      return joined.includes(normalizedAlias)
+    })
   )?.id
 }
 

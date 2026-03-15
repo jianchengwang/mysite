@@ -45,7 +45,7 @@ const BOARD_COLS = 9
 export const xiangqiDifficulties: XiangqiDifficulty[] = [
   { id: 'easy', label: 'Easy', depth: 2, note: 'Fast replies for learning movement rules and common captures.', rootMoveLimit: 32, branchLimit: 32 },
   { id: 'medium', label: 'Medium', depth: 4, note: 'Looks deeper for practical tactics while keeping reply times reasonable.', rootMoveLimit: 32, branchLimit: 32 },
-  { id: 'hard', label: 'Hard', depth: 6, note: 'Stronger tactical reading with aspiration windows and PVS.', rootMoveLimit: 64, branchLimit: 64 }
+  { id: 'hard', label: 'Hard', depth: 8, note: 'Stronger tactical reading with aspiration windows and PVS.', rootMoveLimit: 64, branchLimit: 64 }
 ]
 
 const pieceCodeMap: Record<XiangqiSide, Record<XiangqiPieceType, string>> = {
@@ -230,6 +230,32 @@ const rookPST = new Int16Array([
   10, 8, 12, 14, 12, 14, 12, 8, 10
 ])
 
+const generalPST = new Int16Array([
+  0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, -4, -10, -4, 0, 0, 0,
+  0, 0, 0, 4, 6, 4, 0, 0, 0,
+  0, 0, 0, 10, 16, 10, 0, 0, 0
+])
+
+const advisorPST = new Int16Array([
+  0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 4, 0, 4, 0, 0, 0,
+  0, 0, 0, 0, 8, 0, 0, 0, 0
+])
+
 const getPieceValue = (p: number, pos: number): number => {
   const type = Math.abs(p)
   const isRed = p > 0
@@ -239,9 +265,9 @@ const getPieceValue = (p: number, pos: number): number => {
   
   let val = 0
   switch (type) {
-    case 1: val = 1000000; break
-    case 2: val = 120 + 10; break
-    case 3: val = 120 + 10; break
+    case 1: val = 1000000 + generalPST[pstIdx]; break
+    case 2: val = 120 + advisorPST[pstIdx]; break
+    case 3: val = 120 + 2; break
     case 4: val = 450 + horsePST[pstIdx]; break
     case 5: val = 950 + rookPST[pstIdx]; break
     case 6: val = 480 + cannonPST[pstIdx]; break
@@ -441,17 +467,45 @@ const OPENING_BOOK: Record<string, string[]> = {
   '7744': [
     '2124', // 炮8平5 (顺炮)
     '0122', // 马8进7 (屏风马)
-    '0726'  // 马2进3
+    '0726', // 马2进3
+    '2724', // 炮2平5
+    '0102'  // 马8进9
   ],
   // After 炮二平五, 马8进7
   '7744,0122': [
     '9172', // 马八进七
-    '9776'  // 马二进三
+    '9776', // 马二进三
+    '7141', // 炮八平六
+    '8171'  // 车九进一
+  ],
+  // After 炮二平五, 马8进7, 马二进三
+  '7744,0122,9776': [
+    '0001', // 车9进1
+    '0818', // 车1进1
+    '2724'  // 炮2平5
+  ],
+  // After 炮二平五, 马8进7, 马八进七
+  '7744,0122,9172': [
+    '0001', // 车9进1
+    '0818', // 车1进1
+    '3040'  // 卒1进1
+  ],
+  // After 马二进三
+  '9776': [
+    '0122', // 马8进7
+    '2124', // 炮8平5
+    '0726'  // 马2进3
+  ],
+  // After 炮八平五
+  '7144': [
+    '2724', // 炮2平5
+    '0726', // 马2进3
+    '0122'  // 马8进7
   ]
 }
 
 const getOpeningMove = (history: XiangqiMove[]): string | null => {
-  if (history.length > 4) return null // Only for first 2-3 rounds
+  if (history.length > 6) return null // Only for first 3 rounds
   const key = history.map(m => `${m.from.row}${m.from.col}${m.to.row}${m.to.col}`).join(',')
   const choices = OPENING_BOOK[key]
   if (!choices || choices.length === 0) return null
