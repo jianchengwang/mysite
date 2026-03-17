@@ -39,7 +39,7 @@ export default defineNuxtConfig({
         { name: 'description', content: 'My personal website and blog' }
       ],
       script: [
-        // { src: 'https://cdn.jsdelivr.net/gh/jianchengwang/live2d_models@main/assets/js/live2dv3.init.js' }
+        { src: '/coi-serviceworker.js' }
       ],
       link: [
         {
@@ -55,6 +55,25 @@ export default defineNuxtConfig({
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000'
     }
+  },
+
+  routeRules: {
+    '/**': {
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'require-corp'
+      }
+    },
+    '/engines/**': {
+      headers: {
+        'Cross-Origin-Resource-Policy': 'cross-origin'
+      }
+    }
+  },
+
+  devServer: {
+    loadingScreens: false,
+    port: 3000
   },
 
   tailwindcss: {
@@ -132,6 +151,12 @@ export default defineNuxtConfig({
   },
 
   vite: {
+    server: {
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'require-corp',
+      },
+    },
     build: {
       rollupOptions: {
         output: {

@@ -1,0 +1,14 @@
+This directory contains third-party engine assets and derived opening data.
+
+1. Fairy-Stockfish NNUE WASM
+   Source package: fairy-stockfish-nnue.wasm@1.1.11
+   Repository: https://github.com/fairy-stockfish/fairy-stockfish.wasm
+   License: GPL-3.0
+
+2. XiangQi Wizard Light opening book data
+   Source repository: https://github.com/xqbase/xqwlight
+   Derived from: JavaScript/book.js
+   License: GPL-2.0-or-later
+
+The generated `xiangqi-opening-book.json` file is produced by
+`scripts/generate-xiangqi-opening-book.mjs`.

@@ -9,6 +9,7 @@
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
+    "generate:xiangqi-book": "node scripts/generate-xiangqi-opening-book.mjs",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
   },

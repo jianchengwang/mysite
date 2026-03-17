@@ -3,7 +3,7 @@
     eyebrow="Classic Strategy"
     :title="game?.title || 'Xiangqi'"
     :description="game?.description || ''"
-    :highlights="['Human vs AI', 'Worker Search', 'Responsive Board']"
+    :highlights="['Fairy-Stockfish', 'Opening Book', 'Responsive Board']"
     :stats="heroStats"
   >
     <div class="space-y-6">
@@ -110,7 +110,7 @@
           <div class="rounded-[28px] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4">
             <p class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">AI Search</p>
             <p class="mt-2 text-lg font-bold text-zinc-900">{{ lastSearchNodes }} nodes</p>
-            <p class="mt-1 text-sm text-zinc-500">Eval {{ lastSearchScore }} · {{ selectedDifficulty.note }}</p>
+            <p class="mt-1 text-sm text-zinc-500">Eval {{ lastSearchScore }} · {{ lastSearchNote }}</p>
           </div>
         </div>
       </section>
@@ -158,6 +158,7 @@ const isThinking = ref(false)
 const difficultyId = ref(xiangqiDifficulties[1].id)
 const lastSearchNodes = ref(0)
 const lastSearchScore = ref('0')
+const lastSearchNote = ref('Ready')
 const lastMove = ref<XiangqiMove | null>(null)
 
 const workerRef = ref<Worker | null>(null)
@@ -277,6 +278,7 @@ const searchWithWorker = (currentBoard: XiangqiBoard, side: XiangqiSide, difficu
 
   return new Promise<XiangqiSearchResult>((resolve, reject) => {
     const id = ++workerRequestId
+    console.log(`[Main] Sending search request ${id} to worker`, { side, difficulty: difficulty.id })
     pendingSearches.set(id, { resolve, reject })
     worker.postMessage({
       id,
@@ -391,13 +393,15 @@ const triggerAiMove = async () => {
   const token = ++activeAiRequestToken
   const side = aiSide.value
   isThinking.value = true
+  lastSearchNote.value = 'Searching...'
 
   try {
     const result = await searchWithWorker(board.value, side, selectedDifficulty.value)
     if (token !== activeAiRequestToken || winner.value || currentTurn.value !== side) return
 
     lastSearchNodes.value = result.nodes
-    lastSearchScore.value = result.score.toLocaleString()
+    lastSearchScore.value = result.scoreLabel || result.score.toLocaleString()
+    lastSearchNote.value = result.source ? `${result.source} · ${result.backend}` : 'Search'
 
     if (result.move) {
       commitMove(result.move)
@@ -406,7 +410,8 @@ const triggerAiMove = async () => {
     }
   } catch (error) {
     if (token === activeAiRequestToken) {
-      lastSearchScore.value = 'search error'
+      lastSearchScore.value = 'error'
+      lastSearchNote.value = 'search failed'
       console.error(error)
     }
   } finally {

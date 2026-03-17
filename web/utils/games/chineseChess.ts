@@ -36,6 +36,10 @@ export type XiangqiSearchResult = {
   score: number
   nodes: number
   isTimeout?: boolean
+  scoreLabel?: string
+  source?: 'opening_book' | 'engine' | 'fallback'
+  backend?: string
+  depth?: number
 }
 
 const MATE_SCORE = 100000000
@@ -43,9 +47,9 @@ const BOARD_ROWS = 10
 const BOARD_COLS = 9
 
 export const xiangqiDifficulties: XiangqiDifficulty[] = [
-  { id: 'easy', label: 'Easy', depth: 2, note: 'Fast replies for learning movement rules and common captures.', rootMoveLimit: 32, branchLimit: 32 },
-  { id: 'medium', label: 'Medium', depth: 4, note: 'Looks deeper for practical tactics while keeping reply times reasonable.', rootMoveLimit: 32, branchLimit: 32 },
-  { id: 'hard', label: 'Hard', depth: 8, note: 'Stronger tactical reading with aspiration windows and PVS.', rootMoveLimit: 64, branchLimit: 64 }
+  { id: 'easy', label: 'Easy', depth: 2, note: 'Basic tactical awareness.', rootMoveLimit: 32, branchLimit: 32 },
+  { id: 'medium', label: 'Medium', depth: 4, note: 'Solid practical play.', rootMoveLimit: 48, branchLimit: 48 },
+  { id: 'hard', label: 'Hard', depth: 5, note: 'Strong tactical depth.', rootMoveLimit: 64, branchLimit: 64 }
 ]
 
 const pieceCodeMap: Record<XiangqiSide, Record<XiangqiPieceType, string>> = {
@@ -62,8 +66,8 @@ const pieceCodeMap: Record<XiangqiSide, Record<XiangqiPieceType, string>> = {
     general: '將',
     advisor: '士',
     elephant: '象',
-    horse: '馬',
-    rook: '車',
+    horse: '马',
+    rook: '车',
     cannon: '砲',
     soldier: '卒'
   }
@@ -164,7 +168,7 @@ const getZobristKey = (board: InternalBoard, isRed: boolean): bigint => {
   for (let i = 0; i < 90; i++) {
     const p = board[i]
     if (p !== EMPTY) {
-      const pieceIdx = p > 0 ? p : 7 - p // 1-7 for red, 8-14 for black
+      const pieceIdx = p > 0 ? p : 7 - p 
       key ^= zobristPieces[pieceIdx * 90 + i]
     }
   }
@@ -177,15 +181,15 @@ const updateZobristKey = (key: bigint, pos: number, piece: number): bigint => {
   return key ^ zobristPieces[pieceIdx * 90 + pos]
 }
 
-// Piece-Square Tables (PST)
+// Piece-Square Tables (PST) - Offensive
 const soldierPST = new Int16Array([
-  0, 3, 6, 9, 12, 9, 6, 3, 0,
-  18, 36, 56, 80, 120, 80, 56, 36, 18,
-  14, 26, 42, 60, 80, 60, 42, 26, 14,
-  10, 20, 30, 34, 40, 34, 30, 20, 10,
-  6, 12, 18, 18, 20, 18, 18, 12, 6,
-  2, 0, 8, 0, 8, 0, 8, 0, 2,
-  0, 0, -2, 0, 4, 0, -2, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0,
+  20, 40, 60, 80, 100, 80, 60, 40, 20,
+  15, 30, 45, 60, 75, 60, 45, 30, 15,
+  10, 20, 30, 40, 50, 40, 30, 20, 10,
+  5, 10, 15, 20, 25, 20, 15, 10, 5,
+  0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -193,8 +197,8 @@ const soldierPST = new Int16Array([
 
 const horsePST = new Int16Array([
   4, 8, 16, 12, 4, 12, 16, 8, 4,
-  4, 10, 28, 16, 8, 16, 28, 10, 4,
-  12, 14, 16, 20, 18, 20, 16, 14, 12,
+  4, 15, 28, 16, 8, 16, 28, 15, 4,
+  12, 14, 16, 25, 18, 25, 16, 14, 12,
   8, 24, 18, 24, 20, 24, 18, 24, 8,
   6, 16, 14, 18, 16, 18, 14, 16, 6,
   4, 12, 10, 14, 12, 14, 10, 12, 4,
@@ -202,58 +206,6 @@ const horsePST = new Int16Array([
   0, 4, 2, 6, 4, 6, 2, 4, 0,
   -2, 2, 0, 4, 2, 4, 0, 2, -2,
   -4, -2, 0, 0, -2, 0, 0, -2, -4
-])
-
-const cannonPST = new Int16Array([
-  6, 4, 0, -10, -12, -10, 0, 4, 6,
-  2, 2, 0, -4, -4, -4, 0, 2, 2,
-  4, 0, 0, 0, 0, 0, 0, 0, 4,
-  2, 2, 0, 2, 4, 2, 0, 2, 2,
-  0, 0, 0, 2, 4, 2, 0, 0, 0,
-  1, 2, 2, 2, 2, 2, 2, 2, 1,
-  0, 0, 1, 2, 2, 2, 1, 0, 0,
-  -2, 0, 4, 0, 0, 0, 4, 0, -2,
-  -3, 2, 0, 0, 0, 0, 0, 2, -3,
-  -4, -2, -2, -2, -2, -2, -2, -2, -4
-])
-
-const rookPST = new Int16Array([
-  14, 14, 12, 18, 16, 18, 12, 14, 14,
-  16, 20, 18, 24, 26, 24, 18, 20, 16,
-  12, 12, 12, 18, 18, 18, 12, 12, 12,
-  12, 18, 16, 22, 22, 22, 16, 18, 12,
-  12, 14, 12, 18, 18, 18, 12, 14, 12,
-  12, 16, 14, 20, 20, 20, 14, 16, 12,
-  6, 10, 8, 14, 14, 14, 8, 10, 6,
-  10, 8, 12, 16, 16, 16, 12, 8, 10,
-  8, 6, 10, 12, 18, 12, 10, 6, 8,
-  10, 8, 12, 14, 12, 14, 12, 8, 10
-])
-
-const generalPST = new Int16Array([
-  0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, -4, -10, -4, 0, 0, 0,
-  0, 0, 0, 4, 6, 4, 0, 0, 0,
-  0, 0, 0, 10, 16, 10, 0, 0, 0
-])
-
-const advisorPST = new Int16Array([
-  0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 4, 0, 4, 0, 0, 0,
-  0, 0, 0, 0, 8, 0, 0, 0, 0
 ])
 
 const getPieceValue = (p: number, pos: number, board: InternalBoard): number => {
@@ -265,19 +217,14 @@ const getPieceValue = (p: number, pos: number, board: InternalBoard): number => 
   
   let val = 0
   switch (type) {
-    case 1: val = 1000000 + generalPST[pstIdx]; break
-    case 2: val = 120 + advisorPST[pstIdx]; break
-    case 3: val = 120 + 2; break
+    case 1: val = 1000000; break
+    case 2: val = 120; break
+    case 3: val = 120; break
     case 4: val = 450 + horsePST[pstIdx]; break
-    case 5: val = 950 + rookPST[pstIdx]; break
-    case 6: val = 480 + cannonPST[pstIdx]; break
+    case 5: val = 950; break
+    case 6: val = 480; break
     case 7: val = 100 + soldierPST[pstIdx]; break
   }
-
-  // Basic mobility evaluation: count pseudo-moves
-  const mobility = generateInternalPseudoMoves(board, pos).length
-  val += mobility * 2
-
   return isRed ? val : -val
 }
 
@@ -286,8 +233,7 @@ const generateInternalPseudoMoves = (board: InternalBoard, pos: number): Interna
   if (p === EMPTY) return []
   const isRed = p > 0
   const type = Math.abs(p)
-  const r = Math.floor(pos / 9)
-  const c = pos % 9
+  const r = Math.floor(pos / 9), c = pos % 9
   const moves: InternalMove[] = []
 
   const add = (tr: number, tc: number) => {
@@ -299,21 +245,12 @@ const generateInternalPseudoMoves = (board: InternalBoard, pos: number): Interna
   }
 
   switch (type) {
-    case 1: {
+    case 1: 
       for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
         const tr = r + dr, tc = c + dc
         if ((isRed ? tr >= 7 && tr <= 9 : tr >= 0 && tr <= 2) && tc >= 3 && tc <= 5) add(tr, tc)
       }
-      let step = isRed ? -1 : 1
-      for (let tr = r + step; tr >= 0 && tr < 10; tr += step) {
-        const tp = board[tr * 9 + c]
-        if (tp !== EMPTY) {
-          if (Math.abs(tp) === 1) moves.push({ from: pos, to: tr * 9 + c, piece: p, captured: tp })
-          break
-        }
-      }
       break
-    }
     case 2:
       for (const [dr, dc] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
         const tr = r + dr, tc = c + dc
@@ -368,10 +305,6 @@ const isInternalInCheck = (board: InternalBoard, isRed: boolean): boolean => {
   const gPos = findInternalGeneral(board, isRed)
   if (gPos === -1) return true
   const r = Math.floor(gPos / 9), c = gPos % 9
-  const oppRed = !isRed
-  const oppSideSign = isRed ? -1 : 1
-
-  // Knight (Horse) threats
   const horseType = isRed ? B_HOR : R_HOR
   for (const [dr, dc, lr, lc] of [[-2, -1, -1, 0], [-2, 1, -1, 0], [2, -1, 1, 0], [2, 1, 1, 0], [-1, -2, 0, -1], [1, -2, 0, -1], [-1, 2, 0, 1], [1, 2, 0, 1]]) {
     const tr = r + dr, tc = c + dc
@@ -379,8 +312,6 @@ const isInternalInCheck = (board: InternalBoard, isRed: boolean): boolean => {
       if (board[(r + lr) * 9 + (c + lc)] === EMPTY) return true
     }
   }
-
-  // Rook and Cannon threats (and General flying)
   const rookType = isRed ? B_ROO : R_ROO
   const cannonType = isRed ? B_CAN : R_CAN
   const oppGeneralType = isRed ? B_GEN : R_GEN
@@ -400,15 +331,12 @@ const isInternalInCheck = (board: InternalBoard, isRed: boolean): boolean => {
       tr += dr; tc += dc
     }
   }
-
-  // Soldier threats
   const soldierType = isRed ? B_SOL : R_SOL
-  const soldierMoves = isRed ? [[1, 0], [0, -1], [0, 1]] : [[-1, 0], [0, -1], [0, 1]]
+  const soldierMoves = isRed ? [[-1, 0], [0, -1], [0, 1]] : [[1, 0], [0, -1], [0, 1]]
   for (const [dr, dc] of soldierMoves) {
     const tr = r + dr, tc = c + dc
     if (tr >= 0 && tr < 10 && tc >= 0 && tc < 9 && board[tr * 9 + tc] === soldierType) return true
   }
-
   return false
 }
 
@@ -440,263 +368,64 @@ const evaluateInternal = (board: InternalBoard, perspectiveIsRed: boolean): numb
 type TTEntry = { key: bigint, score: number, depth: number, flag: number, bestMove: number }
 const TT_SIZE = 1 << 19
 const transpositionTable = new Array<TTEntry | null>(TT_SIZE).fill(null)
-const killerMoves = new Int32Array(100 * 2)
-const historyTable = new Int32Array(90 * 90)
 
-const setTT = (key: bigint, score: number, depth: number, flag: number, bestMove: number) => {
-  transpositionTable[Number(key & BigInt(TT_SIZE - 1))] = { key, score, depth, flag, bestMove }
-}
-
-const moveOrderingScore = (m: InternalMove, ttMove: number, depth: number): number => {
-  const mv = (m.from << 8) | m.to
-  if (mv === ttMove) return 20000000
-  if (m.captured !== EMPTY) return 1000000 + (Math.abs(m.captured) * 100) - Math.abs(m.piece)
-  if (killerMoves[depth * 2] === mv) return 900000
-  if (killerMoves[depth * 2 + 1] === mv) return 800000
-  return historyTable[m.from * 90 + m.to]
-}
-
-// Opening Book
-const OPENING_BOOK: Record<string, string[]> = {
-  // Initial state: Red moves
-  '': [
-    '7744', // 炮二平五
-    '7144', // 炮八平五
-    '9172', // 马八进七
-    '9776', // 马二进三
-    '6252', // 兵三进一
-    '6656', // 兵七进一
-    '9674'  // 相三进五
-  ],
-  // After 炮二平五 (77-44)
-  '7744': [
-    '2124', // 炮8平5 (顺炮)
-    '0122', // 马8进7 (屏风马)
-    '0726', // 马2进3
-    '2724', // 炮2平5
-    '0102'  // 马8进9
-  ],
-  // After 炮二平五, 马8进7
-  '7744,0122': [
-    '9172', // 马八进七
-    '9776', // 马二进三
-    '7141', // 炮八平六
-    '8171'  // 车九进一
-  ],
-  // After 炮二平五, 马8进7, 马二进三
-  '7744,0122,9776': [
-    '0001', // 车9进1
-    '0818', // 车1进1
-    '2724', // 炮2平5
-    '7161', // 炮八进一
-    '9172'  // 马八进七
-  ],
-  // After 炮二平五, 马8进7, 马八进七
-  '7744,0122,9172': [
-    '0001', // 车9进1
-    '0818', // 车1进1
-    '3040', // 卒1进1
-    '0726'  // 马2进3
-  ],
-  // After 马二进三
-  '9776': [
-    '0122', // 马8进7
-    '2124', // 炮8平5
-    '0726'  // 马2进3
-  ],
-  // After 炮八平五
-  '7144': [
-    '2724', // 炮2平5
-    '0726', // 马2进3
-    '0122'  // 马8进7
-  ]
-}
-
-const getOpeningMove = (history: XiangqiMove[]): string | null => {
-  if (history.length > 6) return null // Only for first 3 rounds
-  const key = history.map(m => `${m.from.row}${m.from.col}${m.to.row}${m.to.col}`).join(',')
-  const choices = OPENING_BOOK[key]
-  if (!choices || choices.length === 0) return null
-  return choices[Math.floor(Math.random() * choices.length)]
-}
-
-export const searchBestXiangqiMove = (
+const searchBestXiangqiMoveInternal = (
   board: XiangqiBoard,
   aiSide: XiangqiSide,
   difficulty: XiangqiDifficulty,
   historyKeys: bigint[] = [],
-  timeLimit: number = 3000,
-  history: XiangqiMove[] = []
+  timeLimit: number = 3000
 ): XiangqiSearchResult => {
-  // Check opening book first
-  const bookMoveStr = getOpeningMove(history)
-  if (bookMoveStr) {
-    const fromR = parseInt(bookMoveStr[0]), fromC = parseInt(bookMoveStr[1])
-    const toR = parseInt(bookMoveStr[2]), toC = parseInt(bookMoveStr[3])
-    const fromP = board[fromR][fromC]
-    if (fromP && fromP.side === aiSide) {
-      const legal = generateLegalXiangqiMoves(board, aiSide)
-      const found = legal.find(m => m.from.row === fromR && m.from.col === fromC && m.to.row === toR && m.to.col === toC)
-      if (found) {
-        return { move: found, score: 0, nodes: 0 }
-      }
-    }
-  }
-
   let nodes = 0
   let isAborted = false
   const startTime = Date.now()
   const isRed = aiSide === 'red'
   const ib = boardToInternal(board)
   let ck = getZobristKey(ib, isRed)
-  killerMoves.fill(0); historyTable.fill(0); transpositionTable.fill(null)
-
-  // Track path for repetition detection
-  const currentPath = new BigUint64Array(256)
-  let pathLen = 0
-  for (const k of historyKeys) currentPath[pathLen++] = k
-
-  const checkAborted = () => {
-    if (nodes % 1024 === 0 && Date.now() - startTime > timeLimit) {
-      isAborted = true
-    }
-  }
-
-  const isRepetition = (key: bigint): boolean => {
-    // Check if current key exists in path (at least twice previously makes it 3-fold, but we can penalize even 2-fold)
-    let count = 0
-    for (let i = 0; i < pathLen; i++) {
-      if (currentPath[i] === key) {
-        count++
-        if (count >= 2) return true
-      }
-    }
-    return false
-  }
-
-  const quiesce = (alpha: number, beta: number, sideRed: boolean): number => {
-    nodes++
-    if (nodes % 1024 === 0) checkAborted()
-    if (isAborted) return alpha
-
-    const standPat = evaluateInternal(ib, isRed)
-    if (standPat >= beta) return beta
-    if (alpha < standPat) alpha = standPat
-    const caps = generateLegalInternalMoves(ib, sideRed).filter(m => m.captured !== EMPTY).sort((a, b) => moveOrderingScore(b, 0, 0) - moveOrderingScore(a, 0, 0))
-    for (const m of caps) {
-      const cap = ib[m.to]; ib[m.to] = m.piece; ib[m.from] = EMPTY
-      const s = -quiesce(-beta, -alpha, !sideRed)
-      ib[m.from] = m.piece; ib[m.to] = cap
-      if (isAborted) return alpha
-      if (s >= beta) return beta
-      if (s > alpha) alpha = s
-    }
-    return alpha
-  }
+  transpositionTable.fill(null)
 
   const negamax = (depth: number, alpha: number, beta: number, sideRed: boolean): number => {
     nodes++
-    if (nodes % 1024 === 0) checkAborted()
+    if (nodes % 2048 === 0 && Date.now() - startTime > timeLimit) isAborted = true
     if (isAborted) return alpha
-
-    if (isRepetition(ck)) return 0
-
-    const tt = transpositionTable[Number(ck & BigInt(TT_SIZE - 1))]
-    if (tt && tt.key === ck && tt.depth >= depth) {
-      if (tt.flag === 0) return tt.score
-      if (tt.flag === 1) alpha = Math.max(alpha, tt.score)
-      else if (tt.flag === 2) beta = Math.min(beta, tt.score)
-      if (alpha >= beta) return tt.score
-    }
-    if (depth === 0) return quiesce(alpha, beta, sideRed)
     const moves = generateLegalInternalMoves(ib, sideRed)
     if (moves.length === 0) return isInternalInCheck(ib, sideRed) ? -MATE_SCORE + (difficulty.depth - depth) : 0
-    moves.sort((a, b) => moveOrderingScore(b, tt?.key === ck ? tt.bestMove : 0, depth) - moveOrderingScore(a, tt?.key === ck ? tt.bestMove : 0, depth))
-    
-    let bestS = -Infinity, bestM = 0, alphaOrig = alpha
-    for (let i = 0; i < moves.length; i++) {
-      const m = moves[i], cap = ib[m.to]
-      ib[m.to] = m.piece; ib[m.from] = EMPTY; 
-      const oldCk = ck
-      ck ^= zobristSide[0]
-      ck = updateZobristKey(ck, m.from, m.piece); ck = updateZobristKey(ck, m.to, m.piece); ck = updateZobristKey(ck, m.to, cap)
-      currentPath[pathLen++] = oldCk
-
-      let s
-      if (i === 0) s = -negamax(depth - 1, -beta, -alpha, !sideRed)
-      else { s = -negamax(depth - 1, -alpha - 1, -alpha, !sideRed); if (s > alpha && s < beta) s = -negamax(depth - 1, -beta, -alpha, !sideRed) }
-      
-      pathLen--
-      ck = oldCk
+    if (depth === 0) return evaluateInternal(ib, isRed)
+    let bestS = -Infinity
+    for (const m of moves) {
+      const cap = ib[m.to]; ib[m.to] = m.piece; ib[m.from] = EMPTY
+      const s = -negamax(depth - 1, -beta, -alpha, !sideRed)
       ib[m.from] = m.piece; ib[m.to] = cap
-      
       if (isAborted) return alpha
-      if (s > bestS) { bestS = s; bestM = (m.from << 8) | m.to }
+      if (s > bestS) bestS = s
       alpha = Math.max(alpha, s)
-      if (alpha >= beta) { if (cap === EMPTY) { killerMoves[depth * 2 + 1] = killerMoves[depth * 2]; killerMoves[depth * 2] = (m.from << 8) | m.to; historyTable[m.from * 90 + m.to] += depth * depth }; break }
+      if (alpha >= beta) break
     }
-    setTT(ck, bestS, depth, bestS <= alphaOrig ? 2 : bestS >= beta ? 1 : 0, bestM)
     return bestS
   }
 
   let finalM: InternalMove | null = null, finalS = -Infinity
   for (let d = 1; d <= difficulty.depth; d++) {
-    let alpha = -Infinity, beta = Infinity
-    if (d > 2) { alpha = finalS - 50; beta = finalS + 50 }
-    
-    let bestDMove: InternalMove | null = null
-    let bestDScore = -Infinity
-
-    while (true) {
-      const tt = transpositionTable[Number(ck & BigInt(TT_SIZE - 1))]
-      const root = generateLegalInternalMoves(ib, isRed).sort((a, b) => moveOrderingScore(b, tt?.key === ck ? tt.bestMove : 0, d) - moveOrderingScore(a, tt?.key === ck ? tt.bestMove : 0, d))
-      
-      let bM = root[0], bS = -Infinity
-      for (const m of root) {
-        const cap = ib[m.to]; ib[m.to] = m.piece; ib[m.from] = EMPTY
-        const oldCk = ck
-        ck ^= zobristSide[0]
-        ck = updateZobristKey(ck, m.from, m.piece); ck = updateZobristKey(ck, m.to, m.piece); ck = updateZobristKey(ck, m.to, cap)
-        currentPath[pathLen++] = oldCk
-        
-        let s = -negamax(d - 1, -beta, -alpha, !isRed)
-        
-        // Add small randomness to root scores for non-hard difficulties to vary play
-        if (d === 1 && difficulty.id !== 'hard') {
-          s += (Math.random() * 6 - 3) | 0
-        }
-
-        pathLen--
-        ck = oldCk
-        ib[m.from] = m.piece; ib[m.to] = cap
-        
-        if (isAborted) break
-        if (s > bS) { bS = s; bM = m }
-      }
-      
+    const root = generateLegalInternalMoves(ib, isRed)
+    let bM = root[0], bS = -Infinity
+    for (const m of root) {
+      const cap = ib[m.to]; ib[m.to] = m.piece; ib[m.from] = EMPTY
+      const s = -negamax(d - 1, -Infinity, Infinity, !isRed)
+      ib[m.from] = m.piece; ib[m.to] = cap
       if (isAborted) break
-
-      if (bS <= alpha || bS >= beta) { alpha = -Infinity; beta = Infinity; continue }
-      bestDMove = bM; bestDScore = bS; break
+      if (s > bS) { bS = s; bM = m }
     }
-
-    if (isAborted) {
-      if (!finalM && bestDMove) { finalM = bestDMove; finalS = bestDScore }
-      break
-    }
-
-    finalM = bestDMove; finalS = bestDScore
-    if (Math.abs(finalS) > MATE_SCORE / 2) break
-    if (Date.now() - startTime > timeLimit / 2) break
+    if (isAborted) break
+    finalM = bM; finalS = bS
   }
 
   return { 
     move: finalM ? { from: { row: Math.floor(finalM.from / 9), col: finalM.from % 9 }, to: { row: Math.floor(finalM.to / 9), col: finalM.to % 9 }, piece: getExternalPiece(finalM.piece)!, captured: getExternalPiece(finalM.captured) } : null, 
-    score: finalS, 
-    nodes,
-    isTimeout: isAborted
+    score: finalS, nodes, source: 'fallback', backend: 'built-in'
   }
 }
+
+export const searchBestXiangqiMove = searchBestXiangqiMoveInternal
 
 export const applyXiangqiMove = (board: XiangqiBoard, move: XiangqiMove): XiangqiBoard => {
   const next = cloneXiangqiBoard(board)
@@ -720,25 +449,77 @@ export const isXiangqiGameOver = (board: XiangqiBoard): boolean => {
 export const calculateXiangqiHistoryKeys = (initialBoard: XiangqiBoard, moves: XiangqiMove[]): bigint[] => {
   const keys: bigint[] = []
   let ib = boardToInternal(initialBoard)
-  let isRed = true // Initial turn is red
+  let isRed = true 
   let ck = getZobristKey(ib, isRed)
   keys.push(ck)
-
   for (const m of moves) {
-    const fromIdx = m.from.row * 9 + m.from.col
-    const toIdx = m.to.row * 9 + m.to.col
-    const piece = getInternalPiece(m.piece)
-    const cap = getInternalPiece(m.captured)
-
-    ib[toIdx] = piece
-    ib[fromIdx] = EMPTY
-    
+    const fromIdx = m.from.row * 9 + m.from.col, toIdx = m.to.row * 9 + m.to.col
+    const p = getInternalPiece(m.piece), cap = getInternalPiece(m.captured)
+    ib[toIdx] = p; ib[fromIdx] = EMPTY
     ck ^= zobristSide[0]
-    ck = updateZobristKey(ck, fromIdx, piece)
-    ck = updateZobristKey(ck, toIdx, piece)
-    ck = updateZobristKey(ck, toIdx, cap)
-    keys.push(ck)
-    isRed = !isRed
+    ck = updateZobristKey(ck, fromIdx, p); ck = updateZobristKey(ck, toIdx, p); ck = updateZobristKey(ck, toIdx, cap)
+    keys.push(ck); isRed = !isRed
   }
   return keys
+}
+
+export const boardToFen = (board: XiangqiBoard, activeSide: XiangqiSide): string => {
+  let fen = ''
+  for (let r = 0; r < 10; r++) {
+    let empty = 0
+    for (let c = 0; c < 9; c++) {
+      const piece = board[r][c]
+      if (!piece) empty++
+      else {
+        if (empty > 0) { fen += empty; empty = 0 }
+        const typeMap: any = { horse: 'n', advisor: 'a', elephant: 'b', general: 'k', rook: 'r', cannon: 'c', soldier: 'p' }
+        const char = typeMap[piece.type] || '?'
+        fen += piece.side === 'red' ? char.toUpperCase() : char
+      }
+    }
+    if (empty > 0) fen += empty
+    if (r < 9) fen += '/'
+  }
+  fen += ` ${activeSide === 'red' ? 'w' : 'b'} - - 0 1`
+  return fen
+}
+
+export const moveToUci = (move: XiangqiMove): string => {
+  const f = String.fromCharCode(97 + move.from.col)
+  const r = 9 - move.from.row
+  const tf = String.fromCharCode(97 + move.to.col)
+  const tr = 9 - move.to.row
+  return `${f}${r}${tf}${tr}`
+}
+
+export const uciToMove = (board: XiangqiBoard, uci: string, aiSide?: XiangqiSide): XiangqiMove | null => {
+  const match = uci.match(/^([a-i])(\d+)([a-i])(\d+)$/)
+  if (!match) return null
+  
+  const fromCol = match[1].charCodeAt(0) - 97
+  const fromRank = parseInt(match[2])
+  const toCol = match[3].charCodeAt(0) - 97
+  const toRank = parseInt(match[4])
+  
+  // Standard Fairy-Stockfish xiangqi variant mapping:
+  // a0 is bottom-left (from red's perspective).
+  // In our board array: row 0 is top (black side), row 9 is bottom (red side).
+  // So rank 0 is row 9, rank 9 is row 0.
+  const fromRow = 9 - fromRank
+  const toRow = 9 - toRank
+  
+  if (fromRow < 0 || fromRow >= 10 || fromCol < 0 || fromCol >= 9) return null
+  if (toRow < 0 || toRow >= 10 || toCol < 0 || toCol >= 9) return null
+
+  const piece = board[fromRow][fromCol]
+  
+  if (!piece) return null
+  if (aiSide && piece.side !== aiSide) return null
+  
+  return {
+    from: { row: fromRow, col: fromCol },
+    to: { row: toRow, col: toCol },
+    piece,
+    captured: board[toRow][toCol] || null
+  }
 }
