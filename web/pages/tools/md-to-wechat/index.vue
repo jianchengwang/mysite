@@ -1,156 +1,218 @@
 <template>
-  <div class="min-h-screen bg-[#fcfcfc] font-hand p-4 md:p-8">
-    <div class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-      <div>
-        <h1 class="text-4xl font-bold text-zinc-900 mb-2">MD to WeChat</h1>
-        <p class="text-sm sm:text-base text-zinc-600 italic">Convert Markdown to WeChat official account format with sketch-style polish</p>
-      </div>
-      <div class="flex w-full flex-wrap gap-3 items-center md:w-auto">
-        <button @click="copyWechatFormat" class="sketch-button bg-white text-zinc-900 font-bold">Copy to WeChat</button>
-        <button @click="saveWechatDraft" :disabled="isSavingDraft" class="sketch-button !bg-zinc-900 !text-white disabled:opacity-50">
-          {{ isSavingDraft ? 'Saving Draft...' : 'Save Draft' }}
-        </button>
-        <button @click="pasteExample" class="sketch-button bg-white text-zinc-900">Example</button>
-        <button @click="clearInput" class="sketch-button bg-white text-red-600">Clear</button>
-        <button @click="resetTheme" class="sketch-button bg-white text-zinc-900">Reset Default Style</button>
-        <span v-if="statusMessage" class="text-xs font-bold" :class="statusToneClass">
-          {{ statusMessage }}
-        </span>
-      </div>
-    </div>
-
-    <div class="max-w-7xl mx-auto mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-      <section class="sketch-card bg-white p-4 sm:p-5 space-y-4">
-        <div class="flex items-center justify-between gap-3">
-          <div>
-            <h2 class="text-2xl font-bold text-zinc-900">Draft Metadata</h2>
-            <p class="text-sm text-zinc-500">Used when saving directly to your WeChat official account draft box.</p>
-          </div>
-          <button v-if="!hasWechatAccessToken" class="sketch-button py-2 px-3 text-sm" @click="openGlobalSettings">
-            Open Settings
-          </button>
-        </div>
-
-        <div v-if="!hasWechatAccessToken" class="sketch-border bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Missing WeChat access_token in global settings. Copy still works, but direct draft save will fail.
-        </div>
-
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div class="space-y-2 md:col-span-2">
-            <label class="block text-sm font-bold text-zinc-700">Title</label>
-            <input
-              v-model="articleTitle"
-              type="text"
-              placeholder="Article title"
-              class="w-full p-3 sketch-border bg-white outline-none"
-            />
-          </div>
-
-          <div class="space-y-2">
-            <label class="block text-sm font-bold text-zinc-700">Author</label>
-            <input
-              v-model="articleAuthor"
-              type="text"
-              placeholder="Author name"
-              class="w-full p-3 sketch-border bg-white outline-none"
-            />
-          </div>
-
-          <div class="space-y-2">
-            <label class="block text-sm font-bold text-zinc-700">Source URL</label>
-            <input
-              v-model="articleSourceUrl"
-              type="url"
-              placeholder="https://..."
-              class="w-full p-3 sketch-border bg-white outline-none"
-            />
-          </div>
-
-          <div class="space-y-2 md:col-span-2">
-            <label class="block text-sm font-bold text-zinc-700">Digest</label>
-            <textarea
-              v-model="articleDigest"
-              rows="3"
-              placeholder="Short summary shown in the draft list"
-              class="w-full resize-none p-3 sketch-border bg-white outline-none"
-            ></textarea>
-          </div>
-        </div>
-      </section>
-
-      <section class="sketch-card bg-white p-4 sm:p-5 space-y-4">
+  <div class="min-h-screen bg-[#f8fafc] p-4 font-hand md:p-8">
+    <div class="mx-auto max-w-7xl">
+      <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h2 class="text-2xl font-bold text-zinc-900">Cover & Options</h2>
-          <p class="text-sm text-zinc-500">If no cover is uploaded, the first article image is used as the fallback cover.</p>
+          <h1 class="mb-2 text-4xl font-bold text-zinc-900">MD to WeChat</h1>
+          <p class="text-sm italic text-zinc-600 sm:text-base">
+            Keep the markdown editor and preview at center stage. Publish settings only show up when you need them.
+          </p>
         </div>
 
-        <div class="space-y-3">
-          <div class="flex flex-wrap gap-3">
-            <button @click="triggerCoverUpload" class="sketch-button py-2 px-3 text-sm">Upload Cover</button>
-            <button v-if="coverImageDataUrl" @click="removeCoverImage" class="sketch-button py-2 px-3 text-sm text-red-600">Remove Cover</button>
-          </div>
-          <input ref="coverFileInput" type="file" accept="image/*" class="hidden" @change="handleCoverUpload" />
-
-          <div v-if="coverImageDataUrl" class="overflow-hidden rounded-3xl border-2 border-zinc-200 bg-zinc-50">
-            <img :src="coverImageDataUrl" class="aspect-[16/9] w-full object-cover" />
-          </div>
-          <div v-else class="rounded-3xl border-2 border-dashed border-zinc-200 bg-zinc-50 px-4 py-8 text-center text-sm text-zinc-500">
-            No manual cover uploaded yet.
-          </div>
+        <div class="flex w-full flex-wrap items-center gap-3 lg:w-auto lg:justify-end">
+          <button @click="copyWechatFormat" class="sketch-button bg-white text-zinc-900 font-bold">Copy to WeChat</button>
+          <button @click="showPublishModal = true" class="sketch-button !bg-zinc-900 !text-white">Publish</button>
+          <button @click="pasteExample" class="sketch-button bg-white text-zinc-900">Example</button>
+          <button @click="clearInput" class="sketch-button bg-white text-red-600">Clear</button>
+          <button @click="resetTheme" class="sketch-button bg-white text-zinc-900">Reset Style</button>
+          <span v-if="statusMessage" class="text-xs font-bold" :class="statusToneClass">
+            {{ statusMessage }}
+          </span>
         </div>
-
-        <label class="flex items-start gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
-          <input v-model="showCoverPic" type="checkbox" class="mt-0.5 h-4 w-4 accent-zinc-900" />
-          <span>Show cover image inside the article.</span>
-        </label>
-
-        <label class="flex items-start gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
-          <input v-model="needOpenComment" type="checkbox" class="mt-0.5 h-4 w-4 accent-zinc-900" />
-          <span>Allow comments on this article.</span>
-        </label>
-
-        <label class="flex items-start gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
-          <input v-model="onlyFansCanComment" type="checkbox" :disabled="!needOpenComment" class="mt-0.5 h-4 w-4 accent-zinc-900 disabled:opacity-40" />
-          <span>Only followers can comment.</span>
-        </label>
-      </section>
-    </div>
-
-    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 min-h-[70vh]">
-      <div class="flex flex-col gap-3 h-auto lg:h-full">
-        <div class="flex justify-between items-center px-2">
-          <span class="text-sm font-bold uppercase tracking-wider text-zinc-500">Markdown Editor</span>
-          <span class="text-xs text-zinc-500 italic">{{ markdownInput.length }} chars</span>
-        </div>
-        <textarea
-          v-model="markdownInput"
-          class="flex-1 min-h-[320px] sm:min-h-[420px] lg:min-h-0 w-full p-4 sm:p-6 sketch-card bg-white resize-none outline-none focus:sketch-shadow-sm font-mono text-sm leading-relaxed"
-          placeholder="Paste your markdown here..."
-        ></textarea>
       </div>
 
-      <div class="flex flex-col gap-3 h-auto lg:h-full">
-        <div class="flex justify-between items-center px-2 gap-4">
-          <span class="text-sm font-bold uppercase tracking-wider text-zinc-500">WeChat Preview</span>
-          <div class="flex items-center gap-2">
-            <label class="text-xs text-zinc-500 uppercase tracking-wider">Theme</label>
-            <select v-model="currentTheme" class="sketch-border bg-white px-2 py-1 text-xs outline-none font-hand">
+      <div class="mb-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+        <div class="sketch-card bg-white px-5 py-4">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Working Draft</p>
+              <p class="mt-1 text-lg font-bold text-zinc-900">{{ resolvedArticleTitle }}</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.14em] text-zinc-500">
+              <span class="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1">{{ markdownInput.length }} chars</span>
+              <span class="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1">{{ currentTheme }} theme</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sketch-card bg-white px-5 py-4">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Theme</p>
+              <p class="mt-1 text-sm text-zinc-600">Switch the preview look without leaving the workspace.</p>
+            </div>
+            <select v-model="currentTheme" class="sketch-border bg-white px-3 py-2 text-sm outline-none font-hand">
               <option value="default">Default</option>
               <option value="sketch">Sketch</option>
               <option value="modern">Modern</option>
             </select>
           </div>
         </div>
-        <div class="flex-1 min-h-[320px] sm:min-h-[420px] sketch-card bg-white overflow-y-auto p-0 border-2 border-zinc-900 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-          <div
-            ref="previewArea"
-            class="wechat-content p-4 sm:p-7 md:p-10"
-            :class="[`theme-${currentTheme}`]"
-            v-html="htmlOutput"
-          ></div>
+      </div>
+
+      <div class="grid min-h-[72vh] grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8">
+        <div class="flex h-auto flex-col gap-3 lg:h-full">
+          <div class="flex items-center justify-between px-2">
+            <span class="text-sm font-bold uppercase tracking-wider text-zinc-500">Markdown Editor</span>
+            <span class="text-xs italic text-zinc-500">Bottom-up writing flow</span>
+          </div>
+          <textarea
+            v-model="markdownInput"
+            class="focus:sketch-shadow-sm min-h-[320px] w-full flex-1 resize-none bg-white p-4 font-mono text-sm leading-relaxed outline-none sketch-card sm:min-h-[420px] sm:p-6 lg:min-h-0"
+            placeholder="Paste your markdown here..."
+          ></textarea>
+        </div>
+
+        <div class="flex h-auto flex-col gap-3 lg:h-full">
+          <div class="flex items-center justify-between gap-4 px-2">
+            <span class="text-sm font-bold uppercase tracking-wider text-zinc-500">WeChat Preview</span>
+            <span class="text-xs italic text-zinc-500">Live rendered article</span>
+          </div>
+          <div class="sketch-card flex-1 overflow-y-auto border-2 border-zinc-900 bg-white p-0 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] min-h-[320px] sm:min-h-[420px]">
+            <div
+              ref="previewArea"
+              class="wechat-content p-4 sm:p-7 md:p-10"
+              :class="[`theme-${currentTheme}`]"
+              v-html="htmlOutput"
+            ></div>
+          </div>
         </div>
       </div>
     </div>
+
+    <Teleport to="body">
+      <div
+        v-if="showPublishModal"
+        class="fixed inset-0 z-[120] flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
+        @click.self="showPublishModal = false"
+      >
+        <div class="sketch-card max-h-[92vh] w-full max-w-4xl overflow-y-auto bg-white p-5 sm:p-6">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-[0.22em] text-zinc-500">Publish Panel</p>
+              <h2 class="text-3xl font-bold text-zinc-900">Draft Settings</h2>
+              <p class="mt-2 text-sm leading-6 text-zinc-500">
+                Fill these only when you want to save directly to your WeChat draft box.
+              </p>
+            </div>
+            <button class="text-3xl leading-none text-zinc-500 hover:text-zinc-900" @click="showPublishModal = false">
+              ×
+            </button>
+          </div>
+
+          <div class="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.92fr)]">
+            <section class="space-y-4 rounded-[30px] border-2 border-zinc-900 bg-[#fffdf8] p-4 sm:p-5">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <h3 class="text-2xl font-bold text-zinc-900">Metadata</h3>
+                  <p class="text-sm text-zinc-500">Used by the WeChat official account draft API.</p>
+                </div>
+                <button v-if="!hasWechatAccessToken" class="sketch-button px-3 py-2 text-sm" @click="openGlobalSettings">
+                  Open Settings
+                </button>
+              </div>
+
+              <div v-if="!hasWechatAccessToken" class="sketch-border bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                Missing WeChat access_token in global settings. Copy still works, but direct draft save will fail.
+              </div>
+
+              <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div class="space-y-2 md:col-span-2">
+                  <label class="block text-sm font-bold text-zinc-700">Title</label>
+                  <input
+                    v-model="articleTitle"
+                    type="text"
+                    placeholder="Article title"
+                    class="w-full p-3 sketch-border bg-white outline-none"
+                  />
+                </div>
+
+                <div class="space-y-2">
+                  <label class="block text-sm font-bold text-zinc-700">Author</label>
+                  <input
+                    v-model="articleAuthor"
+                    type="text"
+                    placeholder="Author name"
+                    class="w-full p-3 sketch-border bg-white outline-none"
+                  />
+                </div>
+
+                <div class="space-y-2">
+                  <label class="block text-sm font-bold text-zinc-700">Source URL</label>
+                  <input
+                    v-model="articleSourceUrl"
+                    type="url"
+                    placeholder="https://..."
+                    class="w-full p-3 sketch-border bg-white outline-none"
+                  />
+                </div>
+
+                <div class="space-y-2 md:col-span-2">
+                  <label class="block text-sm font-bold text-zinc-700">Digest</label>
+                  <textarea
+                    v-model="articleDigest"
+                    rows="4"
+                    placeholder="Short summary shown in the draft list"
+                    class="w-full resize-none p-3 sketch-border bg-white outline-none"
+                  ></textarea>
+                </div>
+              </div>
+            </section>
+
+            <section class="space-y-4 rounded-[30px] border-2 border-zinc-900 bg-[#f8fbff] p-4 sm:p-5">
+              <div>
+                <h3 class="text-2xl font-bold text-zinc-900">Cover & Options</h3>
+                <p class="text-sm text-zinc-500">If no cover is uploaded, the first article image is used as fallback.</p>
+              </div>
+
+              <div class="space-y-3">
+                <div class="flex flex-wrap gap-3">
+                  <button @click="triggerCoverUpload" class="sketch-button px-3 py-2 text-sm">Upload Cover</button>
+                  <button v-if="coverImageDataUrl" @click="removeCoverImage" class="sketch-button px-3 py-2 text-sm text-red-600">Remove Cover</button>
+                </div>
+                <input ref="coverFileInput" type="file" accept="image/*" class="hidden" @change="handleCoverUpload" />
+
+                <div v-if="coverImageDataUrl" class="overflow-hidden rounded-3xl border-2 border-zinc-200 bg-zinc-50">
+                  <img :src="coverImageDataUrl" class="aspect-[16/9] w-full object-cover" />
+                </div>
+                <div v-else class="rounded-3xl border-2 border-dashed border-zinc-200 bg-zinc-50 px-4 py-8 text-center text-sm text-zinc-500">
+                  No manual cover uploaded yet.
+                </div>
+              </div>
+
+              <label class="flex items-start gap-3 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600">
+                <input v-model="showCoverPic" type="checkbox" class="mt-0.5 h-4 w-4 accent-zinc-900" />
+                <span>Show cover image inside the article.</span>
+              </label>
+
+              <label class="flex items-start gap-3 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600">
+                <input v-model="needOpenComment" type="checkbox" class="mt-0.5 h-4 w-4 accent-zinc-900" />
+                <span>Allow comments on this article.</span>
+              </label>
+
+              <label class="flex items-start gap-3 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600">
+                <input v-model="onlyFansCanComment" type="checkbox" :disabled="!needOpenComment" class="mt-0.5 h-4 w-4 accent-zinc-900 disabled:opacity-40" />
+                <span>Only followers can comment.</span>
+              </label>
+            </section>
+          </div>
+
+          <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <p class="max-w-2xl text-sm text-zinc-500">
+              Copy works independently. Saving to WeChat only uses the fields above.
+            </p>
+            <div class="flex flex-wrap gap-3">
+              <button class="sketch-button bg-white text-zinc-900" @click="showPublishModal = false">
+                Close
+              </button>
+              <button @click="saveWechatDraft" :disabled="isSavingDraft" class="sketch-button !bg-zinc-900 !text-white disabled:opacity-50">
+                {{ isSavingDraft ? 'Saving Draft...' : 'Save Draft' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -183,6 +245,7 @@ const markdownInput = ref('')
 const currentTheme = ref<ThemeName>('sketch')
 const previewArea = ref<HTMLElement | null>(null)
 const coverFileInput = ref<HTMLInputElement | null>(null)
+const showPublishModal = ref(false)
 const copyStatus = ref<StatusTone | ''>('')
 const copyMessage = ref('')
 const saveStatus = ref<StatusTone | ''>('')

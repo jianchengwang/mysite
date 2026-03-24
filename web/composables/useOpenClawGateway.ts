@@ -117,7 +117,7 @@ const MAX_EVENT_LOG = 80
 const MAX_MINIONS = 12
 const MAX_MESSAGES = 200
 
-const defaultGatewayUrl = 'ws://127.0.0.1:18789'
+const defaultGatewayUrl = 'ws://127.0.0.1:18780'
 const GATEWAY_CONTROL_UI_CLIENT_ID = 'openclaw-control-ui'
 const GATEWAY_WEBCHAT_MODE = 'webchat'
 
@@ -283,7 +283,8 @@ const formatPreview = (value: unknown) => {
   try {
     return truncateText(JSON.stringify(value))
   } catch {
-  return truncateText(String(value))
+    return truncateText(String(value))
+  }
 }
 
 const isAssistantLikeChatMessage = (message: unknown) => {
@@ -299,7 +300,6 @@ const shouldReloadHistoryForFinalEvent = (payload: Record<string, unknown>) => {
     return false
   }
   return !isAssistantLikeChatMessage(payload.message)
-}
 }
 
 const getSubagentTail = (sessionKey: string) => {
@@ -424,6 +424,8 @@ export const useOpenClawGateway = () => {
   let connectTimer: ReturnType<typeof setTimeout> | null = null
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null
   let refreshTimer: ReturnType<typeof setInterval> | null = null
+  let historyPollTimer: ReturnType<typeof setInterval> | null = null
+  let historyPollDeadline = 0
   let connectNonce = ''
   let connectSent = false
   let reconnectDelay = 1200
@@ -680,6 +682,11 @@ export const useOpenClawGateway = () => {
       clearInterval(refreshTimer)
       refreshTimer = null
     }
+    if (historyPollTimer) {
+      clearInterval(historyPollTimer)
+      historyPollTimer = null
+    }
+    historyPollDeadline = 0
   }
 
   const request = <T = unknown>(method: string, params?: unknown): Promise<T> => {
@@ -692,6 +699,14 @@ export const useOpenClawGateway = () => {
       pending.set(id, { resolve, reject })
       ws?.send(JSON.stringify(frame))
     })
+  }
+
+  const stopHistoryPolling = () => {
+    if (historyPollTimer) {
+      clearInterval(historyPollTimer)
+      historyPollTimer = null
+    }
+    historyPollDeadline = 0
   }
 
   const normalizeChatPayload = (payload: Record<string, unknown>): ChatEventState => {
@@ -741,6 +756,7 @@ export const useOpenClawGateway = () => {
     }
 
     if (state === 'final') {
+      stopHistoryPolling()
       if (normalizedMessage) {
         messages.value = [...messages.value, normalizedMessage].slice(-MAX_MESSAGES)
       } else if (streamingText.value.trim()) {
@@ -762,6 +778,7 @@ export const useOpenClawGateway = () => {
     }
 
     if (state === 'aborted') {
+      stopHistoryPolling()
       if (streamingText.value.trim()) {
         messages.value = [
           ...messages.value,
@@ -783,6 +800,7 @@ export const useOpenClawGateway = () => {
     }
 
     if (state === 'error') {
+      stopHistoryPolling()
       lastError.value = toTrimmedString(payload.errorMessage) || 'OpenClaw reported an error.'
       if (lastError.value) {
         pushSystemMessage(lastError.value)
@@ -811,6 +829,44 @@ export const useOpenClawGateway = () => {
     } catch (error) {
       lastError.value = normalizeErrorMessage(error)
     }
+  }
+
+  const startHistoryPolling = (runId: string, userTimestamp: number) => {
+    stopHistoryPolling()
+    historyPollDeadline = Date.now() + 30_000
+
+    const poll = async () => {
+      if (status.value !== 'connected') {
+        stopHistoryPolling()
+        return
+      }
+      if (Date.now() > historyPollDeadline) {
+        stopHistoryPolling()
+        return
+      }
+
+      await loadHistory()
+
+      const hasAssistantReply = messages.value.some((message) => {
+        if (message.role !== 'assistant') return false
+        if (runId && message.runId === runId) return true
+        return message.timestamp >= userTimestamp
+      })
+
+      if (hasAssistantReply) {
+        if (activeRunId.value === runId) {
+          activeRunId.value = ''
+          streamingText.value = ''
+        }
+        stopHistoryPolling()
+      }
+    }
+
+    historyPollTimer = setInterval(() => {
+      void poll()
+    }, 2500)
+
+    void poll()
   }
 
   const loadPresence = async () => {
@@ -1089,7 +1145,6 @@ export const useOpenClawGateway = () => {
       runId,
       sessionKey: sessionKey.value.trim() || 'main'
     }
-
     messages.value = [...messages.value, userMessage].slice(-MAX_MESSAGES)
     draft.value = ''
     sending.value = true
@@ -1101,7 +1156,7 @@ export const useOpenClawGateway = () => {
       const response = await request<{ runId?: string }>('chat.send', {
         sessionKey: sessionKey.value.trim() || 'main',
         message: gatewayText,
-        deliver: false,
+        deliver: true,
         idempotencyKey: runId
       })
 
@@ -1110,9 +1165,11 @@ export const useOpenClawGateway = () => {
         activeRunId.value = serverRunId
         userMessage.id = serverRunId
         userMessage.runId = serverRunId
+        startHistoryPolling(serverRunId, userMessage.timestamp)
         return serverRunId
       }
 
+      startHistoryPolling(runId, userMessage.timestamp)
       return runId
     } catch (error) {
       const message = normalizeErrorMessage(error)
@@ -1133,6 +1190,7 @@ export const useOpenClawGateway = () => {
       await request('chat.abort', activeRunId.value
         ? { sessionKey: currentSessionKey, runId: activeRunId.value }
         : { sessionKey: currentSessionKey })
+      stopHistoryPolling()
       pushSystemMessage('The current run was asked to stop.')
       return true
     } catch (error) {

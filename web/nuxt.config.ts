@@ -151,6 +151,9 @@ export default defineNuxtConfig({
   },
 
   vite: {
+    worker: {
+      format: 'es'
+    },
     server: {
       headers: {
         'Cross-Origin-Opener-Policy': 'same-origin',

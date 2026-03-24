@@ -60,14 +60,14 @@
                   <path d="M 300 0 L 500 200 M 500 0 L 300 200" />
                   <path d="M 300 700 L 500 900 M 500 700 L 300 900" />
                   <!-- River Text -->
-                  <text x="200" y="465" class="fill-zinc-600 font-serif italic text-4xl" stroke="none">楚 河</text>
-                  <text x="600" y="465" class="fill-zinc-600 font-serif italic text-4xl" text-anchor="end" stroke="none">漢 界</text>
+                  <text x="200" y="465" class="fill-zinc-600 font-serif italic text-4xl" stroke="none">{{ riverLeftLabel }}</text>
+                  <text x="600" y="465" class="fill-zinc-600 font-serif italic text-4xl" text-anchor="end" stroke="none">{{ riverRightLabel }}</text>
                 </svg>
               </div>
 
               <div class="xiangqi-board relative z-10" :style="{ gridTemplateColumns: 'repeat(9, minmax(0, 1fr))' }">
                 <button
-                  v-for="(cell, index) in board.flat()"
+                  v-for="(cell, index) in displayedCells"
                   :key="index"
                   class="xiangqi-cell"
                   :class="{
@@ -172,12 +172,21 @@ const selectedDifficulty = computed<XiangqiDifficulty>(
   () => xiangqiDifficulties.find((option) => option.id === difficultyId.value) || xiangqiDifficulties[1]
 )
 const legalMoves = computed(() => generateLegalXiangqiMoves(board.value, currentTurn.value))
+const isBlackPerspective = computed(() => humanSide.value === 'black')
+const riverLeftLabel = computed(() => (isBlackPerspective.value ? '漢 界' : '楚 河'))
+const riverRightLabel = computed(() => (isBlackPerspective.value ? '楚 河' : '漢 界'))
 const selectableMoves = computed(() => {
   if (!selectedPosition.value) return []
   return legalMoves.value.filter(
     (move) => move.from.row === selectedPosition.value?.row && move.from.col === selectedPosition.value?.col
   )
 })
+const displayedCells = computed(() =>
+  Array.from({ length: 90 }, (_, index) => {
+    const { row, col } = displayIndexToCoord(index)
+    return board.value[row][col]
+  })
+)
 const currentTurnLabel = computed(() => (currentTurn.value === 'red' ? 'Red to move' : 'Black to move'))
 const currentCheckLabel = computed(() => {
   if (winner.value) return winner.value === humanSide.value ? 'You converted the attack.' : 'The AI converted the attack.'
@@ -228,7 +237,15 @@ const heroStats = computed(() => [
   { label: 'Board State', value: winner.value ? statusTitle.value : `${moveHistory.value.length} plies` }
 ])
 
-const formatPosition = (position: XiangqiPosition) => `${position.col + 1},${10 - position.row}`
+const orientPosition = (position: XiangqiPosition): XiangqiPosition =>
+  isBlackPerspective.value
+    ? { row: 9 - position.row, col: 8 - position.col }
+    : position
+
+const formatPosition = (position: XiangqiPosition) => {
+  const oriented = orientPosition(position)
+  return `${oriented.col + 1},${10 - oriented.row}`
+}
 
 const lastMoveLabel = computed(() => {
   if (!lastMove.value) return 'No moves yet'
@@ -250,6 +267,7 @@ const ensureWorker = () => {
     }
     pendingSearches.clear()
   }
+  worker.postMessage({ type: 'warmup' })
   workerRef.value = worker
 }
 
@@ -298,31 +316,32 @@ const cancelActiveAi = () => {
   recreateWorker()
 }
 
-const indexToCoord = (index: number) => ({
-  row: Math.floor(index / 9),
-  col: index % 9
-})
+const displayIndexToCoord = (index: number) => {
+  const row = Math.floor(index / 9)
+  const col = index % 9
+  return isBlackPerspective.value ? { row: 9 - row, col: 8 - col } : { row, col }
+}
 
 const isSelectedIndex = (index: number) => {
   if (!selectedPosition.value) return false
-  const { row, col } = indexToCoord(index)
+  const { row, col } = displayIndexToCoord(index)
   return selectedPosition.value.row === row && selectedPosition.value.col === col
 }
 
 const isTargetIndex = (index: number) => {
-  const { row, col } = indexToCoord(index)
+  const { row, col } = displayIndexToCoord(index)
   return selectableMoves.value.some((move) => move.to.row === row && move.to.col === col)
 }
 
 const isLastMoveFromIndex = (index: number) => {
   if (!lastMove.value) return false
-  const { row, col } = indexToCoord(index)
+  const { row, col } = displayIndexToCoord(index)
   return lastMove.value.from.row === row && lastMove.value.from.col === col
 }
 
 const isLastMoveToIndex = (index: number) => {
   if (!lastMove.value) return false
-  const { row, col } = indexToCoord(index)
+  const { row, col } = displayIndexToCoord(index)
   return lastMove.value.to.row === row && lastMove.value.to.col === col
 }
 
@@ -364,7 +383,7 @@ const commitMove = (move: XiangqiMove) => {
 const handleCellClickByIndex = async (index: number) => {
   if (gameOver.value || isThinking.value || currentTurn.value !== humanSide.value) return
 
-  const { row, col } = indexToCoord(index)
+  const { row, col } = displayIndexToCoord(index)
   const cell = board.value[row][col]
   const activeMove = selectableMoves.value.find((move) => move.to.row === row && move.to.col === col)
 

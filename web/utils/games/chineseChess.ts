@@ -181,6 +181,14 @@ const updateZobristKey = (key: bigint, pos: number, piece: number): bigint => {
   return key ^ zobristPieces[pieceIdx * 90 + pos]
 }
 
+const getNextZobristKey = (key: bigint, move: InternalMove): bigint => {
+  let nextKey = key ^ zobristSide[0]
+  nextKey = updateZobristKey(nextKey, move.from, move.piece)
+  nextKey = updateZobristKey(nextKey, move.to, move.piece)
+  nextKey = updateZobristKey(nextKey, move.to, move.captured)
+  return nextKey
+}
+
 // Piece-Square Tables (PST) - Offensive
 const soldierPST = new Int16Array([
   0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -368,13 +376,61 @@ const evaluateInternal = (board: InternalBoard, perspectiveIsRed: boolean): numb
 type TTEntry = { key: bigint, score: number, depth: number, flag: number, bestMove: number }
 const TT_SIZE = 1 << 19
 const transpositionTable = new Array<TTEntry | null>(TT_SIZE).fill(null)
+const TT_EXACT = 0
+const TT_LOWER = 1
+const TT_UPPER = 2
+
+const encodeInternalMove = (move: InternalMove): number => move.from * 128 + move.to
+
+const orderInternalMoves = (
+  board: InternalBoard,
+  moves: InternalMove[],
+  sideRed: boolean,
+  ttBestMove: number = -1
+): InternalMove[] =>
+  [...moves].sort((left, right) => {
+    const scoreMove = (move: InternalMove) => {
+      let score = 0
+      const moveCode = encodeInternalMove(move)
+      if (moveCode === ttBestMove) score += 2_000_000
+      if (move.captured !== EMPTY) {
+        score += 50_000 + Math.abs(getPieceValue(move.captured, move.to, board)) - Math.abs(getPieceValue(move.piece, move.from, board)) / 8
+      }
+
+      const movePiece = Math.abs(move.piece)
+      const fromRow = Math.floor(move.from / 9)
+      const toRow = Math.floor(move.to / 9)
+      const toCol = move.to % 9
+      const fromPst = Math.abs(getPieceValue(move.piece, move.from, board))
+      const toPst = Math.abs(getPieceValue(move.piece, move.to, board))
+      score += toPst - fromPst
+
+      if (movePiece === 7) {
+        const advances = sideRed ? toRow < fromRow : toRow > fromRow
+        if (advances) score += 1800
+      }
+
+      if (movePiece === 4) {
+        score += 500 - Math.abs(4 - toCol) * 120
+      }
+
+      if (movePiece === 6 && toCol === 4) {
+        score += 260
+      }
+
+      return score
+    }
+
+    return scoreMove(right) - scoreMove(left)
+  })
 
 const searchBestXiangqiMoveInternal = (
   board: XiangqiBoard,
   aiSide: XiangqiSide,
   difficulty: XiangqiDifficulty,
   historyKeys: bigint[] = [],
-  timeLimit: number = 3000
+  timeLimit: number = 3000,
+  history: XiangqiMove[] = []
 ): XiangqiSearchResult => {
   let nodes = 0
   let isAborted = false
@@ -384,35 +440,105 @@ const searchBestXiangqiMoveInternal = (
   let ck = getZobristKey(ib, isRed)
   transpositionTable.fill(null)
 
-  const negamax = (depth: number, alpha: number, beta: number, sideRed: boolean): number => {
+  const lastOwnMove = [...history].reverse().find((move) => move.piece.side === aiSide) || null
+  const repetitionCounts = new Map<string, number>()
+  for (const key of historyKeys) {
+    const normalizedKey = key.toString()
+    repetitionCounts.set(normalizedKey, (repetitionCounts.get(normalizedKey) || 0) + 1)
+  }
+  const latestHistoryKey = historyKeys[historyKeys.length - 1] ?? null
+  const isImmediateReversal = (move: InternalMove) => {
+    if (!lastOwnMove || move.captured !== EMPTY) return false
+    return (
+      Math.floor(move.from / 9) === lastOwnMove.to.row &&
+      move.from % 9 === lastOwnMove.to.col &&
+      Math.floor(move.to / 9) === lastOwnMove.from.row &&
+      move.to % 9 === lastOwnMove.from.col
+    )
+  }
+  const getRepetitionPenalty = (move: InternalMove) => {
+    const nextKey = getNextZobristKey(ck, move)
+    const seenCount = repetitionCounts.get(nextKey.toString()) || 0
+    if (!seenCount) return 0
+
+    let penalty = 220 + seenCount * 70
+    if (latestHistoryKey !== null && nextKey === latestHistoryKey) {
+      penalty += 180
+    }
+    if (move.captured !== EMPTY) {
+      penalty = Math.max(80, penalty - 120)
+    }
+    return penalty
+  }
+
+  const negamax = (depth: number, alpha: number, beta: number, sideRed: boolean, key: bigint): number => {
     nodes++
     if (nodes % 2048 === 0 && Date.now() - startTime > timeLimit) isAborted = true
     if (isAborted) return alpha
-    const moves = generateLegalInternalMoves(ib, sideRed)
+    const alphaOrig = alpha
+    const ttIndex = Number(key & BigInt(TT_SIZE - 1))
+    const ttEntry = transpositionTable[ttIndex]
+    if (ttEntry && ttEntry.key === key && ttEntry.depth >= depth) {
+      if (ttEntry.flag === TT_EXACT) return ttEntry.score
+      if (ttEntry.flag === TT_LOWER) alpha = Math.max(alpha, ttEntry.score)
+      if (ttEntry.flag === TT_UPPER) beta = Math.min(beta, ttEntry.score)
+      if (alpha >= beta) return ttEntry.score
+    }
+
+    let moves = generateLegalInternalMoves(ib, sideRed)
     if (moves.length === 0) return isInternalInCheck(ib, sideRed) ? -MATE_SCORE + (difficulty.depth - depth) : 0
     if (depth === 0) return evaluateInternal(ib, isRed)
+    moves = orderInternalMoves(ib, moves, sideRed, ttEntry?.bestMove)
+    if (difficulty.branchLimit && moves.length > difficulty.branchLimit) {
+      moves = moves.slice(0, difficulty.branchLimit)
+    }
     let bestS = -Infinity
+    let bestMoveCode = -1
     for (const m of moves) {
       const cap = ib[m.to]; ib[m.to] = m.piece; ib[m.from] = EMPTY
-      const s = -negamax(depth - 1, -beta, -alpha, !sideRed)
+      const nextKey = getNextZobristKey(key, m)
+      const s = -negamax(depth - 1, -beta, -alpha, !sideRed, nextKey)
       ib[m.from] = m.piece; ib[m.to] = cap
       if (isAborted) return alpha
-      if (s > bestS) bestS = s
+      if (s > bestS) {
+        bestS = s
+        bestMoveCode = encodeInternalMove(m)
+      }
       alpha = Math.max(alpha, s)
       if (alpha >= beta) break
+    }
+    let flag = TT_EXACT
+    if (bestS <= alphaOrig) flag = TT_UPPER
+    else if (bestS >= beta) flag = TT_LOWER
+    transpositionTable[ttIndex] = {
+      key,
+      score: bestS,
+      depth,
+      flag,
+      bestMove: bestMoveCode
     }
     return bestS
   }
 
   let finalM: InternalMove | null = null, finalS = -Infinity
   for (let d = 1; d <= difficulty.depth; d++) {
-    const root = generateLegalInternalMoves(ib, isRed)
+    const rootEntry = transpositionTable[Number(ck & BigInt(TT_SIZE - 1))]
+    let root = generateLegalInternalMoves(ib, isRed)
+    root = orderInternalMoves(ib, root, isRed, rootEntry?.bestMove)
+    if (difficulty.rootMoveLimit && root.length > difficulty.rootMoveLimit) {
+      root = root.slice(0, difficulty.rootMoveLimit)
+    }
     let bM = root[0], bS = -Infinity
     for (const m of root) {
       const cap = ib[m.to]; ib[m.to] = m.piece; ib[m.from] = EMPTY
-      const s = -negamax(d - 1, -Infinity, Infinity, !isRed)
+      const nextKey = getNextZobristKey(ck, m)
+      let s = -negamax(d - 1, -Infinity, Infinity, !isRed, nextKey)
       ib[m.from] = m.piece; ib[m.to] = cap
       if (isAborted) break
+      if (isImmediateReversal(m) && root.length > 1) {
+        s -= 240
+      }
+      s -= getRepetitionPenalty(m)
       if (s > bS) { bS = s; bM = m }
     }
     if (isAborted) break
@@ -461,6 +587,22 @@ export const calculateXiangqiHistoryKeys = (initialBoard: XiangqiBoard, moves: X
     keys.push(ck); isRed = !isRed
   }
   return keys
+}
+
+export const getXiangqiPositionKey = (board: XiangqiBoard, activeSide: XiangqiSide): bigint =>
+  getZobristKey(boardToInternal(board), activeSide === 'red')
+
+export const getXiangqiMoveResultKey = (board: XiangqiBoard, move: XiangqiMove): bigint => {
+  const internalBoard = boardToInternal(board)
+  const internalMove: InternalMove = {
+    from: move.from.row * 9 + move.from.col,
+    to: move.to.row * 9 + move.to.col,
+    piece: getInternalPiece(move.piece),
+    captured: getInternalPiece(move.captured)
+  }
+  const currentSideIsRed = move.piece.side === 'red'
+  const key = getZobristKey(internalBoard, currentSideIsRed)
+  return getNextZobristKey(key, internalMove)
 }
 
 export const boardToFen = (board: XiangqiBoard, activeSide: XiangqiSide): string => {

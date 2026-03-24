@@ -134,7 +134,7 @@ const hint = ref<HuarongdaoHint | null>(null)
 let worker: Worker | null = null
 
 onMounted(() => {
-  worker = new Worker(new URL('/workers/huarongdao-search.worker.ts', import.meta.url), { type: 'module' })
+  worker = new Worker(new URL('../../../workers/huarongdao-search.worker.ts', import.meta.url), { type: 'module' })
   worker.onmessage = (e) => {
     hint.value = e.data
     hintLoading.value = false
@@ -184,8 +184,11 @@ const hintTitle = computed(() => {
   if (isSolved.value) return 'Solved'
   if (hintLoading.value) return 'Calculating...'
   if (!hintRequested.value) return 'Plan Next Move'
-  if (!hintMove.value) return 'No Path Found'
+  if (!hintMove.value) return 'No Exact Path Found'
   const piece = currentPieces.value.find((item) => item.id === hintMove.value?.pieceId)
+  if (hint.value?.remainingSteps === null) {
+    return `${piece?.label || 'Piece'} · Try ${directionLabel(hintMove.value)}`
+  }
   return `${piece?.label || 'Piece'} · Move ${directionLabel(hintMove.value)}`
 })
 
@@ -193,8 +196,11 @@ const hintDetail = computed(() => {
   if (isSolved.value) return 'Cao Cao has reached the exit.'
   if (hintLoading.value) return 'Searching for the shortest path to the exit. This may take a moment...'
   if (!hintRequested.value) return 'Tap Hint to calculate the shortest path from the current board state.'
-  if (!hintMove.value || hint.value?.remainingSteps === null) {
-    return 'No predefined path found for this specific state. Keep trying!'
+  if (hintMove.value && hint.value?.remainingSteps === null) {
+    return 'The exact shortest route timed out, but this move should open the center lane or create more room.'
+  }
+  if (!hintMove.value) {
+    return 'No useful move surfaced in time. Try one or two manual moves and ask again.'
   }
   return `Follow the hint arrow. You are approximately ${hint.value.remainingSteps} steps from solving.`
 })
@@ -299,7 +305,7 @@ const requestHint = () => {
   hintLoading.value = true
   worker?.postMessage({
     pieces: JSON.parse(JSON.stringify(currentPieces.value)),
-    maxStates: 200000
+    maxStates: 320000
   })
 }
 </script>

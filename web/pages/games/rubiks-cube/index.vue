@@ -134,8 +134,28 @@ const viewRotationY = ref(34)
 const activeTurnLabel = ref('')
 const moveHistory = ref<CubeMove[]>([])
 
-const faceTurnAxis: Record<CubeFace, 'x' | 'y' | 'z'> = {
-  U: 'y', D: 'y', L: 'x', R: 'x', F: 'z', B: 'z'
+const moveDefinitions: Record<CubeMove, { axis: 'x' | 'y' | 'z'; layer: number; turns: 1 | -1 }> = {
+  U: { axis: 'y', layer: 1, turns: -1 },
+  "U'": { axis: 'y', layer: 1, turns: 1 },
+  D: { axis: 'y', layer: -1, turns: 1 },
+  "D'": { axis: 'y', layer: -1, turns: -1 },
+  L: { axis: 'x', layer: -1, turns: 1 },
+  "L'": { axis: 'x', layer: -1, turns: -1 },
+  R: { axis: 'x', layer: 1, turns: -1 },
+  "R'": { axis: 'x', layer: 1, turns: 1 },
+  F: { axis: 'z', layer: 1, turns: -1 },
+  "F'": { axis: 'z', layer: 1, turns: 1 },
+  B: { axis: 'z', layer: -1, turns: 1 },
+  "B'": { axis: 'z', layer: -1, turns: -1 }
+}
+
+const faceDragMap: Record<CubeFace, { horizontal: [CubeMove, CubeMove]; vertical: [CubeMove, CubeMove] }> = {
+  F: { horizontal: ["F'", 'F'], vertical: ["F'", 'F'] },
+  B: { horizontal: ['B', "B'"], vertical: ['B', "B'"] },
+  R: { horizontal: ["R'", 'R'], vertical: ['R', "R'"] },
+  L: { horizontal: ['L', "L'"], vertical: ["L'", 'L'] },
+  U: { horizontal: ["U'", 'U'], vertical: ["U'", 'U'] },
+  D: { horizontal: ['D', "D'"], vertical: ['D', "D'"] }
 }
 
 const formatTurnLabel = (move: CubeMove) => {
@@ -167,6 +187,15 @@ const clearFacePreview = () => {
 }
 
 const guide = computed(() => getCubeGuide(cube.value, moveHistory.value))
+const currentGuideStep = computed(() => {
+  const match = guide.value.title.match(/^Step\s+(\d+)/i)
+  return match ? Number(match[1]) : 0
+})
+const heroStats = computed(() => [
+  { label: 'Solved Faces', value: `${countSolvedFaces(cube.value)}/6` },
+  { label: 'Solved Stickers', value: `${countSolvedStickers(cube.value)}/54` },
+  { label: 'Moves', value: String(moveHistory.value.length) }
+])
 const cubeTransform = computed(
   () => `rotateX(${viewRotationX.value}deg) rotateY(${viewRotationY.value}deg)`
 )
@@ -177,7 +206,6 @@ const cubieStyle = (cubie: any) => {
   const { x, y, z } = cubie.position
   const transforms = [`translate3d(calc(${x} * var(--cubie-size)), calc(${-y} * var(--cubie-size)), calc(${z} * var(--cubie-size)))`]
 
-  // Apply either the active animation or the current drag preview
   const axis = turningAxis.value || previewAxis.value
   const layer = turningLayer.value ?? previewLayer.value
   
@@ -191,32 +219,17 @@ const cubieStyle = (cubie: any) => {
   }
 }
 
-const handleStickerPointerDown = (side: string, cubie: any, event: PointerEvent) => {
+const handleStickerPointerDown = (side: string, _cubie: any, event: PointerEvent) => {
+  if (turningAxis.value) return
   const sideToFace: Record<string, CubeFace> = {
     py: 'U', ny: 'D', px: 'R', nx: 'L', pz: 'F', nz: 'B'
   }
-  activeCubie = cubie
   beginPointerInteraction('face', event, sideToFace[side])
 }
 
 const performMove = (move: CubeMove, options: { animate?: boolean } = {}) => {
+  if (turningAxis.value) return
   if (options.animate !== false) {
-    const face = move[0] as CubeFace
-    
-    const moveDefinitions: any = {
-      U: { axis: 'y', layer: 1, turns: -1 },
-      "U'": { axis: 'y', layer: 1, turns: 1 },
-      D: { axis: 'y', layer: -1, turns: 1 },
-      "D'": { axis: 'y', layer: -1, turns: -1 },
-      L: { axis: 'x', layer: -1, turns: 1 },
-      "L'": { axis: 'x', layer: -1, turns: -1 },
-      R: { axis: 'x', layer: 1, turns: -1 },
-      "R'": { axis: 'x', layer: 1, turns: 1 },
-      F: { axis: 'z', layer: 1, turns: -1 },
-      "F'": { axis: 'z', layer: 1, turns: 1 },
-      B: { axis: 'z', layer: -1, turns: 1 },
-      "B'": { axis: 'z', layer: -1, turns: -1 }
-    }
     const def = moveDefinitions[move]
 
     activeTurnLabel.value = formatTurnLabel(move)
@@ -273,88 +286,59 @@ const resetCube = () => {
 }
 
 type PointerMode = 'orbit' | 'face' | null
+type FaceDragAxis = 'horizontal' | 'vertical' | null
+
+const FACE_PREVIEW_THRESHOLD = 18
+const FACE_COMMIT_THRESHOLD = 38
+const FACE_AXIS_LOCK_RATIO = 1.3
+const FACE_AXIS_LOCK_GAP = 9
 
 let pointerMode: PointerMode = null
 let activePointerId: number | null = null
 let activeFace: CubeFace | null = null
-let activeCubie: any = null
+let activePointerTarget: HTMLElement | null = null
+let lockedFaceDragAxis: FaceDragAxis = null
 let startX = 0
 let startY = 0
 let startRotationX = viewRotationX.value
 let startRotationY = viewRotationY.value
 
-const resolveFaceMove = (face: CubeFace, cubie: any, dx: number, dy: number): CubeMove | null => {
-  if (!cubie) return null
-  const absX = Math.abs(dx), absY = Math.abs(dy)
-  const threshold = 12
-  if (Math.max(absX, absY) < threshold) return null
+const detectFaceDragAxis = (dx: number, dy: number): FaceDragAxis => {
+  const absX = Math.abs(dx)
+  const absY = Math.abs(dy)
+  const maxDistance = Math.max(absX, absY)
+  const minDistance = Math.min(absX, absY)
 
-  const { x, y, z } = cubie.position
-  
-  // Logic: for each face, determine if drag is primarily horizontal or vertical on the screen,
-  // then map that to the correct rotation based on the cubie's position on that face.
-  if (face === 'F') {
-    if (absX >= absY) {
-      if (y === 1) return dx > 0 ? "U'" : 'U'
-      if (y === -1) return dx > 0 ? 'D' : "D'"
-      if (y === 0) return dx > 0 ? "U'" : 'U'
-    } else {
-      if (x === 1) return dy < 0 ? 'R' : "R'"
-      if (x === -1) return dy < 0 ? "L'" : 'L'
-      if (x === 0) return dy < 0 ? 'R' : "R'"
-    }
-  } else if (face === 'B') {
-    if (absX >= absY) {
-      if (y === 1) return dx > 0 ? 'U' : "U'"
-      if (y === -1) return dx > 0 ? "D'" : 'D'
-    } else {
-      if (x === 1) return dy < 0 ? "R'" : 'R'
-      if (x === -1) return dy < 0 ? 'L' : "L'"
-    }
-  } else if (face === 'U') {
-    if (absX >= absY) {
-      if (z === 1) return dx > 0 ? "F'" : 'F'
-      if (z === -1) return dx > 0 ? 'B' : "B'"
-    } else {
-      if (x === 1) return dy < 0 ? 'R' : "R'"
-      if (x === -1) return dy < 0 ? "L'" : 'L'
-    }
-  } else if (face === 'D') {
-    if (absX >= absY) {
-      if (z === 1) return dx > 0 ? 'F' : "F'"
-      if (z === -1) return dx > 0 ? "B'" : 'B'
-    } else {
-      if (x === 1) return dy < 0 ? "R'" : 'R'
-      if (x === -1) return dy < 0 ? 'L' : "L'"
-    }
-  } else if (face === 'R') {
-    if (absX >= absY) {
-      if (y === 1) return dx > 0 ? "U'" : 'U'
-      if (y === -1) return dx > 0 ? 'D' : "D'"
-    } else {
-      if (z === 1) return dy < 0 ? "F'" : 'F'
-      if (z === -1) return dy < 0 ? 'B' : "B'"
-    }
-  } else if (face === 'L') {
-    if (absX >= absY) {
-      if (y === 1) return dx > 0 ? 'U' : "U'"
-      if (y === -1) return dx > 0 ? "D'" : 'D'
-    } else {
-      if (z === 1) return dy < 0 ? 'F' : "F'"
-      if (z === -1) return dy < 0 ? "B'" : 'B'
-    }
+  if (maxDistance < FACE_PREVIEW_THRESHOLD) return null
+  if (maxDistance < minDistance * FACE_AXIS_LOCK_RATIO) return null
+  if (maxDistance - minDistance < FACE_AXIS_LOCK_GAP) return null
+
+  return absX >= absY ? 'horizontal' : 'vertical'
+}
+
+const resolveFaceMove = (face: CubeFace, dx: number, dy: number, axisOverride: FaceDragAxis = null): CubeMove | null => {
+  const mapping = faceDragMap[face]
+  const axis = axisOverride || detectFaceDragAxis(dx, dy)
+  if (!axis) return null
+
+  if (axis === 'horizontal') {
+    return dx < 0 ? mapping.horizontal[0] : mapping.horizontal[1]
   }
-  
-  return null
+  return dy < 0 ? mapping.vertical[0] : mapping.vertical[1]
 }
 
 const endPointerInteraction = (preserveFaceAnimation = false) => {
+  if (activePointerTarget && activePointerId !== null && activePointerTarget.hasPointerCapture?.(activePointerId)) {
+    activePointerTarget.releasePointerCapture(activePointerId)
+  }
+  activePointerTarget = null
   activePointerId = null
   activeFace = null
-  activeCubie = null
   pointerMode = null
+  lockedFaceDragAxis = null
   window.removeEventListener('pointermove', handlePointerMove)
   window.removeEventListener('pointerup', handlePointerUp)
+  window.removeEventListener('pointercancel', handlePointerUp)
   if (!preserveFaceAnimation) {
     clearFacePreview()
     activeTurnLabel.value = ''
@@ -366,30 +350,20 @@ const handlePointerMove = (event: PointerEvent) => {
   if (pointerMode === 'face' && activeFace) {
     const dx = event.clientX - startX
     const dy = event.clientY - startY
-    const move = resolveFaceMove(activeFace, activeCubie, dx, dy)
-    
+    if (!lockedFaceDragAxis) {
+      lockedFaceDragAxis = detectFaceDragAxis(dx, dy)
+    }
+    const move = resolveFaceMove(activeFace, dx, dy, lockedFaceDragAxis)
+
     if (move) {
-      const moveDefinitions: any = {
-        U: { axis: 'y', layer: 1, turns: -1 },
-        "U'": { axis: 'y', layer: 1, turns: 1 },
-        D: { axis: 'y', layer: -1, turns: 1 },
-        "D'": { axis: 'y', layer: -1, turns: -1 },
-        L: { axis: 'x', layer: -1, turns: 1 },
-        "L'": { axis: 'x', layer: -1, turns: -1 },
-        R: { axis: 'x', layer: 1, turns: -1 },
-        "R'": { axis: 'x', layer: 1, turns: 1 },
-        F: { axis: 'z', layer: 1, turns: -1 },
-        "F'": { axis: 'z', layer: 1, turns: 1 },
-        B: { axis: 'z', layer: -1, turns: 1 },
-        "B'": { axis: 'z', layer: -1, turns: -1 }
-      }
       const def = moveDefinitions[move]
-      const dominantDelta = Math.abs(dx) >= Math.abs(dy) ? dx : -dy
-      
+      const dominantDelta = lockedFaceDragAxis === 'vertical' ? dy : dx
+      const previewTravel = Math.max(0, Math.abs(dominantDelta) - FACE_PREVIEW_THRESHOLD)
+
       previewFace.value = activeFace
       previewAxis.value = def.axis
       previewLayer.value = def.layer
-      previewAngle.value = def.turns * Math.max(0, Math.min(34, Math.abs(dominantDelta) * 0.45))
+      previewAngle.value = def.turns * Math.max(0, Math.min(42, previewTravel * 0.5))
       previewMove.value = move
       activeTurnLabel.value = formatTurnLabel(move)
     } else {
@@ -414,8 +388,9 @@ const handlePointerUp = (event: PointerEvent) => {
   if (pointerMode === 'face' && activeFace) {
     const dx = event.clientX - startX
     const dy = event.clientY - startY
-    const move = resolveFaceMove(activeFace, activeCubie, dx, dy)
-    if (move && Math.max(Math.abs(dx), Math.abs(dy)) > 24) {
+    const move = resolveFaceMove(activeFace, dx, dy, lockedFaceDragAxis)
+    const commitDistance = lockedFaceDragAxis === 'vertical' ? Math.abs(dy) : Math.abs(dx)
+    if (move && commitDistance >= FACE_COMMIT_THRESHOLD) {
       performMove(move)
       triggeredTurn = true
     }
@@ -425,29 +400,29 @@ const handlePointerUp = (event: PointerEvent) => {
 }
 
 const beginPointerInteraction = (mode: PointerMode, event: PointerEvent, face: CubeFace | null = null) => {
+  const target = event.currentTarget instanceof HTMLElement ? event.currentTarget : null
   activePointerId = event.pointerId
   activeFace = face
+  activePointerTarget = target
   pointerMode = mode
+  lockedFaceDragAxis = null
   startX = event.clientX
   startY = event.clientY
   startRotationX = viewRotationX.value
   startRotationY = viewRotationY.value
+  target?.setPointerCapture?.(event.pointerId)
   window.addEventListener('pointermove', handlePointerMove)
   window.addEventListener('pointerup', handlePointerUp)
+  window.addEventListener('pointercancel', handlePointerUp)
 }
 
 const handleStagePointerDown = (event: PointerEvent) => {
   const target = event.target as HTMLElement
-  if (target.closest('.cube-face')) return
+  if (turningAxis.value || target.closest('.cubie-sticker')) return
   beginPointerInteraction('orbit', event)
 }
 
-const handleFacePointerDown = (face: CubeFace, event: PointerEvent) => {
-  beginPointerInteraction('face', event, face)
-}
-
 onUnmounted(() => {
-  window.clearTimeout(turnAnimationTimer)
   endPointerInteraction()
 })
 </script>
@@ -459,6 +434,8 @@ onUnmounted(() => {
   place-items: center;
   min-height: 560px;
   overflow: hidden;
+  touch-action: none;
+  user-select: none;
   border-radius: 32px;
   border: 1px dashed rgba(113, 113, 122, 0.4);
   background:
@@ -524,6 +501,7 @@ onUnmounted(() => {
   border: 4px solid #18181b;
   backface-visibility: hidden;
   cursor: grab;
+  touch-action: none;
 }
 
 .cubie-sticker:active {

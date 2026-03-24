@@ -86,7 +86,7 @@
                       class="absolute"
                       :style="stageWorkerStyle(index)"
                     >
-                      <div class="flex min-w-[130px] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-2">
+                      <div class="flex min-w-[112px] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1.5">
                         <div class="flex flex-wrap items-center justify-center gap-2">
                           <span class="rounded-full border-2 border-zinc-900 bg-white/95 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-700 shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
                             {{ worker.title }}
@@ -99,7 +99,7 @@
                           </span>
                         </div>
                         <WorkshopActorSprite :variant="worker.variant" :status="worker.status" :scale="worker.scale" size="stage" />
-                        <p class="max-w-[9rem] text-center text-[11px] uppercase tracking-[0.14em] text-zinc-600">
+                        <p class="max-w-[7.5rem] text-center text-[10px] uppercase tracking-[0.12em] text-zinc-600">
                           {{ worker.note }}
                         </p>
                       </div>
@@ -524,7 +524,7 @@
               <input
                 v-model="gatewayUrl"
                 class="w-full rounded-[18px] border-2 border-zinc-900 bg-[#fffdf8] px-4 py-3 text-sm outline-none"
-                placeholder="ws://127.0.0.1:18789"
+                placeholder="ws://127.0.0.1:18780"
               />
             </label>
             <label class="space-y-2">
@@ -659,11 +659,11 @@ const THINK_TAG_PATTERN = /<think>([\s\S]*?)<\/think>/gi
 const FINAL_TAG_PATTERN = /<final>([\s\S]*?)<\/final>/gi
 
 const stageSlots: StageSlot[] = [
-  { left: '16%', top: '74%', scale: 1.65 }, // Front Left (part of big workstation)
-  { left: '32%', top: '74%', scale: 1.65 }, // Mid Left (part of big workstation)
-  { left: '20%', top: '50%', scale: 1.35 }, // Back Left Workstation
-  { left: '74%', top: '50%', scale: 1.35 }, // Back Right Workstation
-  { left: '86%', top: '78%', scale: 1.75 }  // Bottom Right Workstation
+  { left: '18.2%', top: '64.5%', scale: 1.4 }, // Large left workstation, left slot
+  { left: '26.6%', top: '64.5%', scale: 1.4 }, // Large left workstation, right slot
+  { left: '82.8%', top: '77.2%', scale: 1.42 }, // Bottom-right workstation
+  { left: '19.6%', top: '45.5%', scale: 1.18 }, // Back-left workstation
+  { left: '83.2%', top: '22.8%', scale: 1.18 } // Narrow top-right perch
 ]
 
 const workerOptions: WorkerOption[] = [

@@ -9,7 +9,46 @@ import {
 } from '../utils/games/huarongdao'
 
 self.onmessage = (e: MessageEvent) => {
-  const { pieces, maxDepth = 200, maxStates = 100000 } = e.data
+  const { pieces, maxDepth = 240, maxStates = 320000 } = e.data
+
+  const scoreHintMove = (currentPieces: HuarongdaoPiece[], move: HuarongdaoMove) => {
+    const nextPieces = applyHuarongdaoMove(currentPieces, move)
+    const cao = nextPieces.find((piece) => piece.id === 'cao')
+    if (!cao) return Number.NEGATIVE_INFINITY
+
+    let centralLaneBlocks = 0
+    for (const piece of nextPieces) {
+      if (piece.id === 'cao') continue
+      for (let y = piece.y; y < piece.y + piece.height; y++) {
+        for (let x = piece.x; x < piece.x + piece.width; x++) {
+          if (x >= 1 && x <= 2 && y >= 2) {
+            centralLaneBlocks++
+          }
+        }
+      }
+    }
+
+    const nextMobility = getHuarongdaoLegalMoves(nextPieces).length
+    const caoProgress = cao.y * 180 - Math.abs(cao.x - 1) * 70
+    const moveBias =
+      move.pieceId === 'cao'
+        ? move.dy > 0
+          ? 260
+          : move.dx !== 0
+            ? 90
+            : -40
+        : move.dy > 0
+          ? 48
+          : 12
+
+    return caoProgress + nextMobility * 14 - centralLaneBlocks * 58 + moveBias
+  }
+
+  const getFallbackHintMove = (currentPieces: HuarongdaoPiece[]) => {
+    const legalMoves = getHuarongdaoLegalMoves(currentPieces)
+    if (!legalMoves.length) return null
+    return [...legalMoves].sort((left, right) => scoreHintMove(currentPieces, right) - scoreHintMove(currentPieces, left))[0]
+  }
 
   if (isHuarongdaoSolved(pieces)) {
     self.postMessage({ move: null, remainingSteps: 0, explored: 1 })
@@ -20,22 +59,26 @@ self.onmessage = (e: MessageEvent) => {
     { pieces: cloneHuarongdaoPieces(pieces), firstMove: null, depth: 0 }
   ]
   const visited = new Set<string>([serializeHuarongdaoState(pieces)])
+  let queueIndex = 0
   let explored = 0
   const startTime = Date.now()
-  const TIME_LIMIT = 2000 // 2 seconds limit
+  const TIME_LIMIT = 3600
 
-  while (queue.length) {
-    const current = queue.shift()!
+  while (queueIndex < queue.length) {
+    const current = queue[queueIndex++]
     explored++
 
-    // Check limits
     if (explored > maxStates || (Date.now() - startTime) > TIME_LIMIT) {
       break
     }
 
     if (current.depth >= maxDepth) continue
 
-    for (const move of getHuarongdaoLegalMoves(current.pieces)) {
+    const orderedMoves = [...getHuarongdaoLegalMoves(current.pieces)].sort(
+      (left, right) => scoreHintMove(current.pieces, right) - scoreHintMove(current.pieces, left)
+    )
+
+    for (const move of orderedMoves) {
       const nextPieces = applyHuarongdaoMove(current.pieces, move)
       const key = serializeHuarongdaoState(nextPieces)
       if (visited.has(key)) continue
@@ -61,8 +104,9 @@ self.onmessage = (e: MessageEvent) => {
     }
   }
 
+  const fallbackMove = getFallbackHintMove(pieces)
   self.postMessage({
-    move: null,
+    move: fallbackMove,
     remainingSteps: null,
     explored
   })

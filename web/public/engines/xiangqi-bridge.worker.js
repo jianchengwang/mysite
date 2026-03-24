@@ -249,7 +249,20 @@ const searchWithEngine = async (request) => {
 
 self.onmessage = async (event) => {
   const request = event.data
-  if (!request || request.type !== 'search') {
+  if (!request) {
+    return
+  }
+
+  if (request.type === 'warmup') {
+    try {
+      await Promise.all([ensureEngine(), ensureOpeningBook()])
+    } catch (error) {
+      console.error(error)
+    }
+    return
+  }
+
+  if (request.type !== 'search') {
     return
   }
 
