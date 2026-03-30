@@ -116,6 +116,7 @@ const CONNECT_TIMEOUT_MS = 750
 const MAX_EVENT_LOG = 80
 const MAX_MINIONS = 12
 const MAX_MESSAGES = 200
+const CHAT_WINDOW_SLOP_MS = 2_000
 
 const defaultGatewayUrl = 'ws://127.0.0.1:18780'
 const GATEWAY_CONTROL_UI_CLIENT_ID = 'openclaw-control-ui'
@@ -237,10 +238,163 @@ const extractTextParts = (message: unknown): string[] => {
   return blocks.filter(Boolean)
 }
 
-const normalizeChatMessage = (message: unknown, fallback: Partial<LobsterChatMessage> = {}): LobsterChatMessage | null => {
-  const blocks = extractTextParts(message).map(text => ({ type: 'text' as const, text }))
-  if (blocks.length === 0) return null
+const looksLikeStructuredMachinePayload = (text: string) => {
+  const trimmed = text.trim()
+  if (!trimmed) return false
+  return (
+    /^[\[{]/.test(trimmed) ||
+    /"nodes"|"commands"|"pathEnv"|"displayName"|"remoteIp"|"connectedAtMs"/.test(trimmed)
+  )
+}
 
+const parseStructuredMachinePayload = (text: string) => {
+  try {
+    const parsed = JSON.parse(text) as Record<string, unknown>
+    if (!parsed || typeof parsed !== 'object') return null
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+const summarizeStructuredPayload = (text: string) => {
+  try {
+    const parsed = parseStructuredMachinePayload(text)
+    if (!parsed || typeof parsed !== 'object') {
+      return '[Large machine response omitted.]'
+    }
+
+    const summaryParts: string[] = []
+
+    if (typeof parsed.status === 'string' && parsed.status) {
+      summaryParts.push(`status: ${parsed.status}`)
+    }
+    if (typeof parsed.action === 'string' && parsed.action) {
+      summaryParts.push(`action: ${parsed.action}`)
+    }
+    if (typeof parsed.count === 'number') {
+      summaryParts.push(`count: ${parsed.count}`)
+    }
+    if (Array.isArray(parsed.nodes)) {
+      summaryParts.push(`${parsed.nodes.length} node(s)`)
+    }
+    if (Array.isArray(parsed.commands)) {
+      summaryParts.push(`${parsed.commands.length} command(s)`)
+    }
+
+    return summaryParts.length
+      ? `[Large machine response omitted: ${summaryParts.join(', ')}.]`
+      : '[Large machine response omitted.]'
+  } catch {
+    return '[Large machine response omitted.]'
+  }
+}
+
+const summarizeStructuredErrorPayload = (payload: Record<string, unknown>) => {
+  const tool = toTrimmedString(payload.tool)
+  const action = toTrimmedString(payload.action)
+  const status = toTrimmedString(payload.status)
+  const directError =
+    toTrimmedString(payload.error) ||
+    toTrimmedString(payload.errorMessage) ||
+    toTrimmedString(payload.message)
+
+  let objectError = ''
+  if (!directError && payload.error && typeof payload.error === 'object') {
+    objectError = formatPreview(payload.error)
+  }
+
+  const errorText = directError || objectError || 'Unknown gateway error.'
+  const prefixParts = [tool, action, status].filter(Boolean)
+  const prefix = prefixParts.length ? `${prefixParts.join(' / ')}: ` : ''
+  return `[Gateway error] ${prefix}${errorText}`
+}
+
+const flattenChatBlocks = (message: LobsterChatMessage) =>
+  message.blocks
+    .map(block => block.text.trim())
+    .filter(Boolean)
+    .join('\n\n')
+    .trim()
+
+const getMessageIdentityKey = (message: LobsterChatMessage) => {
+  const normalizedText = flattenChatBlocks(message).replace(/\s+/g, ' ').trim()
+  const sessionKey = message.sessionKey || ''
+  if (message.runId) {
+    return `${message.role}|${sessionKey}|run|${message.runId}|${normalizedText}`
+  }
+  return `${message.role}|${sessionKey}|ts|${message.timestamp}|${normalizedText}`
+}
+
+const isEquivalentChatMessage = (left: LobsterChatMessage, right: LobsterChatMessage) => {
+  if (left.role !== right.role) return false
+  const leftSession = left.sessionKey || ''
+  const rightSession = right.sessionKey || ''
+  if (leftSession && rightSession && leftSession !== rightSession) return false
+  if (flattenChatBlocks(left) !== flattenChatBlocks(right)) return false
+  if (left.role === 'user') {
+    if (left.runId && right.runId && left.runId !== right.runId) return false
+    return Math.abs(left.timestamp - right.timestamp) < 120_000
+  }
+  if (left.runId || right.runId) {
+    return (left.runId || '') === (right.runId || '')
+  }
+  return Math.abs(left.timestamp - right.timestamp) < 90_000
+}
+
+const upsertAssistantMessageForRun = (existing: LobsterChatMessage[], nextMessage: LobsterChatMessage) => {
+  if (nextMessage.role !== 'assistant') {
+    return [...existing, nextMessage].slice(-MAX_MESSAGES)
+  }
+
+  const nextRunId = nextMessage.runId || ''
+  if (!nextRunId) {
+    return [...existing, nextMessage].slice(-MAX_MESSAGES)
+  }
+
+  return [
+    ...existing.filter((message) => !(message.role === 'assistant' && (message.runId || '') === nextRunId)),
+    nextMessage
+  ].slice(-MAX_MESSAGES)
+}
+
+const sanitizeChatText = (text: string, role: LobsterChatMessage['role']) => {
+  const trimmed = text.trim()
+  if (!trimmed) return ''
+  if (/\[chat\.history\].*message too large/i.test(trimmed)) {
+    return '[History skipped an oversized reply.]'
+  }
+
+  const structuredPayload = role !== 'user' ? parseStructuredMachinePayload(trimmed) : null
+  if (structuredPayload) {
+    const hasMachineErrorEnvelope =
+      typeof structuredPayload.status === 'string' &&
+      String(structuredPayload.status).toLowerCase() === 'error' &&
+      (typeof structuredPayload.error === 'string' || typeof structuredPayload.tool === 'string')
+
+    if (hasMachineErrorEnvelope) {
+      return summarizeStructuredErrorPayload(structuredPayload)
+    }
+  }
+
+  const lineCount = trimmed.split(/\r?\n/).length
+  const oversizedMachineReply =
+    role !== 'user' &&
+    looksLikeStructuredMachinePayload(trimmed) &&
+    (trimmed.length > 700 || lineCount > 20)
+
+  if (oversizedMachineReply) {
+    return summarizeStructuredPayload(trimmed)
+  }
+
+  if (role !== 'user' && trimmed.length > 2_000) {
+    return `${truncateText(trimmed, 520)}\n\n[Large reply truncated.]`
+  }
+
+  return trimmed
+}
+
+const normalizeChatMessage = (message: unknown, fallback: Partial<LobsterChatMessage> = {}): LobsterChatMessage | null => {
   const roleValue =
     message && typeof message === 'object' && typeof (message as Record<string, unknown>).role === 'string'
       ? String((message as Record<string, unknown>).role).toLowerCase()
@@ -252,6 +406,12 @@ const normalizeChatMessage = (message: unknown, fallback: Partial<LobsterChatMes
       : roleValue === 'system'
         ? 'system'
         : 'assistant'
+
+  const blocks = extractTextParts(message)
+    .map(text => sanitizeChatText(text, role))
+    .filter(Boolean)
+    .map(text => ({ type: 'text' as const, text }))
+  if (blocks.length === 0) return null
 
   const timestamp =
     message && typeof message === 'object' && typeof (message as Record<string, unknown>).timestamp === 'number'
@@ -419,6 +579,7 @@ export const useOpenClawGateway = () => {
   const availableMethods = ref<string[]>([])
   const availableEvents = ref<string[]>([])
   const deviceAuthReady = ref(false)
+  const chatWindowStartedAt = ref(Date.now())
 
   let ws: WebSocket | null = null
   let connectTimer: ReturnType<typeof setTimeout> | null = null
@@ -579,6 +740,63 @@ export const useOpenClawGateway = () => {
     messages.value = [...messages.value, message].slice(-MAX_MESSAGES)
   }
 
+  const resetChatWindow = (startedAt = Date.now()) => {
+    chatWindowStartedAt.value = startedAt
+    stopHistoryPolling()
+    messages.value = []
+    minionCards.value = []
+    streamingText.value = ''
+    activeRunId.value = ''
+    lastError.value = ''
+  }
+
+  const mergeHistoryMessages = (incoming: LobsterChatMessage[]) => {
+    const windowStart = chatWindowStartedAt.value - CHAT_WINDOW_SLOP_MS
+    const filteredIncoming = incoming.filter(message => message.timestamp >= windowStart)
+    const nextMap = new Map<string, LobsterChatMessage>()
+
+    messages.value
+      .filter(message => message.timestamp >= windowStart)
+      .forEach((message) => {
+        nextMap.set(getMessageIdentityKey(message), message)
+      })
+
+    filteredIncoming.forEach((message) => {
+      const messageKey = getMessageIdentityKey(message)
+      const equivalentEntry = [...nextMap.entries()].find(([, existing]) => isEquivalentChatMessage(existing, message))
+      if (equivalentEntry) {
+        const [existingKey, existingMessage] = equivalentEntry
+        const nextMessage =
+          (message.runId && !existingMessage.runId) ||
+          (message.sessionKey && !existingMessage.sessionKey)
+            ? { ...existingMessage, ...message }
+            : existingMessage
+        nextMap.set(existingKey, nextMessage)
+        return
+      }
+      nextMap.set(messageKey, message)
+    })
+
+    messages.value = [...nextMap.values()]
+      .sort((left, right) => left.timestamp - right.timestamp)
+      .slice(-MAX_MESSAGES)
+  }
+
+  const inferRecentRunIdForSession = (currentSessionKey: string) => {
+    const now = Date.now()
+    return [...messages.value]
+      .reverse()
+      .find((message) => {
+        if (!message.runId) return false
+        const messageSessionKey = message.sessionKey || currentSessionKey
+        if (!(messageSessionKey === currentSessionKey || messageSessionKey.startsWith(`${currentSessionKey}:`))) {
+          return false
+        }
+        return now - message.timestamp < 20 * 60 * 1000
+      })
+      ?.runId || ''
+  }
+
   const updateMinion = (payload: GatewayEventFrame) => {
     const record = payload.payload && typeof payload.payload === 'object'
       ? payload.payload as Record<string, unknown>
@@ -628,12 +846,22 @@ export const useOpenClawGateway = () => {
   }
 
   const pushEventLog = (event: GatewayEventFrame) => {
+    const payload = event.payload && typeof event.payload === 'object'
+      ? event.payload as Record<string, unknown>
+      : {}
     const summary =
       event.event === 'chat'
-        ? truncateText(extractTextParts((event.payload as Record<string, unknown> | undefined)?.message).join(' '), 140) || 'Chat update'
+        ? truncateText(
+            [
+              toTrimmedString(payload.state),
+              toTrimmedString(payload.errorMessage),
+              extractTextParts(payload.message).join(' ')
+            ].filter(Boolean).join(' · '),
+            140
+          ) || 'Chat update'
         : event.event === 'agent'
-          ? truncateText(buildMinionDetail((event.payload as Record<string, unknown>) || {}), 140)
-          : truncateText(formatPreview(event.payload) || 'Event received', 140)
+          ? truncateText(buildMinionDetail(payload), 140)
+          : truncateText(formatPreview(payload) || 'Event received', 140)
 
     eventLog.value = [
       {
@@ -641,6 +869,20 @@ export const useOpenClawGateway = () => {
         ts: Date.now(),
         event: event.event,
         summary
+      },
+      ...eventLog.value
+    ].slice(0, MAX_EVENT_LOG)
+  }
+
+  const pushDiagnosticEvent = (event: string, summary: string) => {
+    const trimmed = summary.trim()
+    if (!trimmed) return
+    eventLog.value = [
+      {
+        id: `${event}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        ts: Date.now(),
+        event,
+        summary: truncateText(trimmed, 140)
       },
       ...eventLog.value
     ].slice(0, MAX_EVENT_LOG)
@@ -712,18 +954,23 @@ export const useOpenClawGateway = () => {
   const normalizeChatPayload = (payload: Record<string, unknown>): ChatEventState => {
     const state = toTrimmedString(payload.state) as ChatEventState
     const currentSessionKey = sessionKey.value.trim() || 'main'
-    const payloadSessionKey = toTrimmedString(payload.sessionKey) || 'main'
-    
-    if (payloadSessionKey !== currentSessionKey) {
+    const rawPayloadSessionKey = toTrimmedString(payload.sessionKey)
+    const payloadSessionKey = rawPayloadSessionKey || currentSessionKey
+    const sessionMatchesCurrent =
+      payloadSessionKey === currentSessionKey ||
+      payloadSessionKey.startsWith(`${currentSessionKey}:`)
+
+    if (!sessionMatchesCurrent) {
       return ''
     }
 
     const runId = toTrimmedString(payload.runId)
+    const effectiveRunId = runId || activeRunId.value || inferRecentRunIdForSession(currentSessionKey) || ''
     const normalizedMessage = normalizeChatMessage(payload.message, {
-      id: runId || createId(),
+      id: effectiveRunId || createId(),
       role: 'assistant',
       timestamp: Date.now(),
-      runId: runId || undefined,
+      runId: effectiveRunId || undefined,
       sessionKey: payloadSessionKey || undefined
     })
 
@@ -748,7 +995,7 @@ export const useOpenClawGateway = () => {
       const parts = normalizedMessage?.blocks.map(block => block.text) || []
       if (parts.length > 0) {
         // If it's for our active run, update streaming text
-        if (runId === activeRunId.value) {
+        if ((runId && runId === activeRunId.value) || (!runId && effectiveRunId === activeRunId.value)) {
           streamingText.value = parts.join('\n\n')
         }
       }
@@ -758,22 +1005,21 @@ export const useOpenClawGateway = () => {
     if (state === 'final') {
       stopHistoryPolling()
       if (normalizedMessage) {
-        messages.value = [...messages.value, normalizedMessage].slice(-MAX_MESSAGES)
+        messages.value = upsertAssistantMessageForRun(messages.value, normalizedMessage)
       } else if (streamingText.value.trim()) {
-        messages.value = [
-          ...messages.value,
-          {
-            id: runId || createId(),
-            role: 'assistant',
-            blocks: [{ type: 'text', text: streamingText.value.trim() }],
-            timestamp: Date.now(),
-            runId: runId || undefined,
-            sessionKey: payloadSessionKey || undefined
-          }
-        ].slice(-MAX_MESSAGES)
+        messages.value = upsertAssistantMessageForRun(messages.value, {
+          id: effectiveRunId || createId(),
+          role: 'assistant',
+          blocks: [{ type: 'text', text: streamingText.value.trim() }],
+          timestamp: Date.now(),
+          runId: effectiveRunId || undefined,
+          sessionKey: payloadSessionKey || undefined
+        })
       }
       streamingText.value = ''
-      activeRunId.value = ''
+      if (!runId || effectiveRunId === activeRunId.value) {
+        activeRunId.value = ''
+      }
       return state
     }
 
@@ -804,6 +1050,7 @@ export const useOpenClawGateway = () => {
       lastError.value = toTrimmedString(payload.errorMessage) || 'OpenClaw reported an error.'
       if (lastError.value) {
         pushSystemMessage(lastError.value)
+        pushDiagnosticEvent('chat.error', lastError.value)
       }
       streamingText.value = ''
       activeRunId.value = ''
@@ -818,16 +1065,17 @@ export const useOpenClawGateway = () => {
     try {
       const response = await request<{ messages?: unknown[] }>('chat.history', {
         sessionKey: sessionKey.value.trim() || 'main',
-        limit: 200
+        limit: 80
       })
       const nextMessages = Array.isArray(response.messages)
         ? response.messages
             .map((message, index) => normalizeChatMessage(message, { id: `history-${index}`, timestamp: Date.now() }))
             .filter((message): message is LobsterChatMessage => Boolean(message))
         : []
-      messages.value = nextMessages.slice(-MAX_MESSAGES)
+      mergeHistoryMessages(nextMessages)
     } catch (error) {
       lastError.value = normalizeErrorMessage(error)
+      pushDiagnosticEvent('chat.history', lastError.value)
     }
   }
 
@@ -841,6 +1089,13 @@ export const useOpenClawGateway = () => {
         return
       }
       if (Date.now() > historyPollDeadline) {
+        if (activeRunId.value === runId) {
+          activeRunId.value = ''
+          streamingText.value = ''
+          lastError.value = 'Boss Lobster is taking longer than expected. You can retry or reconnect.'
+          pushSystemMessage(lastError.value)
+          pushDiagnosticEvent('timeout', lastError.value)
+        }
         stopHistoryPolling()
         return
       }
@@ -978,6 +1233,7 @@ export const useOpenClawGateway = () => {
     const reason = event.reason || fallbackReason
     if (!manuallyClosed) {
       lastError.value = reason
+      pushDiagnosticEvent('socket.close', reason)
       if (hasConnectedOnce) {
         scheduleReconnect()
       }
@@ -1086,16 +1342,12 @@ export const useOpenClawGateway = () => {
     storeSettings()
     cleanupTimers()
     manuallyClosed = false
-    lastError.value = ''
+    resetChatWindow()
     status.value = 'connecting'
     serverVersion.value = ''
     serverConnId.value = ''
     connectNonce = ''
     connectSent = false
-    messages.value = []
-    minionCards.value = []
-    streamingText.value = ''
-    activeRunId.value = ''
 
     if (ws) {
       ws.close()
@@ -1114,6 +1366,7 @@ export const useOpenClawGateway = () => {
     ws.addEventListener('close', handleClose)
     ws.addEventListener('error', () => {
       lastError.value = 'WebSocket connection failed.'
+      pushDiagnosticEvent('socket.error', lastError.value)
     })
   }
 
@@ -1175,6 +1428,7 @@ export const useOpenClawGateway = () => {
       const message = normalizeErrorMessage(error)
       lastError.value = message
       pushSystemMessage(message)
+      pushDiagnosticEvent('chat.send', message)
       activeRunId.value = ''
       streamingText.value = ''
       return ''
@@ -1195,6 +1449,7 @@ export const useOpenClawGateway = () => {
       return true
     } catch (error) {
       lastError.value = normalizeErrorMessage(error)
+      pushDiagnosticEvent('chat.abort', lastError.value)
       return false
     }
   }
@@ -1234,6 +1489,7 @@ export const useOpenClawGateway = () => {
     deviceAuthReady,
     bossMood,
     latestAssistantMessage,
+    resetChatWindow,
     connect,
     disconnect,
     loadHistory,

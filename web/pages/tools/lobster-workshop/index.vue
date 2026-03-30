@@ -84,13 +84,10 @@
                       v-for="(worker, index) in stageWorkers"
                       :key="worker.id"
                       class="absolute"
-                      :style="stageWorkerStyle(index)"
+                      :style="stageWorkerStyle(worker, index)"
                     >
-                      <div class="flex min-w-[112px] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1.5">
-                        <div class="flex flex-wrap items-center justify-center gap-2">
-                          <span class="rounded-full border-2 border-zinc-900 bg-white/95 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-700 shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
-                            {{ worker.title }}
-                          </span>
+                      <div class="relative h-[138px] w-[116px]">
+                        <div class="absolute left-1/2 top-[2px] -translate-x-1/2">
                           <span
                             class="rounded-full border-2 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] shadow-[2px_2px_0_0_rgba(0,0,0,1)]"
                             :class="stageStatusChipClass(worker.status)"
@@ -98,8 +95,13 @@
                             {{ worker.statusLabel }}
                           </span>
                         </div>
-                        <WorkshopActorSprite :variant="worker.variant" :status="worker.status" :scale="worker.scale" size="stage" />
-                        <p class="max-w-[7.5rem] text-center text-[10px] uppercase tracking-[0.12em] text-zinc-600">
+                        <div class="absolute left-1/2 top-[34px] -translate-x-1/2">
+                          <WorkshopActorSprite :variant="worker.variant" :status="worker.status" :scale="worker.scale" size="stage" />
+                        </div>
+                        <p class="absolute left-1/2 top-[84px] max-w-[7rem] -translate-x-1/2 text-center text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-700 leading-tight">
+                          {{ worker.title }}
+                        </p>
+                        <p class="absolute left-1/2 top-[102px] max-w-[7rem] -translate-x-1/2 text-center text-[10px] uppercase tracking-[0.12em] text-zinc-600 leading-tight">
                           {{ worker.note }}
                         </p>
                       </div>
@@ -324,6 +326,41 @@
                 {{ sending ? 'Dispatching...' : 'Send Order' }}
               </button>
             </div>
+
+            <div class="rounded-[22px] border border-zinc-200 bg-[#fffaf3] p-4">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Gateway Trace</p>
+                  <p class="mt-1 text-sm text-zinc-600">Recent OpenClaw events and errors from this browser session.</p>
+                </div>
+                <span class="rounded-full border border-zinc-200 bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-500">
+                  {{ gatewayTraceItems.length }} recent
+                </span>
+              </div>
+
+              <div v-if="gatewayTraceItems.length" class="mt-4 space-y-2">
+                <div
+                  v-for="trace in gatewayTraceItems"
+                  :key="trace.id"
+                  class="rounded-[16px] border border-zinc-200 bg-white px-3 py-3"
+                >
+                  <div class="flex flex-wrap items-start justify-between gap-2">
+                    <span class="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-600">
+                      {{ trace.event }}
+                    </span>
+                    <span class="text-[11px] uppercase tracking-[0.16em] text-zinc-400">{{ formatTime(trace.timestamp) }}</span>
+                  </div>
+                  <p class="mt-2 text-sm leading-6 text-zinc-700 whitespace-pre-wrap">{{ trace.summary }}</p>
+                </div>
+              </div>
+
+              <div
+                v-else
+                class="mt-4 rounded-[16px] border border-dashed border-zinc-300 bg-white px-4 py-4 text-sm text-zinc-500"
+              >
+                Gateway events will appear here after the workshop connects and starts sending chat or helper updates.
+              </div>
+            </div>
           </div>
         </article>
 
@@ -484,7 +521,11 @@
                     v-else
                     class="rounded-[18px] border border-dashed border-zinc-300 bg-white px-4 py-4 text-sm text-zinc-500"
                   >
-                    Boss reply will appear here when the run reports back.
+                    <p>Boss reply will appear here when the run reports back.</p>
+                    <div v-if="gatewayTraceItems.length" class="mt-3 rounded-[14px] border border-zinc-200 bg-[#fffaf3] px-3 py-3 text-zinc-700">
+                      <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Latest Gateway Event</p>
+                      <p class="mt-2 text-sm leading-6 whitespace-pre-wrap">{{ gatewayTraceItems[0]?.summary }}</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -620,10 +661,14 @@ type StageWorkerView = {
 
 type RenderedReplyView = {
   id: string
+  bodyText: string
   bodyHtml: string
   thoughtsHtml: string
   hasThoughts: boolean
   isStreaming: boolean
+  isPlaceholder: boolean
+  isFailure: boolean
+  isRunning: boolean
 }
 
 type ChatCardView = {
@@ -633,6 +678,13 @@ type ChatCardView = {
   bodyHtml: string
   thoughtsHtml: string
   hasThoughts: boolean
+}
+
+type GatewayTraceView = {
+  id: string
+  event: string
+  summary: string
+  timestamp: number
 }
 
 type TodoItem = {
@@ -657,13 +709,18 @@ const DISPATCH_PREFS_STORAGE_KEY = 'lobster_workshop_dispatch_prefs_v1'
 const RECENT_DISPATCHES_STORAGE_KEY = 'lobster_workshop_recent_dispatches_v1'
 const THINK_TAG_PATTERN = /<think>([\s\S]*?)<\/think>/gi
 const FINAL_TAG_PATTERN = /<final>([\s\S]*?)<\/final>/gi
+const OMITTED_MACHINE_REPLY_PATTERN = /^\[(?:Large machine response omitted|History skipped an oversized reply|Machine tool payload omitted)/i
+const FAILURE_REPLY_PATTERN = /(^|\n)(error:|fatal:|exception:|\[Gateway error\]|.*Command exited with code\s+\d+)/i
+const RUNNING_REPLY_PATTERN = /(command still running|use process\s*\([^)]*\)\s*for follow-up|session [a-z0-9-]+,\s*pid\s*\d+)/i
+const DISPATCH_STALL_MS = 35_000
+const DISPATCH_ISSUE_PATTERN = /(taking longer than expected|timed out|timeout|connection failed|gateway closed|could not reach|reported an error|run was aborted|asked to stop|disconnected)/i
 
 const stageSlots: StageSlot[] = [
-  { left: '18.2%', top: '64.5%', scale: 1.4 }, // Large left workstation, left slot
-  { left: '26.6%', top: '64.5%', scale: 1.4 }, // Large left workstation, right slot
-  { left: '82.8%', top: '77.2%', scale: 1.42 }, // Bottom-right workstation
-  { left: '19.6%', top: '45.5%', scale: 1.18 }, // Back-left workstation
-  { left: '83.2%', top: '22.8%', scale: 1.18 } // Narrow top-right perch
+  { left: '17.6%', top: '73.6%', scale: 1.36 }, // Large left workstation, left slot
+  { left: '25.8%', top: '73.6%', scale: 1.36 }, // Large left workstation, right slot
+  { left: '83.6%', top: '88.6%', scale: 1.38 }, // Bottom-right workstation
+  { left: '19.6%', top: '43.2%', scale: 1.18 }, // Back-left workstation
+  { left: '82.8%', top: '21.8%', scale: 1.18 } // Narrow top-right perch
 ]
 
 const workerOptions: WorkerOption[] = [
@@ -714,6 +771,8 @@ const {
   activeRunId,
   sending,
   minionCards,
+  eventLog,
+  resetChatWindow,
   connect: connectGateway,
   disconnect: disconnectGateway,
   refreshDeck,
@@ -775,10 +834,55 @@ const activeDispatch = computed(() =>
   activeRunId.value ? dispatchMapByRunId.value.get(activeRunId.value) || null : null
 )
 
+const STALLED_ISSUE_PATTERN = /(stalled|taking longer than expected|timed out|timeout|not reported back yet)/i
+
+const getBossStageStateForDispatch = (dispatch: DispatchPlan) => {
+  const reply = getDispatchReply(dispatch)
+  const resolvedStatus = getDispatchResolvedStatus(dispatch)
+  const issue = getDispatchIssue(dispatch)
+
+  if (resolvedStatus === 'error') {
+    const stalled = !reply && STALLED_ISSUE_PATTERN.test(issue)
+    return {
+      status: 'error' as const,
+      label: stalled ? 'Stalled' : 'Error'
+    }
+  }
+
+  if (resolvedStatus === 'working') {
+    if (reply?.isRunning) {
+      return {
+        status: 'working' as const,
+        label: 'Running'
+      }
+    }
+
+    return {
+      status: 'working' as const,
+      label: dispatch.workers.length ? 'Dispatching' : 'Thinking'
+    }
+  }
+
+  if (resolvedStatus === 'done') {
+    return {
+      status: 'online' as const,
+      label: 'Online'
+    }
+  }
+
+  return null
+}
+
 const bossStageState = computed<{ status: StageStatus; label: string }>(() => {
   if (status.value === 'connecting') {
     return { status: 'working', label: 'Waking' }
   }
+
+  if (latestDispatch.value) {
+    const dispatchState = getBossStageStateForDispatch(latestDispatch.value)
+    if (dispatchState) return dispatchState
+  }
+
   if (status.value === 'connected' && streamingText.value && activeDispatch.value?.workers.length) {
     return { status: 'working', label: 'Dispatching' }
   }
@@ -792,7 +896,9 @@ const bossStageState = computed<{ status: StageStatus; label: string }>(() => {
 })
 
 const bossStatusNote = computed(() => {
+  const latestIssue = latestDispatch.value ? getDispatchIssue(latestDispatch.value) : ''
   if (status.value === 'connecting') return 'Boss Lobster is waking the gateway and checking the dock lines.'
+  if (latestIssue) return latestIssue
   if (status.value === 'connected' && streamingText.value && activeDispatch.value?.workers.length) {
     return 'Boss Lobster is dispatching helper work. Follow detailed progress from the checklist on the right.'
   }
@@ -806,6 +912,7 @@ const bossStatusNote = computed(() => {
 const canSendOrder = computed(() =>
   status.value === 'connected' &&
   !sending.value &&
+  !activeRunId.value &&
   draft.value.trim().length > 0 &&
   (!launchSubagents.value || selectedWorkers.value.length > 0)
 )
@@ -911,11 +1018,16 @@ const workerChipClass = (workerId: WorkerId) => {
   ]
 }
 
-const stageWorkerStyle = (index: number) => {
+const TRACE_NOISE_EVENTS = new Set(['tick', 'health'])
+const RECENT_DISPATCH_DISPLAY_MS = 10 * 60 * 1000
+
+const stageWorkerStyle = (worker: StageWorkerView, index: number) => {
   const slot = stageSlots[index] || stageSlots[stageSlots.length - 1]
+  const anchorPercent = Math.min(64, Math.max(54, ((34 + (32 * worker.scale)) / 138) * 100))
   return {
     left: slot.left,
-    top: slot.top
+    top: slot.top,
+    transform: `translate(-50%, -${anchorPercent}%)`
   }
 }
 
@@ -1018,6 +1130,29 @@ const registerDispatch = (task: string, workers: WorkerId[], runId: string) => {
   openTodoIds.value = workers.map(workerId => `${dispatch.id}-${workerId}`)
 }
 
+const getDisplayWorkersForDispatch = (dispatch: DispatchPlan) => {
+  const seen = new Set<WorkerId>()
+  const orderedWorkers: WorkerId[] = []
+  const addWorker = (workerId: WorkerId) => {
+    if (seen.has(workerId)) return
+    seen.add(workerId)
+    orderedWorkers.push(workerId)
+  }
+
+  dispatch.workers.forEach(addWorker)
+
+  const shouldIncludeArmedWorkers =
+    latestDispatch.value?.id === dispatch.id &&
+    launchSubagents.value &&
+    Date.now() - dispatch.createdAt < RECENT_DISPATCH_DISPLAY_MS
+
+  if (shouldIncludeArmedWorkers) {
+    selectedWorkers.value.forEach(addWorker)
+  }
+
+  return orderedWorkers
+}
+
 const matchingActualCard = (dispatch: DispatchPlan, workerId: WorkerId) =>
   minionCards.value.find((card) => {
     const detectedWorker = detectWorkerId(card.label, card.badge, card.note, card.detail, card.sessionKey || '')
@@ -1044,27 +1179,56 @@ const buildCrewCardFromMinion = (card: LobsterMinionCard): CrewCardView => {
 
 const crewCards = computed<CrewCardView[]>(() => {
   const dispatch = latestDispatch.value
-  if (!dispatch || dispatch.workers.length === 0) {
+  const displayWorkers = dispatch ? getDisplayWorkersForDispatch(dispatch) : []
+  if (!dispatch || displayWorkers.length === 0) {
     return []
   }
 
-  return dispatch.workers
+  return displayWorkers
     .map((workerId) => {
+      const issueNote = getDispatchIssue(dispatch)
       const actualCard = matchingActualCard(dispatch, workerId)
       if (actualCard) {
-        return buildCrewCardFromMinion(actualCard)
+        const builtCard = buildCrewCardFromMinion(actualCard)
+        const resolvedStatus = getDispatchResolvedStatus(dispatch)
+        const resolvedDetail = getDispatchStatusDetail(dispatch, resolvedStatus)
+        const resolvedNote = getDispatchStatusNote(dispatch, resolvedStatus)
+        if (issueNote && builtCard.status !== 'done') {
+          return {
+            ...builtCard,
+            note: resolvedNote,
+            detail: resolvedDetail,
+            status: 'error' as const,
+            progress: progressFromStatus('error')
+          }
+        }
+        if (resolvedStatus !== 'queued' && builtCard.status !== resolvedStatus) {
+          return {
+            ...builtCard,
+            note: resolvedNote,
+            detail: resolvedDetail,
+            status: resolvedStatus,
+            progress: progressFromStatus(resolvedStatus)
+          }
+        }
+        return builtCard
       }
 
       const worker = workerOptionMap[workerId]
+      const fallbackStatus = dispatchFallbackStatus(dispatch)
       return {
         id: `${dispatch.id}-${workerId}`,
         title: worker.label,
         shortLabel: worker.short,
         taskLine: truncateTask(dispatch.task, 58),
-        note: 'Queued by Boss Lobster',
-        detail: dispatch.task,
-        status: 'queued' as const,
-        progress: progressFromStatus('queued'),
+        note: dispatch.workers.includes(workerId)
+          ? getDispatchStatusNote(dispatch, fallbackStatus)
+          : 'Awaiting helper launch',
+        detail: dispatch.workers.includes(workerId)
+          ? getDispatchStatusDetail(dispatch, fallbackStatus)
+          : 'This helper is armed in the workshop UI and waiting for OpenClaw telemetry.',
+        status: dispatch.workers.includes(workerId) ? fallbackStatus : 'queued',
+        progress: progressFromStatus(dispatch.workers.includes(workerId) ? fallbackStatus : 'queued'),
         lastSeen: dispatch.createdAt,
         variant: worker.variant
       }
@@ -1112,6 +1276,33 @@ const flattenMessageText = (message: LobsterChatMessage) =>
     .join('\n\n')
     .trim()
 
+const getDispatchSystemIssue = (dispatch: DispatchPlan) =>
+  [...messages.value]
+    .filter(message => message.role === 'system' && message.timestamp >= dispatch.createdAt - 1000)
+    .map(flattenMessageText)
+    .map(text => text.trim())
+    .filter(Boolean)
+    .reverse()
+    .find(text => DISPATCH_ISSUE_PATTERN.test(text)) || ''
+
+const extractPrimaryTaskFromDispatch = (raw: string) => {
+  const trimmed = raw.trim()
+  if (!trimmed.includes('[Workshop Dispatch]')) return trimmed
+
+  const primaryTaskMatch = trimmed.match(/Primary task:\s*([\s\S]*?)\n\nAfter delegation/i)
+  if (primaryTaskMatch?.[1]?.trim()) {
+    return primaryTaskMatch[1].trim()
+  }
+
+  const beforeDispatch = trimmed
+    .split('[Workshop Dispatch]')[0]
+    ?.split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(line => line && !/^System:/i.test(line) && !/^\[[A-Z][a-z]{2}\s/.test(line))
+
+  return beforeDispatch?.at(-1) || trimmed
+}
+
 const extractTaggedContent = (raw: string) => {
   const thoughtChunks: string[] = []
   let working = raw || ''
@@ -1147,13 +1338,20 @@ const buildRenderedReply = (id: string, rawText: string, isStreaming = false): R
   const tagged = extractTaggedContent(rawText)
   const bodyMarkdown = tagged.body || '_No reply yet._'
   const thoughtsMarkdown = tagged.thoughts
+  const isPlaceholder = OMITTED_MACHINE_REPLY_PATTERN.test(bodyMarkdown.trim())
+  const isFailure = FAILURE_REPLY_PATTERN.test(bodyMarkdown.trim())
+  const isRunning = RUNNING_REPLY_PATTERN.test(bodyMarkdown.trim())
 
   return {
     id,
+    bodyText: bodyMarkdown,
     bodyHtml: renderSafeMarkdown(bodyMarkdown),
     thoughtsHtml: thoughtsMarkdown ? renderSafeMarkdown(thoughtsMarkdown) : '',
     hasThoughts: Boolean(thoughtsMarkdown),
-    isStreaming
+    isStreaming,
+    isPlaceholder,
+    isFailure,
+    isRunning
   }
 }
 
@@ -1215,7 +1413,9 @@ const renderedRepliesByRunId = computed(() => {
   messages.value.forEach((message) => {
     const resolvedRunId = resolvedRunIdForMessage(message)
     if (message.role !== 'assistant' || !resolvedRunId) return
-    nextMap.set(resolvedRunId, buildRenderedReply(message.id, flattenMessageText(message)))
+    const rendered = buildRenderedReply(message.id, flattenMessageText(message))
+    if (rendered.isPlaceholder) return
+    nextMap.set(resolvedRunId, rendered)
   })
 
   if (activeRunId.value && streamingText.value.trim()) {
@@ -1229,9 +1429,25 @@ const isHelperDispatchRun = (runId?: string) =>
   Boolean(runId && dispatchMapByRunId.value.get(runId)?.workers.length)
 
 const chatMessages = computed<ChatCardView[]>(() =>
-  messages.value
+  [...messages.value]
+    .sort((left, right) => left.timestamp - right.timestamp)
+    .filter((message, index, allMessages) => {
+      if (message.role !== 'user') return true
+      const previous = allMessages[index - 1]
+      if (!previous || previous.role !== 'user') return true
+      const currentText = extractPrimaryTaskFromDispatch(flattenMessageText(message))
+      const previousText = extractPrimaryTaskFromDispatch(flattenMessageText(previous))
+      if (!currentText || currentText !== previousText) return true
+      return Math.abs(message.timestamp - previous.timestamp) > 120_000
+    })
     .map((message) => {
-      const rendered = buildRenderedReply(message.id, flattenMessageText(message))
+      const rawText = message.role === 'user'
+        ? extractPrimaryTaskFromDispatch(flattenMessageText(message))
+        : flattenMessageText(message)
+      const rendered = buildRenderedReply(message.id, rawText)
+      if (message.role === 'assistant' && rendered.isPlaceholder) {
+        return null
+      }
       return {
         id: message.id,
         role: message.role,
@@ -1241,52 +1457,164 @@ const chatMessages = computed<ChatCardView[]>(() =>
         hasThoughts: rendered.hasThoughts
       }
     })
+    .filter((message): message is ChatCardView => Boolean(message))
 )
 
 const streamingChatCard = computed(() => {
   if (!streamingText.value.trim()) return null
 
   const rendered = buildRenderedReply(`stream-${activeRunId.value || 'boss'}`, streamingText.value, true)
+  if (rendered.isPlaceholder) return null
   return {
     ...rendered,
     role: 'assistant' as const
   }
 })
 
-const dispatchFallbackStatus = (dispatch: DispatchPlan): CrewStatus => {
+const gatewayTraceItems = computed<GatewayTraceView[]>(() =>
+  (eventLog.value.filter((entry) => {
+    const eventName = entry.event.toLowerCase()
+    if (!TRACE_NOISE_EVENTS.has(eventName)) return true
+    return /(error|chat|dispatch|helper|agent|session|process|abort|history|timeout)/i.test(entry.summary || '')
+  }).length
+    ? eventLog.value.filter((entry) => {
+        const eventName = entry.event.toLowerCase()
+        if (!TRACE_NOISE_EVENTS.has(eventName)) return true
+        return /(error|chat|dispatch|helper|agent|session|process|abort|history|timeout)/i.test(entry.summary || '')
+      })
+    : eventLog.value)
+    .slice(0, 6)
+    .map(entry => ({
+      id: entry.id,
+      event: entry.event,
+      summary: entry.summary || 'Gateway event received.',
+      timestamp: entry.ts
+    }))
+)
+
+const getDispatchReply = (dispatch: DispatchPlan) => {
+  if (dispatch.runId) {
+    const directReply = renderedRepliesByRunId.value.get(dispatch.runId) || null
+    if (directReply) return directReply
+  }
+
+  const nextDispatchAt = recentDispatches.value
+    .filter(entry => entry.createdAt > dispatch.createdAt)
+    .map(entry => entry.createdAt)
+    .sort((left, right) => left - right)[0] || Number.POSITIVE_INFINITY
+
+  const fallbackMessage = [...messages.value]
+    .filter((message) =>
+      message.role === 'assistant' &&
+      message.timestamp >= dispatch.createdAt - 1000 &&
+      message.timestamp < nextDispatchAt
+    )
+    .sort((left, right) => right.timestamp - left.timestamp)[0]
+
+  if (!fallbackMessage) return null
+
+  const rendered = buildRenderedReply(fallbackMessage.id, flattenMessageText(fallbackMessage))
+  return rendered.isPlaceholder ? null : rendered
+}
+
+const getDispatchIssue = (dispatch: DispatchPlan) => {
+  const reply = getDispatchReply(dispatch)
+  if (reply && !reply.isStreaming) {
+    return reply.isFailure ? reply.bodyText : ''
+  }
+
+  const systemIssue = getDispatchSystemIssue(dispatch)
+  if (systemIssue) return systemIssue
+
+  const age = Date.now() - dispatch.createdAt
+  if (age >= DISPATCH_STALL_MS) {
+    return 'Boss Lobster has not reported back yet. This helper run looks stalled. Try Stop Run or reconnect the workshop.'
+  }
+
+  if (lastError.value && latestDispatch.value?.id === dispatch.id) {
+    return lastError.value
+  }
+
+  return ''
+}
+
+const getDispatchResolvedStatus = (dispatch: DispatchPlan): CrewStatus => {
   if (dispatch.runId && activeRunId.value === dispatch.runId && streamingText.value.trim()) {
     return 'working'
   }
 
-  const reply = dispatch.runId ? renderedRepliesByRunId.value.get(dispatch.runId) : null
+  const reply = getDispatchReply(dispatch)
   if (reply && !reply.isStreaming) {
+    if (reply.isFailure) return 'error'
+    if (reply.isRunning) return 'working'
     return 'done'
+  }
+
+  if (getDispatchIssue(dispatch)) {
+    return 'error'
   }
 
   return 'queued'
 }
 
+const getDispatchStatusNote = (dispatch: DispatchPlan, statusValue: CrewStatus) => {
+  const reply = getDispatchReply(dispatch)
+  if (statusValue === 'error') return 'Boss reported an error'
+  if (statusValue === 'working') {
+    return reply?.isRunning ? 'Helper still running' : 'Dispatch in progress'
+  }
+  if (statusValue === 'done') return 'Boss reply received'
+  return 'Queued by Boss Lobster'
+}
+
+const getDispatchStatusDetail = (dispatch: DispatchPlan, statusValue: CrewStatus) => {
+  const reply = getDispatchReply(dispatch)
+  if ((statusValue === 'working' || statusValue === 'done' || statusValue === 'error') && reply?.bodyText) {
+    return reply.bodyText
+  }
+  const issue = getDispatchIssue(dispatch)
+  if (statusValue === 'error' && issue) {
+    return issue
+  }
+  return dispatch.task
+}
+
+const dispatchFallbackStatus = (dispatch: DispatchPlan): CrewStatus => {
+  return getDispatchResolvedStatus(dispatch)
+}
+
 const todoItems = computed<TodoItem[]>(() => {
   const items = recentDispatches.value
-    .filter(dispatch => dispatch.workers.length > 0)
+    .filter(dispatch => getDisplayWorkersForDispatch(dispatch).length > 0)
     .flatMap((dispatch) => {
-      const reply = dispatch.runId ? renderedRepliesByRunId.value.get(dispatch.runId) || null : null
-      return dispatch.workers.map((workerId) => {
+      const reply = getDispatchReply(dispatch)
+      const displayWorkers = getDisplayWorkersForDispatch(dispatch)
+      return displayWorkers.map((workerId) => {
         const worker = workerOptionMap[workerId]
+        const issueNote = getDispatchIssue(dispatch)
         const actualCard = matchingActualCard(dispatch, workerId)
-        const statusValue: CrewStatus = actualCard?.status || dispatchFallbackStatus(dispatch)
+        const isRequestedInDispatch = dispatch.workers.includes(workerId)
+        const statusValue: CrewStatus = issueNote && actualCard?.status !== 'done'
+          ? 'error'
+          : actualCard?.status || (isRequestedInDispatch ? dispatchFallbackStatus(dispatch) : 'queued')
 
         return {
           id: `${dispatch.id}-${workerId}`,
           label: truncateTask(dispatch.task, 68),
           workerLabel: worker.label,
-          summary: actualCard?.note || (statusValue === 'working'
-            ? 'Helper run is active. Open this item to follow the latest boss reply.'
-            : 'Queued for helper dispatch. Waiting for telemetry from OpenClaw.'),
-          detail: actualCard?.detail || dispatch.task,
+          summary: statusValue === 'error'
+            ? issueNote || 'Boss Lobster did not send a usable reply. Try reconnecting or sending the task again.'
+            : actualCard?.note || (!isRequestedInDispatch
+            ? 'Helper is armed in the UI. Waiting for launch telemetry from OpenClaw.'
+            : statusValue === 'working'
+              ? 'Helper run is active. Open this item to follow the latest boss reply.'
+              : 'Queued for helper dispatch. Waiting for telemetry from OpenClaw.'),
+          detail: statusValue === 'error'
+            ? issueNote || dispatch.task
+            : actualCard?.detail || (isRequestedInDispatch ? dispatch.task : 'No helper session has reported in yet for this armed worker.'),
           status: statusValue,
           progress: progressFromStatus(statusValue),
-          response: reply
+          response: isRequestedInDispatch ? reply : null
         }
       })
     })
@@ -1295,15 +1623,11 @@ const todoItems = computed<TodoItem[]>(() => {
 })
 
 const clearChatWindow = () => {
-  messages.value = []
-  streamingText.value = ''
-  activeRunId.value = ''
+  resetChatWindow()
   draft.value = ''
-  minionCards.value = []
   recentDispatches.value = []
   openThoughtIds.value = []
   openTodoIds.value = []
-  lastError.value = ''
 }
 
 const handleSendOrder = async () => {
