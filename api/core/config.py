@@ -15,17 +15,7 @@ class Settings(BaseSettings):
     # CORS Settings
     CORS_ORIGINS: List[str] = ["http://localhost:3000"]  # Add your frontend URL
     
-    # Google API Settings
-    GOOGLE_API_KEY: Optional[str] = None
-    OPENROUTER_API_KEY: Optional[str] = None
-    XAI_API_KEY: Optional[str] = None
     BACKEND_ACCESS_KEY: Optional[str] = None
-    
-    # MP API Settings
-    MP_APPID: Optional[str] = None
-    MP_APPSECRET: Optional[str] = None
-    MP_TOKEN: Optional[str] = None
-    MP_ENCODING_AES_KEY: Optional[str] = None
     
     class Config:
         env_file = ".env"

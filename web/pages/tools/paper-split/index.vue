@@ -2,6 +2,10 @@
   <div class="min-h-screen bg-gray-50 flex flex-col items-center px-4 py-6 sm:py-10">
     <div class="w-full max-w-7xl rounded-xl bg-white p-4 shadow-lg sm:p-8">
       <h1 class="mb-6 text-center text-xl font-bold sm:mb-8 sm:text-2xl">试卷分割与AI批改工具</h1>
+      <div v-if="!apiKey" class="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        请先在右上角全局设置里填写 OpenRouter API Key，当前页面会直接从前端请求 OpenRouter。
+        <button type="button" class="ml-2 font-semibold underline" @click="openGlobalSettings">打开设置</button>
+      </div>
       <!-- 图片上传区 -->
       <div class="mb-12 flex flex-col items-center">
         <label class="flex w-full max-w-md cursor-pointer items-center justify-center rounded-lg border border-dashed border-zinc-400 bg-zinc-50 px-6 py-8 text-center text-sm text-zinc-600 transition hover:border-zinc-900 hover:bg-white">
@@ -139,8 +143,8 @@ import { ref } from 'vue'
 // @ts-ignore: no type declarations for vuedraggable
 import draggable from 'vuedraggable'
 import MultiCropper from '~/components/MultiCropper.vue'
+import { useGlobalOpenRouterKey } from '~/composables/useGlobalOpenRouterKey'
 import { marked } from 'marked'
-const config = useRuntimeConfig()
 
 interface QuestionArea {
   id: string
@@ -174,6 +178,7 @@ const cropSrcRef = ref<HTMLImageElement|null>(null)
 const previewVisible = ref(false)
 const previewImage = ref<string>("")
 const grading = ref(false)
+const { apiKey, openGlobalSettings } = useGlobalOpenRouterKey()
 
 const syncQuestionImages = () => {
   questionImages.value = images.value.flatMap((img) =>
@@ -229,21 +234,42 @@ async function closeCropper() {
 
 async function onBatchGrade() {
   if (!questionImages.value.length) return
+  if (!apiKey.value) {
+    alert('请先在右上角全局设置里填写 OpenRouter API Key')
+    return
+  }
+
   grading.value = true
   const prompt = '你是一个优秀的中国大陆的K12老师，请你只用中文回答。如果学生有作答，请你给出评测结果，看是否作答正确；如果学生没有作答，你要给出解题思路，并给出正确的答案；'
   const tasks = questionImages.value.map(async q => {
-    // 去掉 data URI 前缀，并构建数组
-    const pureBase64 = q.croppedUrl.replace(/^data:image\/\w+;base64,/, '')
     try {
-      const res = await fetch(`${config.public.apiBase}/api/paper-split/evaluate`, {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image_urls: [pureBase64], prompt })
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey.value}`
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.0-flash-001',
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: prompt },
+                { type: 'image_url', image_url: { url: q.croppedUrl } }
+              ]
+            }
+          ]
+        })
       })
-      if (!res.ok) throw new Error('AI接口返回错误')
+      if (!res.ok) throw new Error('OpenRouter 接口返回错误')
       const data = await res.json()
-      q.aiResult = data.content
-      q.markdownHtml = await marked(data.content)
+      const content = data.choices?.[0]?.message?.content
+      if (!content || typeof content !== 'string') {
+        throw new Error('AI 未返回可用内容')
+      }
+      q.aiResult = content
+      q.markdownHtml = await marked(content)
     } catch (e) {
       q.aiResult = 'AI批改失败'
       q.markdownHtml = '<p>AI批改失败</p>'

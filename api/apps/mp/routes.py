@@ -1,31 +1,10 @@
-from fastapi import APIRouter, Depends, Request, Query, Response
+from fastapi import APIRouter, Depends
+
 from .models import SaveWechatDraftRequest, SaveWechatDraftResponse
-from .service import handle_wechat_message, check_wechat_signature, save_wechat_draft
+from .service import save_wechat_draft
 from core.security import require_backend_key
 
 router = APIRouter()
-
-@router.get('/wechat')
-def wechat_verify(signature: str = Query(...), timestamp: str = Query(...), nonce: str = Query(...), echostr: str = Query(...)):
-    """微信服务器验证接口"""
-    if check_wechat_signature(signature, timestamp, nonce):
-      return Response(content=echostr)
-    else:
-      return Response(content="Invalid signature", status_code=400)
-
-@router.post('/wechat')
-async def wechat_message(request: Request, encrypt_type: str = Query(None), msg_signature: str = Query(None), timestamp: str = Query(None), nonce: str = Query(None)):
-    """接收微信公众号消息，支持明文和加密模式"""
-    body = await request.body()
-    response_xml = handle_wechat_message(
-        body,
-        msg_signature=msg_signature,
-        timestamp=timestamp,
-        nonce=nonce,
-        encrypt_type=encrypt_type
-    )
-    return Response(content=response_xml, media_type="application/xml")
-
 
 @router.post('/draft', response_model=SaveWechatDraftResponse, dependencies=[Depends(require_backend_key)])
 async def create_wechat_draft(payload: SaveWechatDraftRequest):

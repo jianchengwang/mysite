@@ -1,16 +1,13 @@
+import traceback
+
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from loguru import logger as loguru_logger
+
+from apps.mp.routes import router as mp_router
 from core.config import get_settings
 from core.logger import setup_logging
-from apps.english_chunk.routes import router as english_chunk_router
-from apps.live2d.routes import router as live2d_router
-from apps.paper_split.routes import router as paper_split_router
-from apps.xai.routes import router as xai_router
-from apps.openrouter.routes import router as openrouter_router
-from apps.mp.routes import router as mp_router
-from loguru import logger as loguru_logger
-import traceback
 
 # Set up logging
 setup_logging()
@@ -48,37 +45,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(
-    english_chunk_router,
-    prefix=f"{settings.API_V1_STR}/english-chunk",
-    tags=["english-chunk"]
-)
-
-app.include_router(
-    live2d_router, 
-    prefix=f"{settings.API_V1_STR}/live2d",
-    tags=["live2d"]
-)
-
-app.include_router(
-    paper_split_router,
-    prefix=f"{settings.API_V1_STR}/paper-split",
-    tags=["paper-split"]
-)
-
-app.include_router(
-    xai_router,
-    prefix=f"{settings.API_V1_STR}/xai",
-    tags=["xai"]
-)
-
-app.include_router(
-    openrouter_router,
-    prefix=f"{settings.API_V1_STR}/openrouter",
-    tags=["openrouter"]
-)
-
 app.include_router(
     mp_router,
     prefix=f"{settings.API_V1_STR}/mp",
@@ -90,7 +56,7 @@ async def startup_event():
     loguru_logger.info("Starting up application")
     loguru_logger.info(f"Debug mode: {settings.DEBUG}")
     loguru_logger.info(f"API Version: {settings.API_V1_STR}")
-    loguru_logger.info(f"Available routers: english_chunk, live2d, paper_split, xai, mp")
+    loguru_logger.info("Available routers: mp")
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -104,4 +70,4 @@ async def health_check():
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to the API"} 
+    return {"message": "WeChat draft API is running"}
