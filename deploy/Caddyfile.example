@@ -1,0 +1,14 @@
+# Example only. Merge with your existing TLS/reverse-proxy configuration.
+your-domain.example {
+  @api path /api/* /health/*
+  handle @api {
+    request_body {
+      max_size 8MB
+    }
+    reverse_proxy 127.0.0.1:8000
+  }
+  handle {
+    root * /path/to/mysite/web/.output/public
+    file_server
+  }
+}

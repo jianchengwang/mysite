@@ -1,0 +1,26 @@
+# Uses an EXISTING Docker network/MySQL container. Does not create/delete database volumes.
+services:
+  api:
+    build:
+      context: ../api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      LISTEN_ADDR: 0.0.0.0:8000
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    networks:
+      - existing_database
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 30s
+networks:
+  existing_database:
+    external: true
+    name: ${MYSQL_DOCKER_NETWORK:?Set the existing MySQL Docker network name}

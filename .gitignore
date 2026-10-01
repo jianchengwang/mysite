@@ -6,3 +6,12 @@
 *.njsproj
 *.sln
 *.sw? 
+
+# Package manager stores are machine-local, never source
+.pnpm-store/
+**/.pnpm-store/
+# Runtime credentials and build artifacts
+.env
+.env.*
+!.env.example
+api/bin/

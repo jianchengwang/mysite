@@ -1,0 +1,13 @@
+{
+  "baseline_commit": "de6f99efecf19085350a95acab00f48598b903e7",
+  "baseline_diagnostics": 266,
+  "current_diagnostics": 262,
+  "new_diagnostics": [],
+  "resolved_diagnostics": [
+    "nuxt.config.ts: error TS2353: Object literal may only specify known properties, and 'loadingScreens' does not exist in type '{ https?: boolean | { key?: string | undefined; cert?: string | undefined; } | { pfx?: string | undefined; passphrase?: string | undefined; } | undefined; port?: number | undefined; host?: string | undefined; url?: string | undefined; loadingTemplate?: ((data: { ...; }) => string) | undefined; cors?: any; }'.",
+    "pages/tools/md-to-wechat/index.vue: error TS2353: Object literal may only specify known properties, and 'highlight' does not exist in type 'MarkedExtension<string, string>'.",
+    "pages/tools/md-to-wechat/index.vue: error TS7006: Parameter 'code' implicitly has an 'any' type.",
+    "pages/tools/md-to-wechat/index.vue: error TS7006: Parameter 'language' implicitly has an 'any' type."
+  ],
+  "method": "HEAD web archive without machine pnpm cache; same installed node_modules and Nuxt generated configuration with absolute project import roots relocated; Node25.9/vue-tsc3.2.6/project TypeScript5.9.3; diagnostic locations normalized for comparison"
+}

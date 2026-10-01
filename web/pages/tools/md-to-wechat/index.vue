@@ -5,13 +5,13 @@
         <div>
           <h1 class="mb-2 text-4xl font-bold text-zinc-900">MD to WeChat</h1>
           <p class="text-sm italic text-zinc-600 sm:text-base">
-            Keep the markdown editor and preview at center stage. Publish settings only show up when you need them.
+            Keep the markdown editor and preview at center stage. Draft settings only show up when you need them.
           </p>
         </div>
 
         <div class="flex w-full flex-wrap items-center gap-3 lg:w-auto lg:justify-end">
           <button @click="copyWechatFormat" class="sketch-button bg-white text-zinc-900 font-bold">Copy to WeChat</button>
-          <button @click="showPublishModal = true" class="sketch-button !bg-zinc-900 !text-white">Publish</button>
+          <button @click="showPublishModal = true" class="sketch-button !bg-zinc-900 !text-white">Save Draft</button>
           <button @click="pasteExample" class="sketch-button bg-white text-zinc-900">Example</button>
           <button @click="clearInput" class="sketch-button bg-white text-red-600">Clear</button>
           <button @click="resetTheme" class="sketch-button bg-white text-zinc-900">Reset Style</button>
@@ -113,7 +113,7 @@
               </div>
 
               <div v-if="!hasWechatAccessToken" class="sketch-border bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                Missing WeChat access_token in global settings. Copy still works, but direct draft save will fail.
+                请先在设置中填写个人 API Backend Key。复制内容不需要认证，保存草稿需要。
               </div>
 
               <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -218,8 +218,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { Marked } from 'marked'
-import { highlightCode } from '~/utils/codeHighlight'
+import { renderSafeMarkdown } from '~/utils/safeRichText'
 import { useGlobalWechatDraftAccess } from '~/composables/useGlobalWechatDraftAccess'
 
 definePageMeta({ layout: 'default' })
@@ -261,19 +260,12 @@ const showCoverPic = ref(true)
 const needOpenComment = ref(false)
 const onlyFansCanComment = ref(false)
 
-const { accessToken, backendKey, hasAccessToken: hasWechatAccessToken, openGlobalSettings } = useGlobalWechatDraftAccess()
+const { backendKey, hasBackendKey: hasWechatAccessToken, openGlobalSettings } = useGlobalWechatDraftAccess()
 
-const markdownRenderer = new Marked({
-  highlight(code, language) {
-    return highlightCode(code, language)
-  },
-  breaks: true,
-  gfm: true
-})
 
 const htmlOutput = computed(() => {
   if (!markdownInput.value) return '<p class="italic text-zinc-400 text-center mt-20">Preview will appear here...</p>'
-  return markdownRenderer.parse(markdownInput.value) as string
+  return renderSafeMarkdown(markdownInput.value)
 })
 
 const statusMessage = computed(() => saveMessage.value || copyMessage.value)
@@ -322,10 +314,7 @@ const setTransientStatus = (type: 'copy' | 'save', tone: StatusTone, message: st
 
   saveStatus.value = tone
   saveMessage.value = message
-  setTimeout(() => {
-    saveStatus.value = ''
-    saveMessage.value = ''
-  }, 2600)
+  // Keep durable task IDs and reconciliation warnings visible until the next action.
 }
 
 const fallbackCopy = (html: string, plain: string) => {
@@ -503,51 +492,56 @@ const removeCoverImage = () => {
   coverImageDataUrl.value = ''
 }
 
+// Persist only a payload digest and task identifiers, never credentials or source data.
+// A retry of unchanged content always reuses its key, including after an unknown result.
+const DRAFT_REQUEST_STORAGE = 'mysite_wechat_draft_request_v1'
+type DraftTask = { id: string; status: string; stage: string; error?: string; result?: { media_id?: string } }
 const saveWechatDraft = async () => {
+  if (isSavingDraft.value) return
   if (!hasWechatAccessToken.value) {
-    setTransientStatus('save', 'error', 'Set WeChat access_token first')
+    setTransientStatus('save', 'error', '先在设置中填写个人 API Backend Key（至少 32 字符）')
+    openGlobalSettings()
     return
   }
-
   if (!markdownInput.value.trim()) {
     setTransientStatus('save', 'error', 'Article content is empty')
     return
   }
-
   isSavingDraft.value = true
-
   try {
-    const response = await fetch(`${config.public.apiBase}/api/mp/draft`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(backendKey.value.trim() ? { 'X-Backend-Key': backendKey.value.trim() } : {})
-      },
-      body: JSON.stringify({
-        access_token: accessToken.value.trim(),
-        title: resolvedArticleTitle.value,
-        author: articleAuthor.value.trim(),
-        digest: articleDigest.value.trim(),
-        content: buildStyledWechatHtml(),
-        content_source_url: articleSourceUrl.value.trim(),
-        cover_image_data_url: coverImageDataUrl.value || undefined,
-        need_open_comment: needOpenComment.value ? 1 : 0,
-        only_fans_can_comment: onlyFansCanComment.value ? 1 : 0,
-        show_cover_pic: showCoverPic.value ? 1 : 0
-      })
+    const body = JSON.stringify({
+      title: resolvedArticleTitle.value, author: articleAuthor.value.trim(), digest: articleDigest.value.trim(),
+      content: buildStyledWechatHtml(), content_source_url: articleSourceUrl.value.trim(),
+      cover_image_data_url: coverImageDataUrl.value || undefined,
+      need_open_comment: needOpenComment.value ? 1 : 0, only_fans_can_comment: onlyFansCanComment.value ? 1 : 0,
+      show_cover_pic: showCoverPic.value ? 1 : 0
     })
-
+    const hashBytes = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body)))
+    const digest = Array.from(hashBytes, b => b.toString(16).padStart(2, '0')).join('')
+    let saved: { digest?: string; key?: string; taskId?: string } = {}
+    try { saved = JSON.parse(localStorage.getItem(DRAFT_REQUEST_STORAGE) || '{}') } catch { /* replace invalid local metadata */ }
+    const key = saved.digest === digest && saved.key ? saved.key : digest
+    localStorage.setItem(DRAFT_REQUEST_STORAGE, JSON.stringify({ digest, key, taskId: saved.digest === digest ? saved.taskId : undefined }))
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${backendKey.value.trim()}`, 'Idempotency-Key': key }
+    const apiBase = String(config.public.apiBase).replace(/\/$/, '')
+    const response = await fetch(`${apiBase}/api/mp/draft`, { method: 'POST', headers, body, signal: AbortSignal.timeout(30000) })
     const data = await response.json()
-    if (!response.ok) {
-      throw new Error(data.detail || data.message || 'Failed to save WeChat draft')
+    if (!response.ok) throw new Error(data.detail || 'Could not persist draft task')
+    let task = data as DraftTask
+    localStorage.setItem(DRAFT_REQUEST_STORAGE, JSON.stringify({ digest, key, taskId: task.id }))
+    for (let attempt = 0; attempt < 60 && (task.status === 'queued' || task.status === 'processing'); attempt++) {
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      const poll = await fetch(`${apiBase}/api/tasks/${encodeURIComponent(task.id)}`, { headers: { Authorization: headers.Authorization }, signal: AbortSignal.timeout(15000) })
+      if (!poll.ok) throw new Error(`任务 ${task.id} 查询中断；再次点击会复用原任务，不会重复提交`)
+      task = await poll.json() as DraftTask
     }
-
-    setTransientStatus('save', 'success', `Draft saved: ${data.media_id}`)
+    if (task.status === 'succeeded') setTransientStatus('save', 'success', `Draft saved: ${task.result?.media_id}`)
+    else if (task.status === 'needs_reconciliation') throw new Error(`任务 ${task.id} 的远端结果不确定，请先检查公众号草稿箱；不要换新请求重复提交`)
+    else if (task.status === 'failed') throw new Error(`任务 ${task.id} 失败：${task.error || '请检查服务端配置和输入'}`)
+    else setTransientStatus('save', 'success', `任务 ${task.id} 仍在处理；再次点击会继续查询同一任务`)
   } catch (error: any) {
-    setTransientStatus('save', 'error', error.message || 'Failed to save WeChat draft')
-  } finally {
-    isSavingDraft.value = false
-  }
+    setTransientStatus('save', 'error', error.message || 'Request interrupted; retrying unchanged content reuses the same task')
+  } finally { isSavingDraft.value = false }
 }
 
 onMounted(() => {
