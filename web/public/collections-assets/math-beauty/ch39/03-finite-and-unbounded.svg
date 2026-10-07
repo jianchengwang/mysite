@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc"><title id="title">有限状态重复与无界状态增长</title><desc id="desc">封闭确定有限状态系统的轨迹A到B到C到D到B，此后重复B C D。无界存储模型的计数器可以依次为0 1 2 3而不断扩展，不保证重复。</desc><rect width="1200" height="720" fill="#FAFBFC"/><defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#17659E"/></marker><marker id="gold" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#AD6A12"/></marker><marker id="gray" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#536777"/></marker></defs><g font-family="Noto Sans CJK SC, PingFang SC, Microsoft YaHei, sans-serif">
+<text x="52" y="58" font-size="32" fill="#18334A" font-weight="700" text-anchor="start">代码有限长，不等于完整状态只有有限种</text>
+<text x="52" y="100" font-size="23" fill="#536777" font-weight="400" text-anchor="start">先固定计算模型，再使用“终止或重复”的判断</text>
+<text x="52" y="158" font-size="26" fill="#17659E" font-weight="600" text-anchor="start">固定有限状态 · 封闭且确定</text>
+<rect x="100" y="192" width="110" height="76" rx="14" fill="#E4F0F8" stroke="#17659E" stroke-width="2"/>
+<text x="155" y="242" font-size="34" fill="#17659E" font-weight="600" text-anchor="middle">A</text>
+<line x1="222" y1="230" x2="288" y2="230" stroke="#17659E" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="305" y="192" width="110" height="76" rx="14" fill="#E4F0F8" stroke="#17659E" stroke-width="2"/>
+<text x="360" y="242" font-size="34" fill="#17659E" font-weight="600" text-anchor="middle">B</text>
+<line x1="427" y1="230" x2="493" y2="230" stroke="#17659E" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="510" y="192" width="110" height="76" rx="14" fill="#E4F0F8" stroke="#17659E" stroke-width="2"/>
+<text x="565" y="242" font-size="34" fill="#17659E" font-weight="600" text-anchor="middle">C</text>
+<line x1="632" y1="230" x2="698" y2="230" stroke="#17659E" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="715" y="192" width="110" height="76" rx="14" fill="#E4F0F8" stroke="#17659E" stroke-width="2"/>
+<text x="770" y="242" font-size="34" fill="#17659E" font-weight="600" text-anchor="middle">D</text>
+<line x1="837" y1="230" x2="903" y2="230" stroke="#17659E" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="920" y="192" width="110" height="76" rx="14" fill="#FBEDEC" stroke="#B54442" stroke-width="2"/>
+<text x="975" y="242" font-size="34" fill="#B54442" font-weight="600" text-anchor="middle">B</text>
+<path d="M 975 280 L 975 318 L 360 318 L 360 280" fill="none" stroke="#17659E" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="668" y="362" font-size="23" fill="#17659E" font-weight="600" text-anchor="middle">完整状态 B 再现 → 后续仍是 C、D、B…</text>
+<text x="52" y="422" font-size="26" fill="#AD6A12" font-weight="600" text-anchor="start">允许存储继续扩展 · 精确整数逐次加 1</text>
+<rect x="100" y="456" width="110" height="76" rx="14" fill="#FFF2D9" stroke="#AD6A12" stroke-width="2"/>
+<text x="155" y="506" font-size="34" fill="#AD6A12" font-weight="600" text-anchor="middle">0</text>
+<line x1="222" y1="494" x2="288" y2="494" stroke="#AD6A12" stroke-width="3" marker-end="url(#gold)"/>
+<rect x="305" y="456" width="110" height="76" rx="14" fill="#FFF2D9" stroke="#AD6A12" stroke-width="2"/>
+<text x="360" y="506" font-size="34" fill="#AD6A12" font-weight="600" text-anchor="middle">1</text>
+<line x1="427" y1="494" x2="493" y2="494" stroke="#AD6A12" stroke-width="3" marker-end="url(#gold)"/>
+<rect x="510" y="456" width="110" height="76" rx="14" fill="#FFF2D9" stroke="#AD6A12" stroke-width="2"/>
+<text x="565" y="506" font-size="34" fill="#AD6A12" font-weight="600" text-anchor="middle">2</text>
+<line x1="632" y1="494" x2="698" y2="494" stroke="#AD6A12" stroke-width="3" marker-end="url(#gold)"/>
+<rect x="715" y="456" width="110" height="76" rx="14" fill="#FFF2D9" stroke="#AD6A12" stroke-width="2"/>
+<text x="770" y="506" font-size="34" fill="#AD6A12" font-weight="600" text-anchor="middle">3</text>
+<line x1="837" y1="494" x2="903" y2="494" stroke="#AD6A12" stroke-width="3" marker-end="url(#gold)"/>
+<rect x="920" y="456" width="110" height="76" rx="14" fill="#FFF2D9" stroke="#AD6A12" stroke-width="2"/>
+<text x="975" y="506" font-size="34" fill="#AD6A12" font-weight="600" text-anchor="middle">…</text>
+<text x="52" y="588" font-size="23" fill="#18334A" font-weight="600" text-anchor="start">上方：N 种完整状态，至多检查 N+1 个记录便终止或重复</text>
+<text x="52" y="629" font-size="23" fill="#536777" font-weight="400" text-anchor="start">下方：状态可以不断变新，有限状态论证无法套用</text>
+<text x="52" y="669" font-size="22" fill="#536777" font-weight="400" text-anchor="start">这个加 1 循环仍可单独证明不终止；不等于它无法分析</text>
+</g></svg>

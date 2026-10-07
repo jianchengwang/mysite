@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900"><title>实际变化，等于线性变化再加余项</title><desc>在b为1时L为0.25。h为0.1，切线预测L为0.15，真实L为0.18，余项3h平方为0.03。h为0.01时，线性预测变化负0.01，余项0.0003，真实变化负0.0097。</desc><g font-family="Noto Sans CJK SC, sans-serif">
+<rect width="1400" height="900" fill="#fffdf6"/>
+<text x="55.00" y="50.00" font-size="22" fill="#0b806c" text-anchor="start" font-weight="400">数学之美 / 30 导数与局部直线</text>
+<text x="55.00" y="112.00" font-size="42" fill="#213b3d" text-anchor="start" font-weight="700">实际变化，等于线性变化再加余项</text>
+<text x="55.00" y="165.00" font-size="25" fill="#213b3d" text-anchor="start" font-weight="400">从 b = 1 出发：L(1 + h) = 0.25 − h + 3h²</text>
+<line x1="120.00" y1="665.00" x2="705.00" y2="665.00" stroke="#dce4de" stroke-width="1"/>
+<text x="104.00" y="673.00" font-size="21" fill="#718582" text-anchor="end" font-weight="400">0.10</text>
+<line x1="120.00" y1="575.00" x2="705.00" y2="575.00" stroke="#dce4de" stroke-width="1"/>
+<text x="104.00" y="583.00" font-size="21" fill="#718582" text-anchor="end" font-weight="400">0.15</text>
+<line x1="120.00" y1="485.00" x2="705.00" y2="485.00" stroke="#dce4de" stroke-width="1"/>
+<text x="104.00" y="493.00" font-size="21" fill="#718582" text-anchor="end" font-weight="400">0.20</text>
+<line x1="120.00" y1="395.00" x2="705.00" y2="395.00" stroke="#dce4de" stroke-width="1"/>
+<text x="104.00" y="403.00" font-size="21" fill="#718582" text-anchor="end" font-weight="400">0.25</text>
+<line x1="120.00" y1="305.00" x2="705.00" y2="305.00" stroke="#dce4de" stroke-width="1"/>
+<text x="104.00" y="313.00" font-size="21" fill="#718582" text-anchor="end" font-weight="400">0.30</text>
+<line x1="198.00" y1="665.00" x2="198.00" y2="672.00" stroke="#718582" stroke-width="2"/>
+<text x="198.00" y="702.00" font-size="23" fill="#718582" text-anchor="middle" font-weight="400">1</text>
+<line x1="393.00" y1="665.00" x2="393.00" y2="672.00" stroke="#718582" stroke-width="2"/>
+<text x="393.00" y="702.00" font-size="23" fill="#718582" text-anchor="middle" font-weight="400">1.05</text>
+<line x1="588.00" y1="665.00" x2="588.00" y2="672.00" stroke="#718582" stroke-width="2"/>
+<text x="588.00" y="702.00" font-size="23" fill="#718582" text-anchor="middle" font-weight="400">1.1</text>
+<line x1="120.00" y1="305.00" x2="120.00" y2="665.00" stroke="#718582" stroke-width="2"/>
+<line x1="120.00" y1="665.00" x2="705.00" y2="665.00" stroke="#718582" stroke-width="2"/>
+<text x="120.00" y="275.00" font-size="24" fill="#718582" text-anchor="start" font-weight="400">L / 平方厘米</text>
+<text x="710.00" y="702.00" font-size="23" fill="#718582" text-anchor="end" font-weight="400">b / 厘米</text>
+<path d="M120.00,356.84 L123.25,358.52 L126.50,360.19 L129.75,361.85 L133.00,363.50 L136.25,365.15 L139.50,366.78 L142.75,368.42 L146.00,370.04 L149.25,371.66 L152.50,373.26 L155.75,374.87 L159.00,376.46 L162.25,378.05 L165.50,379.62 L168.75,381.20 L172.00,382.76 L175.25,384.32 L178.50,385.86 L181.75,387.41 L185.00,388.94 L188.25,390.47 L191.50,391.98 L194.75,393.50 L198.00,395.00 L201.25,396.50 L204.50,397.99 L207.75,399.47 L211.00,400.94 L214.25,402.41 L217.50,403.86 L220.75,405.32 L224.00,406.76 L227.25,408.20 L230.50,409.62 L233.75,411.05 L237.00,412.46 L240.25,413.87 L243.50,415.26 L246.75,416.66 L250.00,418.04 L253.25,419.42 L256.50,420.78 L259.75,422.15 L263.00,423.50 L266.25,424.85 L269.50,426.18 L272.75,427.52 L276.00,428.84 L279.25,430.16 L282.50,431.47 L285.75,432.77 L289.00,434.06 L292.25,435.35 L295.50,436.62 L298.75,437.90 L302.00,439.16 L305.25,440.42 L308.50,441.66 L311.75,442.91 L315.00,444.14 L318.25,445.37 L321.50,446.59 L324.75,447.80 L328.00,449.00 L331.25,450.20 L334.50,451.38 L337.75,452.57 L341.00,453.74 L344.25,454.91 L347.50,456.06 L350.75,457.22 L354.00,458.36 L357.25,459.50 L360.50,460.62 L363.75,461.75 L367.00,462.86 L370.25,463.97 L373.50,465.06 L376.75,466.16 L380.00,467.24 L383.25,468.32 L386.50,469.38 L389.75,470.45 L393.00,471.50 L396.25,472.55 L399.50,473.59 L402.75,474.62 L406.00,475.64 L409.25,476.66 L412.50,477.66 L415.75,478.67 L419.00,479.66 L422.25,480.65 L425.50,481.62 L428.75,482.60 L432.00,483.56 L435.25,484.52 L438.50,485.46 L441.75,486.41 L445.00,487.34 L448.25,488.27 L451.50,489.18 L454.75,490.10 L458.00,491.00 L461.25,491.90 L464.50,492.78 L467.75,493.67 L471.00,494.54 L474.25,495.41 L477.50,496.26 L480.75,497.12 L484.00,497.96 L487.25,498.80 L490.50,499.62 L493.75,500.45 L497.00,501.26 L500.25,502.07 L503.50,502.87 L506.75,503.66 L510.00,504.44 L513.25,505.22 L516.50,505.98 L519.75,506.75 L523.00,507.50 L526.25,508.25 L529.50,508.98 L532.75,509.72 L536.00,510.44 L539.25,511.16 L542.50,511.87 L545.75,512.57 L549.00,513.26 L552.25,513.95 L555.50,514.62 L558.75,515.30 L562.00,515.96 L565.25,516.62 L568.50,517.26 L571.75,517.91 L575.00,518.54 L578.25,519.17 L581.50,519.78 L584.75,520.40 L588.00,521.00 L591.25,521.60 L594.50,522.18 L597.75,522.77 L601.00,523.34 L604.25,523.91 L607.50,524.46 L610.75,525.02 L614.00,525.56 L617.25,526.10 L620.50,526.62 L623.75,527.15 L627.00,527.66 L630.25,528.17 L633.50,528.66 L636.75,529.16 L640.00,529.64 L643.25,530.12 L646.50,530.59 L649.75,531.05 L653.00,531.50 L656.25,531.95 L659.50,532.38 L662.75,532.82 L666.00,533.24 L669.25,533.66 L672.50,534.06 L675.75,534.47 L679.00,534.86 L682.25,535.25 L685.50,535.62 L688.75,536.00 L692.00,536.36 L695.25,536.72 L698.50,537.07 L701.75,537.41 L705.00,537.74" fill="none" stroke="#0b806c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M120.00,359.00 L705.00,629.00" fill="none" stroke="#2b6f9f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="9 7"/>
+<line x1="198.00" y1="395.00" x2="588.00" y2="395.00" stroke="#718582" stroke-width="2" stroke-dasharray="4 6"/>
+<line x1="588.00" y1="395.00" x2="588.00" y2="575.00" stroke="#2b6f9f" stroke-width="2" stroke-dasharray="4 6"/>
+<line x1="588.00" y1="575.00" x2="588.00" y2="521.00" stroke="#c35922" stroke-width="7"/>
+<circle cx="198.00" cy="395.00" r="7" fill="#213b3d"/>
+<circle cx="588.00" cy="521.00" r="7" fill="#0b806c"/>
+<circle cx="588.00" cy="575.00" r="7" fill="#2b6f9f"/>
+<text x="213.00" y="380.00" font-size="24" fill="#213b3d" text-anchor="start" font-weight="400">起点 0.25</text>
+<text x="605.00" y="511.00" font-size="25" fill="#0b806c" text-anchor="start" font-weight="400">0.18</text>
+<text x="605.00" y="623.00" font-size="25" fill="#2b6f9f" text-anchor="start" font-weight="400">0.15</text>
+<text x="345.00" y="750.00" font-size="25" fill="#0b806c" text-anchor="middle" font-weight="400">绿色：精确损失</text>
+<text x="345.00" y="790.00" font-size="25" fill="#2b6f9f" text-anchor="middle" font-weight="400">蓝色：切线预测</text>
+<line x1="790.00" y1="230.00" x2="790.00" y2="780.00" stroke="#dce4de" stroke-width="2"/>
+<text x="850.00" y="248.00" font-size="29" fill="#213b3d" text-anchor="start" font-weight="600">同一步长下逐项比较</text>
+<text x="850.00" y="325.00" font-size="29" fill="#213b3d" text-anchor="start" font-weight="600">h = 0.1</text>
+<text x="850.00" y="380.00" font-size="25" fill="#2b6f9f" text-anchor="start" font-weight="400">线性变化</text>
+<text x="1275.00" y="380.00" font-size="30" fill="#2b6f9f" text-anchor="end" font-weight="400">−0.1</text>
+<text x="850.00" y="430.00" font-size="25" fill="#c35922" text-anchor="start" font-weight="400">余项 3h²</text>
+<text x="1275.00" y="430.00" font-size="30" fill="#c35922" text-anchor="end" font-weight="400">+0.03</text>
+<line x1="850.00" y1="452.00" x2="1275.00" y2="452.00" stroke="#dce4de" stroke-width="2"/>
+<text x="850.00" y="493.00" font-size="25" fill="#0b806c" text-anchor="start" font-weight="400">实际变化</text>
+<text x="1275.00" y="493.00" font-size="30" fill="#0b806c" text-anchor="end" font-weight="400">−0.07</text>
+<text x="850.00" y="560.00" font-size="29" fill="#213b3d" text-anchor="start" font-weight="600">h = 0.01</text>
+<text x="850.00" y="615.00" font-size="25" fill="#2b6f9f" text-anchor="start" font-weight="400">线性变化</text>
+<text x="1275.00" y="615.00" font-size="30" fill="#2b6f9f" text-anchor="end" font-weight="400">−0.01</text>
+<text x="850.00" y="665.00" font-size="25" fill="#c35922" text-anchor="start" font-weight="400">余项 3h²</text>
+<text x="1275.00" y="665.00" font-size="30" fill="#c35922" text-anchor="end" font-weight="400">+0.0003</text>
+<line x1="850.00" y1="687.00" x2="1275.00" y2="687.00" stroke="#dce4de" stroke-width="2"/>
+<text x="850.00" y="728.00" font-size="25" fill="#0b806c" text-anchor="start" font-weight="400">实际变化</text>
+<text x="1275.00" y="728.00" font-size="30" fill="#0b806c" text-anchor="end" font-weight="400">−0.0097</text>
+<text x="850.00" y="807.00" font-size="22" fill="#718582" text-anchor="start" font-weight="400">变化与余项的单位：平方厘米</text>
+<text x="700.00" y="842.00" font-size="26" fill="#213b3d" text-anchor="middle" font-weight="500">余项 / |h| = 3|h| → 0：误差相对于步长还要更小</text>
+<text x="55.00" y="872.00" font-size="20" fill="#718582" text-anchor="start" font-weight="400">数学之美 · 原创图解 · 固定厘米单位下的教学数值</text>
+</g></svg>

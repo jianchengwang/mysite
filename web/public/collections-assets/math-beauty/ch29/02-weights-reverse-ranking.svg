@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1050" viewBox="0 0 1400 1050"><title>只把中点费用加倍，排序就反转</title><desc>横条按相同平方厘米尺度绘制，三色分别代表x等于0、1、2的平方损失贡献。等权C为1/6、D为3/16；中点加倍后C为5/18、D为1/4。只展示两个候选的比较。</desc><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L10,5 L0,10 Z" fill="#718582"/></marker></defs><rect width="1400" height="1050" fill="#fffdf6"/><g font-family="Noto Sans CJK SC, sans-serif">
+<text x="55" y="50" font-size="22" fill="#0b806c" font-weight="400" text-anchor="start">数学之美 / 29 损失与优化</text>
+<text x="55" y="112" font-size="42" fill="#213b3d" font-weight="700" text-anchor="start">只把中点费用加倍，排序就反转</text>
+<text x="55" y="163" font-size="25" fill="#718582" font-weight="400" text-anchor="start">C：ŷ = x/2 + 7/6；D：ŷ = x/2 + 5/4；权重均无单位</text>
+<rect x="70" y="196" width="28" height="28" fill="#0b806c" stroke="none" rx="0"/>
+<text x="112" y="220" font-size="24" fill="#213b3d" font-weight="400" text-anchor="start">x = 0 的贡献</text>
+<rect x="365" y="196" width="28" height="28" fill="#c35922" stroke="none" rx="0"/>
+<text x="407" y="220" font-size="24" fill="#213b3d" font-weight="400" text-anchor="start">x = 1 的贡献</text>
+<rect x="660" y="196" width="28" height="28" fill="#2b6f9f" stroke="none" rx="0"/>
+<text x="702" y="220" font-size="24" fill="#213b3d" font-weight="400" text-anchor="start">x = 2 的贡献</text>
+<text x="1295" y="220" font-size="23" fill="#718582" font-weight="400" text-anchor="end">单位：平方厘米</text>
+<text x="330" y="278" font-size="23" fill="#718582" font-weight="400" text-anchor="middle">0</text>
+<line x1="330" y1="294" x2="330" y2="874" stroke="#dce4de" stroke-width="2"/>
+<text x="472.5" y="278" font-size="23" fill="#718582" font-weight="400" text-anchor="middle">0.05</text>
+<line x1="472.5" y1="294" x2="472.5" y2="874" stroke="#dce4de" stroke-width="2"/>
+<text x="615.0" y="278" font-size="23" fill="#718582" font-weight="400" text-anchor="middle">0.10</text>
+<line x1="615.0" y1="294" x2="615.0" y2="874" stroke="#dce4de" stroke-width="2"/>
+<text x="757.5" y="278" font-size="23" fill="#718582" font-weight="400" text-anchor="middle">0.15</text>
+<line x1="757.5" y1="294" x2="757.5" y2="874" stroke="#dce4de" stroke-width="2"/>
+<text x="900.0" y="278" font-size="23" fill="#718582" font-weight="400" text-anchor="middle">0.20</text>
+<line x1="900.0" y1="294" x2="900.0" y2="874" stroke="#dce4de" stroke-width="2"/>
+<text x="1042.5" y="278" font-size="23" fill="#718582" font-weight="400" text-anchor="middle">0.25</text>
+<line x1="1042.5" y1="294" x2="1042.5" y2="874" stroke="#dce4de" stroke-width="2"/>
+<text x="1185.0" y="278" font-size="23" fill="#718582" font-weight="400" text-anchor="middle">0.30</text>
+<line x1="1185.0" y1="294" x2="1185.0" y2="874" stroke="#dce4de" stroke-width="2"/>
+<rect x="55" y="305" width="220" height="44" fill="#fffdf6" stroke="none" rx="0"/>
+<text x="65" y="338" font-size="28" fill="#213b3d" font-weight="700" text-anchor="start">等权 (1,1,1)</text>
+<text x="285" y="420" font-size="32" fill="#213b3d" font-weight="700" text-anchor="middle">C</text>
+<rect x="330" y="380" width="79.16666666666666" height="60" fill="#0b806c" stroke="#fffdf6" rx="0"/>
+<text x="369.5833333333333" y="420" font-size="23" fill="#ffffff" font-weight="700" text-anchor="middle">1/36</text>
+<rect x="409.16666666666663" y="380" width="316.66666666666663" height="60" fill="#c35922" stroke="#fffdf6" rx="0"/>
+<text x="567.5" y="420" font-size="23" fill="#ffffff" font-weight="700" text-anchor="middle">1/9</text>
+<rect x="725.8333333333333" y="380" width="79.16666666666666" height="60" fill="#2b6f9f" stroke="#fffdf6" rx="0"/>
+<text x="765.4166666666666" y="420" font-size="23" fill="#ffffff" font-weight="700" text-anchor="middle">1/36</text>
+<text x="822.9999999999999" y="421" font-size="31" fill="#213b3d" font-weight="700" text-anchor="start">1/6</text>
+<text x="285" y="518" font-size="32" fill="#213b3d" font-weight="700" text-anchor="middle">D</text>
+<rect x="330" y="478" width="178.125" height="60" fill="#0b806c" stroke="#fffdf6" rx="0"/>
+<text x="419.0625" y="518" font-size="23" fill="#ffffff" font-weight="700" text-anchor="middle">1/16</text>
+<rect x="508.125" y="478" width="178.125" height="60" fill="#c35922" stroke="#fffdf6" rx="0"/>
+<text x="597.1875" y="518" font-size="23" fill="#ffffff" font-weight="700" text-anchor="middle">1/16</text>
+<rect x="686.25" y="478" width="178.125" height="60" fill="#2b6f9f" stroke="#fffdf6" rx="0"/>
+<text x="775.3125" y="518" font-size="23" fill="#ffffff" font-weight="700" text-anchor="middle">1/16</text>
+<text x="882.375" y="519" font-size="31" fill="#213b3d" font-weight="700" text-anchor="start">3/16</text>
+<text x="285" y="732" font-size="32" fill="#213b3d" font-weight="700" text-anchor="middle">C</text>
+<rect x="330" y="692" width="79.16666666666666" height="60" fill="#0b806c" stroke="#fffdf6" rx="0"/>
+<text x="369.5833333333333" y="732" font-size="23" fill="#ffffff" font-weight="700" text-anchor="middle">1/36</text>
+<rect x="409.16666666666663" y="692" width="633.3333333333333" height="60" fill="#c35922" stroke="#fffdf6" rx="0"/>
+<text x="725.8333333333333" y="732" font-size="23" fill="#ffffff" font-weight="700" text-anchor="middle">2/9</text>
+<rect x="1042.5" y="692" width="79.16666666666666" height="60" fill="#2b6f9f" stroke="#fffdf6" rx="0"/>
+<text x="1082.0833333333333" y="732" font-size="23" fill="#ffffff" font-weight="700" text-anchor="middle">1/36</text>
+<text x="1139.6666666666667" y="733" font-size="31" fill="#213b3d" font-weight="700" text-anchor="start">5/18</text>
+<text x="285" y="830" font-size="32" fill="#213b3d" font-weight="700" text-anchor="middle">D</text>
+<rect x="330" y="790" width="178.125" height="60" fill="#0b806c" stroke="#fffdf6" rx="0"/>
+<text x="419.0625" y="830" font-size="23" fill="#ffffff" font-weight="700" text-anchor="middle">1/16</text>
+<rect x="508.125" y="790" width="356.25" height="60" fill="#c35922" stroke="#fffdf6" rx="0"/>
+<text x="686.25" y="830" font-size="23" fill="#ffffff" font-weight="700" text-anchor="middle">1/8</text>
+<rect x="864.375" y="790" width="178.125" height="60" fill="#2b6f9f" stroke="#fffdf6" rx="0"/>
+<text x="953.4375" y="830" font-size="23" fill="#ffffff" font-weight="700" text-anchor="middle">1/16</text>
+<text x="1060.5" y="831" font-size="31" fill="#213b3d" font-weight="700" text-anchor="start">1/4</text>
+<rect x="55" y="578" width="270" height="69" fill="#fffdf6" stroke="none" rx="0"/>
+<text x="65" y="609" font-size="28" fill="#213b3d" font-weight="700" text-anchor="start">中点加倍</text>
+<text x="65" y="646" font-size="26" fill="#718582" font-weight="400" text-anchor="start">(1,2,1)</text>
+<rect x="940" y="328" width="345" height="61" fill="#fffdf6" stroke="none" rx="0"/>
+<text x="1260" y="369" font-size="29" fill="#0b806c" font-weight="700" text-anchor="end">1/6 &lt; 3/16：C 更小</text>
+<rect x="800" y="595" width="485" height="56" fill="#fffdf6" stroke="none" rx="0"/>
+<text x="1260" y="634" font-size="29" fill="#c35922" font-weight="700" text-anchor="end">5/18 &gt; 1/4：D 更小</text>
+<line x1="65" y1="899" x2="1335" y2="899" stroke="#dce4de" stroke-width="2"/>
+<text x="70" y="944" font-size="31" fill="#213b3d" font-weight="700" text-anchor="start">偏差未变；变化的是每项偏差在目标中要付多少费用</text>
+<text x="70" y="989" font-size="25" fill="#718582" font-weight="400" text-anchor="start">此图只比较 C 与 D，不证明新目标下所有直线中的全局最优</text>
+<text x="55" y="1030" font-size="20" fill="#718582" font-weight="400" text-anchor="start">数学之美 · 原创图解 · 四条横条共用同一数值尺度</text>
+</g></svg>

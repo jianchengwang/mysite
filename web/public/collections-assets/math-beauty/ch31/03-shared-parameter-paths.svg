@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img"><title>共享参数的两路影响必须相加</title><desc>预测为wx加w，x等于2，y等于4，w等于1。w经过乘x的路径贡献负4，直接加到预测的路径贡献负2，两路在w相加为负6。</desc>
+<defs><marker id="greenArrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 Z" fill="#0b806c"/></marker><marker id="orangeArrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 Z" fill="#c35922"/></marker></defs>
+<rect width="1400" height="900" fill="#fffdf6"/>
+<g font-family="Noto Sans CJK SC, Noto Sans, sans-serif">
+<text x="55" y="50" font-size="22" fill="#0b806c" font-weight="400" text-anchor="start">数学之美 / 31 链式法则与反向传播</text>
+<text x="55" y="112" font-size="42" fill="#213b3d" font-weight="700" text-anchor="start">同一个参数，两条路都要算</text>
+<text x="55" y="165" font-size="25" fill="#213b3d" font-weight="400" text-anchor="start">ŷ = wx + w，L = (ŷ − y)²；x = 2，y = 4，w = 1</text>
+<rect x="65" y="350" width="240" height="120" rx="16" fill="#eef5ed" stroke="#dce4de" stroke-width="2"/>
+<text x="185" y="397" font-size="24" fill="#657d78" font-weight="400" text-anchor="middle">共享参数</text>
+<text x="185" y="448" font-size="36" fill="#0b806c" font-weight="600" text-anchor="middle">w = 1</text>
+<rect x="455" y="220" width="230" height="105" rx="16" fill="#eef5ed" stroke="#dce4de" stroke-width="2"/>
+<text x="570" y="260" font-size="24" fill="#657d78" font-weight="400" text-anchor="middle">乘法</text>
+<text x="570" y="303" font-size="32" fill="#0b806c" font-weight="600" text-anchor="middle">wx = 2</text>
+<rect x="845" y="350" width="220" height="120" rx="16" fill="#eef5ed" stroke="#dce4de" stroke-width="2"/>
+<text x="955" y="397" font-size="24" fill="#657d78" font-weight="400" text-anchor="middle">加法</text>
+<text x="955" y="448" font-size="36" fill="#0b806c" font-weight="600" text-anchor="middle">ŷ = 3</text>
+<rect x="1160" y="350" width="175" height="120" rx="16" fill="#eef5ed" stroke="#dce4de" stroke-width="2"/>
+<text x="1247" y="397" font-size="23" fill="#657d78" font-weight="400" text-anchor="middle">平方损失</text>
+<text x="1247" y="448" font-size="32" fill="#0b806c" font-weight="600" text-anchor="middle">L = 1</text>
+<path d="M250 350 L250 273 L455 273" fill="none" stroke="#0b806c" stroke-width="4" marker-end="url(#greenArrow)"/>
+<path d="M685 273 L955 273 L955 350" fill="none" stroke="#0b806c" stroke-width="4" marker-end="url(#greenArrow)"/>
+<path d="M250 470 L250 530 L955 530 L955 470" fill="none" stroke="#0b806c" stroke-width="4" marker-end="url(#greenArrow)"/>
+<path d="M1065 410 L1160 410" fill="none" stroke="#0b806c" stroke-width="4" marker-end="url(#greenArrow)"/>
+<text x="365" y="255" font-size="23" fill="#0b806c" font-weight="500" text-anchor="middle">乘 x = 2</text>
+<text x="670" y="560" font-size="24" fill="#0b806c" font-weight="500" text-anchor="middle">直接相加：倍率 1</text>
+<text x="955" y="232" font-size="26" fill="#c35922" font-weight="600" text-anchor="middle">∂L/∂ŷ = 2(3 − 4) = −2</text>
+<path d="M875 350 L875 328 L735 328 L735 343 L570 343 L570 325" fill="none" stroke="#c35922" stroke-width="4" marker-end="url(#orangeArrow)"/>
+<path d="M455 300 L355 300 L355 390 L305 390" fill="none" stroke="#c35922" stroke-width="4" marker-end="url(#orangeArrow)"/>
+<text x="566" y="390" font-size="27" fill="#c35922" font-weight="600" text-anchor="middle">上路贡献：−2 × 2 = −4</text>
+<path d="M845 444 L780 444 L780 605 L185 605 L185 470" fill="none" stroke="#c35922" stroke-width="4" marker-end="url(#orangeArrow)"/>
+<text x="530" y="640" font-size="27" fill="#c35922" font-weight="600" text-anchor="middle">下路贡献：−2 × 1 = −2</text>
+<path d="M1160 372 L1065 372" fill="none" stroke="#c35922" stroke-width="4" marker-end="url(#orangeArrow)"/>
+<line x1="55" y1="690" x2="1345" y2="690" stroke="#dce4de" stroke-width="2"/>
+<text x="65" y="750" font-size="28" fill="#c35922" font-weight="600" text-anchor="start">回到 w 时累加</text>
+<text x="430" y="750" font-size="35" fill="#c35922" font-weight="600" text-anchor="start">dL/dw = −4 + (−2) = −6</text>
+<text x="65" y="810" font-size="26" fill="#657d78" font-weight="400" text-anchor="start">若拆成两个独立参数 w₁、w₂，就变成另一个模型与两个偏导</text>
+<text x="55" y="872" font-size="20" fill="#657d78" font-weight="400" text-anchor="start">数学之美 · 原创图解 · 局部变化与计算图</text>
+</g></svg>

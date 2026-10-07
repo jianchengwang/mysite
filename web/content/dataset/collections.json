@@ -1125,40 +1125,40 @@
           "description": "沿用小数据集，定义误差与约束，理解局部近似、链式关系、梯度步长和凸性，再比较拟合与验证。",
           "entries": [
             {
-              "slug": "loss-and-constraints",
+              "slug": "loss-functions",
               "title": "模型错了多少，能用一个数说清吗",
               "order": 29,
-              "published": false
+              "published": true
             },
             {
-              "slug": "derivatives-local-linearization",
+              "slug": "derivatives-local-linear",
               "title": "导数：把变化写成局部直线",
               "order": 30,
-              "published": false
+              "published": true
             },
             {
-              "slug": "chain-rule",
+              "slug": "chain-rule-backpropagation",
               "title": "多层运算，怎样把变化一层层传回",
               "order": 31,
-              "published": false
+              "published": true
             },
             {
-              "slug": "gradient-step-size",
+              "slug": "gradient-descent-step-size",
               "title": "顺着梯度走，步子多大才合适",
               "order": 32,
-              "published": false
+              "published": true
             },
             {
-              "slug": "convexity",
+              "slug": "convexity-and-global-optima",
               "title": "什么条件下，局部最优就是全局最优",
               "order": 33,
-              "published": false
+              "published": true
             },
             {
-              "slug": "generalization-regularization",
+              "slug": "fitting-and-generalization",
               "title": "回到拟合：训练更好，为什么预测更差",
               "order": 34,
-              "published": false
+              "published": true
             }
           ]
         },
@@ -1168,28 +1168,28 @@
           "description": "从有限位数的表示出发，区分表示误差、问题敏感性与算法稳定性，回到数值结果的可信程度。",
           "entries": [
             {
-              "slug": "floating-point",
+              "slug": "finite-precision",
               "title": "0.1为什么不能总被机器准确写下",
               "order": 35,
-              "published": false
+              "published": true
             },
             {
               "slug": "conditioning",
               "title": "一点点误差，为什么会被放大",
               "order": 36,
-              "published": false
+              "published": true
             },
             {
-              "slug": "numerical-stability",
+              "slug": "stable-computation",
               "title": "同一个公式，换种写法为什么更准",
               "order": 37,
-              "published": false
+              "published": true
             },
             {
-              "slug": "numerical-reliability",
+              "slug": "trustworthy-numerical-results",
               "title": "回到模型：怎样判断一个数值结果可信到几位",
               "order": 38,
-              "published": false
+              "published": true
             }
           ]
         },
@@ -1202,13 +1202,13 @@
               "slug": "halting-problem",
               "title": "能写一个判断所有程序会不会结束的程序吗",
               "order": 39,
-              "published": false
+              "published": true
             },
             {
-              "slug": "mathematical-guarantees",
+              "slug": "mathematics-in-real-systems",
               "title": "回到一个真实系统：数学能保证什么",
               "order": 40,
-              "published": false
+              "published": true
             }
           ]
         }

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1120" viewBox="0 0 1400 1120"><title>先定义一笔费用，再汇总成目标</title><desc>损失计算链：预测读数的任务确定固定样本和直线模型，候选C在中间样本的单次平方损失为九分之一，整批平方和为六分之一，最后在可行集合中选择参数。</desc><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L10,5 L0,10 Z" fill="#718582"/></marker></defs><rect width="1400" height="1120" fill="#fffdf6"/><g font-family="Noto Sans CJK SC, sans-serif">
+<text x="55" y="50" font-size="22" fill="#0b806c" font-weight="400" text-anchor="start">数学之美 / 29 损失与优化</text>
+<text x="55" y="112" font-size="42" fill="#213b3d" font-weight="700" text-anchor="start">先定义一笔费用，再汇总成目标</text>
+<text x="55" y="163" font-size="25" fill="#718582" font-weight="400" text-anchor="start">同一个 θ 用于全部记录；数据和计分规则固定，改变的是模型参数</text>
+<rect x="70" y="205" width="1260" height="92" fill="#e6f2ec" stroke="none" rx="12"/>
+<text x="100" y="247" font-size="27" fill="#0b806c" font-weight="700" text-anchor="start">任务</text>
+<text x="225" y="247" font-size="30" fill="#213b3d" font-weight="700" text-anchor="start">已知滑杆位置 x，预测指针读数 y</text>
+<text x="225" y="281" font-size="24" fill="#718582" font-weight="400" text-anchor="start">输入、输出均以厘米计；三点为虚构教学记录</text>
+<line x1="700" y1="304" x2="700" y2="338" stroke="#718582" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="70" y="355" width="600" height="131" fill="#f1f3ef" stroke="none" rx="12"/>
+<rect x="730" y="355" width="600" height="131" fill="#edf2f7" stroke="none" rx="12"/>
+<text x="100" y="397" font-size="27" fill="#0b806c" font-weight="700" text-anchor="start">固定样本</text>
+<text x="100" y="449" font-size="31" fill="#213b3d" font-weight="400" text-anchor="start">(0,1)   (1,2)   (2,2)</text>
+<text x="760" y="397" font-size="27" fill="#2b6f9f" font-weight="700" text-anchor="start">允许调整的模型</text>
+<text x="760" y="449" font-size="30" fill="#213b3d" font-weight="400" text-anchor="start">fθ(x) = ax + b，θ = (a,b)</text>
+<line x1="370" y1="491" x2="370" y2="520" stroke="#718582" stroke-width="3"/>
+<line x1="1030" y1="491" x2="1030" y2="520" stroke="#718582" stroke-width="3"/>
+<line x1="370" y1="520" x2="1030" y2="520" stroke="#718582" stroke-width="3"/>
+<line x1="700" y1="520" x2="700" y2="548" stroke="#718582" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="70" y="566" width="1260" height="129" fill="#fbede2" stroke="none" rx="12"/>
+<text x="100" y="607" font-size="27" fill="#c35922" font-weight="700" text-anchor="start">单次损失 ℓ</text>
+<text x="365" y="607" font-size="28" fill="#213b3d" font-weight="400" text-anchor="start">例：C 在 x = 1 时预测 5/3，观测为 2</text>
+<text x="365" y="660" font-size="30" fill="#213b3d" font-weight="700" text-anchor="start">ℓ(2, 5/3) = (2 − 5/3)² = 1/9 平方厘米</text>
+<line x1="700" y1="703" x2="700" y2="744" stroke="#718582" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="70" y="759" width="1260" height="129" fill="#e6f2ec" stroke="none" rx="12"/>
+<text x="100" y="803" font-size="27" fill="#0b806c" font-weight="700" text-anchor="start">经验目标 L</text>
+<text x="365" y="803" font-size="30" fill="#213b3d" font-weight="400" text-anchor="start">L(a,b) = Σᵢ ℓ(yᵢ, axᵢ + b)</text>
+<text x="365" y="854" font-size="29" fill="#213b3d" font-weight="700" text-anchor="start">C 的整批分数：1/36 + 1/9 + 1/36 = 1/6</text>
+<line x1="700" y1="896" x2="700" y2="936" stroke="#718582" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="70" y="951" width="1260" height="99" fill="#edf2f7" stroke="none" rx="12"/>
+<text x="100" y="992" font-size="27" fill="#2b6f9f" font-weight="700" text-anchor="start">求最小</text>
+<text x="365" y="992" font-size="31" fill="#213b3d" font-weight="700" text-anchor="start">在 θ ∈ Θ 中，找使 L(θ) 最小的参数</text>
+<text x="365" y="1032" font-size="25" fill="#718582" font-weight="400" text-anchor="start">Θ 说明哪里能找；L 说明怎样比较</text>
+<text x="55" y="1090" font-size="20" fill="#718582" font-weight="400" text-anchor="start">数学之美 · 原创图解 · 单次损失与整批目标必须分清</text>
+</g></svg>

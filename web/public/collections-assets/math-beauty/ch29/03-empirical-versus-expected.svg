@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1030" viewBox="0 0 1400 1030"><title>眼前的平均，与未来的期望</title><desc>经验目标Rn对已经记录的有限样本求平均，期望风险R则对目标分布P中可能遇到的输入和结果求期望。两者之间需要来源、抽样、模型选择隔离等依据，低训练分数不能直接保证未来。</desc><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L10,5 L0,10 Z" fill="#718582"/></marker></defs><rect width="1400" height="1030" fill="#fffdf6"/><g font-family="Noto Sans CJK SC, sans-serif">
+<text x="55" y="50" font-size="22" fill="#0b806c" font-weight="400" text-anchor="start">数学之美 / 29 损失与优化</text>
+<text x="55" y="112" font-size="42" fill="#213b3d" font-weight="700" text-anchor="start">眼前的平均，与未来的期望</text>
+<text x="55" y="163" font-size="25" fill="#718582" font-weight="400" text-anchor="start">使用同一个模型、同一种单次损失，也仍然是两个不同对象</text>
+<rect x="65" y="207" width="590" height="429" fill="#e6f2ec" stroke="none" rx="12"/>
+<rect x="745" y="207" width="590" height="429" fill="#edf2f7" stroke="none" rx="12"/>
+<text x="100" y="258" font-size="33" fill="#0b806c" font-weight="700" text-anchor="start">已记录的样本</text>
+<text x="780" y="258" font-size="33" fill="#2b6f9f" font-weight="700" text-anchor="start">目标分布 P</text>
+<text x="100" y="305" font-size="26" fill="#213b3d" font-weight="400" text-anchor="start">逐条读取这批 (xᵢ, yᵢ)</text>
+<text x="780" y="305" font-size="26" fill="#213b3d" font-weight="400" text-anchor="start">描述未来可能遇到的 (X, Y)</text>
+<rect x="100" y="338" width="235" height="46" fill="#ffffff" stroke="none" rx="12"/>
+<text x="217" y="371" font-size="25" fill="#213b3d" font-weight="400" text-anchor="middle">(x₁, y₁)</text>
+<text x="375" y="371" font-size="27" fill="#0b806c" font-weight="700" text-anchor="start">ℓ1</text>
+<line x1="345" y1="362" x2="365" y2="362" stroke="#718582" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="100" y="401" width="235" height="46" fill="#ffffff" stroke="none" rx="12"/>
+<text x="217" y="434" font-size="25" fill="#213b3d" font-weight="400" text-anchor="middle">(x₂, y₂)</text>
+<text x="375" y="434" font-size="27" fill="#0b806c" font-weight="700" text-anchor="start">ℓ2</text>
+<line x1="345" y1="425" x2="365" y2="425" stroke="#718582" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="100" y="464" width="235" height="46" fill="#ffffff" stroke="none" rx="12"/>
+<text x="217" y="497" font-size="25" fill="#213b3d" font-weight="400" text-anchor="middle">(x₃, y₃)</text>
+<text x="375" y="497" font-size="27" fill="#0b806c" font-weight="700" text-anchor="start">ℓ3</text>
+<line x1="345" y1="488" x2="365" y2="488" stroke="#718582" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="217" y="550" font-size="25" fill="#718582" font-weight="400" text-anchor="middle">… 共 n 条，n &gt; 0</text>
+<circle cx="845" cy="398" r="25" fill="#2b6f9f" opacity="0.80"/>
+<circle cx="980" cy="369" r="15" fill="#0b806c" opacity="0.80"/>
+<circle cx="1112" cy="420" r="37" fill="#c35922" opacity="0.80"/>
+<circle cx="1225" cy="375" r="19" fill="#2b6f9f" opacity="0.80"/>
+<circle cx="917" cy="505" r="31" fill="#0b806c" opacity="0.80"/>
+<circle cx="1165" cy="538" r="17" fill="#c35922" opacity="0.80"/>
+<text x="1040" y="595" font-size="24" fill="#718582" font-weight="400" text-anchor="middle">示意：可能遇到的不同情形</text>
+<text x="100" y="602" font-size="27" fill="#0b806c" font-weight="700" text-anchor="start">可以直接逐项计算</text>
+<rect x="65" y="666" width="590" height="102" fill="#ffffff" stroke="#dce4de" rx="12"/>
+<rect x="745" y="666" width="590" height="102" fill="#ffffff" stroke="#dce4de" rx="12"/>
+<text x="360" y="728" font-size="29" fill="#213b3d" font-weight="700" text-anchor="middle">Rₙ(θ) = (1/n) Σᵢ ℓ(yᵢ, fθ(xᵢ))</text>
+<text x="1040" y="728" font-size="31" fill="#213b3d" font-weight="700" text-anchor="middle">R(θ) = Eₚ[ℓ(Y, fθ(X))]</text>
+<line x1="660" y1="714" x2="735" y2="714" stroke="#718582" stroke-width="3" stroke-dasharray="9 7"/>
+<text x="700" y="823" font-size="29" fill="#213b3d" font-weight="700" text-anchor="middle">要连接两边，必须检查抽样来源、依赖与模型选择过程</text>
+<text x="700" y="873" font-size="26" fill="#718582" font-weight="400" text-anchor="middle">新数据评估见第23章；更系统的泛化问题留到第34章</text>
+<line x1="65" y1="914" x2="1335" y2="914" stroke="#dce4de" stroke-width="2"/>
+<text x="700" y="963" font-size="34" fill="#c35922" font-weight="700" text-anchor="middle">Rₙ 小，并不能单独推出 R 小</text>
+<text x="55" y="1008" font-size="20" fill="#718582" font-weight="400" text-anchor="start">数学之美 · 原创图解 · 右侧圆点仅示意情形，大小不标概率；三点教学数据未附带目标分布</text>
+</g></svg>

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900"><title>尖点两侧，无法共用一个斜率</title><desc>绝对值函数连续地经过原点。h小于0时差商恒等于负1，h大于0时差商恒等于1，因此原点没有双侧导数。</desc><g font-family="Noto Sans CJK SC, sans-serif">
+<rect width="1400" height="900" fill="#fffdf6"/>
+<text x="55.00" y="50.00" font-size="22" fill="#0b806c" text-anchor="start" font-weight="400">数学之美 / 30 导数与局部直线</text>
+<text x="55.00" y="112.00" font-size="42" fill="#213b3d" text-anchor="start" font-weight="700">尖点两侧，无法共用一个斜率</text>
+<text x="55.00" y="165.00" font-size="25" fill="#213b3d" text-anchor="start" font-weight="400">f(t) = |t|；在 t = 0 处比较 [f(h) − f(0)] / h</text>
+<line x1="105.00" y1="512.24" x2="790.00" y2="512.24" stroke="#dce4de" stroke-width="1"/>
+<text x="429.50" y="520.24" font-size="21" fill="#718582" text-anchor="end" font-weight="400">0.5</text>
+<line x1="105.00" y1="363.97" x2="790.00" y2="363.97" stroke="#dce4de" stroke-width="1"/>
+<text x="429.50" y="371.97" font-size="21" fill="#718582" text-anchor="end" font-weight="400">1</text>
+<line x1="105.00" y1="660.52" x2="790.00" y2="660.52" stroke="#718582" stroke-width="2"/>
+<line x1="447.50" y1="275.00" x2="447.50" y2="705.00" stroke="#718582" stroke-width="2"/>
+<line x1="162.08" y1="660.52" x2="162.08" y2="667.52" stroke="#718582" stroke-width="2"/>
+<text x="162.08" y="694.52" font-size="22" fill="#718582" text-anchor="middle" font-weight="400">-1</text>
+<line x1="304.79" y1="660.52" x2="304.79" y2="667.52" stroke="#718582" stroke-width="2"/>
+<text x="304.79" y="694.52" font-size="22" fill="#718582" text-anchor="middle" font-weight="400">-0.5</text>
+<line x1="590.21" y1="660.52" x2="590.21" y2="667.52" stroke="#718582" stroke-width="2"/>
+<text x="590.21" y="694.52" font-size="22" fill="#718582" text-anchor="middle" font-weight="400">0.5</text>
+<line x1="732.92" y1="660.52" x2="732.92" y2="667.52" stroke="#718582" stroke-width="2"/>
+<text x="732.92" y="694.52" font-size="22" fill="#718582" text-anchor="middle" font-weight="400">1</text>
+<text x="429.50" y="693.52" font-size="22" fill="#718582" text-anchor="end" font-weight="400">0</text>
+<text x="810.00" y="667.52" font-size="25" fill="#718582" text-anchor="start" font-weight="400">t</text>
+<text x="459.50" y="252.00" font-size="25" fill="#718582" text-anchor="start" font-weight="400">f(t)</text>
+<path d="M127.83,328.38 L447.50,660.52" fill="none" stroke="#2b6f9f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M447.50,660.52 L767.17,328.38" fill="none" stroke="#c35922" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="447.50" cy="660.52" r="8" fill="#213b3d"/>
+<circle cx="190.62" cy="393.62" r="6" fill="#2b6f9f"/>
+<circle cx="290.52" cy="497.41" r="6" fill="#2b6f9f"/>
+<circle cx="390.42" cy="601.21" r="6" fill="#2b6f9f"/>
+<circle cx="504.58" cy="601.21" r="6" fill="#c35922"/>
+<circle cx="604.48" cy="497.41" r="6" fill="#c35922"/>
+<circle cx="704.38" cy="393.62" r="6" fill="#c35922"/>
+<text x="190.00" y="253.00" font-size="28" fill="#2b6f9f" text-anchor="middle" font-weight="500">h &lt; 0</text>
+<text x="705.00" y="253.00" font-size="28" fill="#c35922" text-anchor="middle" font-weight="500">h &gt; 0</text>
+<text x="170.00" y="530.00" font-size="28" fill="#2b6f9f" text-anchor="middle" font-weight="500">左斜率 −1</text>
+<text x="725.00" y="530.00" font-size="28" fill="#c35922" text-anchor="middle" font-weight="500">右斜率 +1</text>
+<line x1="850.00" y1="240.00" x2="850.00" y2="775.00" stroke="#dce4de" stroke-width="2"/>
+<text x="910.00" y="285.00" font-size="28" fill="#2b6f9f" text-anchor="start" font-weight="600">左侧的每一步</text>
+<text x="910.00" y="345.00" font-size="27" fill="#2b6f9f" text-anchor="start" font-weight="400">|h| / h = (−h) / h = −1</text>
+<text x="910.00" y="460.00" font-size="28" fill="#c35922" text-anchor="start" font-weight="600">右侧的每一步</text>
+<text x="910.00" y="520.00" font-size="27" fill="#c35922" text-anchor="start" font-weight="400">|h| / h = h / h = +1</text>
+<text x="910.00" y="660.00" font-size="28" fill="#213b3d" text-anchor="start" font-weight="500">步长再小，两侧仍不同</text>
+<text x="910.00" y="714.00" font-size="32" fill="#213b3d" text-anchor="start" font-weight="600">f′(0) 不存在</text>
+<text x="700.00" y="819.00" font-size="27" fill="#213b3d" text-anchor="middle" font-weight="500">连续只要求函数值接得上；可微还要求差商趋向同一个有限数</text>
+<text x="55.00" y="872.00" font-size="20" fill="#718582" text-anchor="start" font-weight="400">数学之美 · 原创图解 · 固定厘米单位下的教学数值</text>
+</g></svg>

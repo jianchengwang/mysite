@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1030" viewBox="0 0 1400 1030" role="img"><title>先算数值，再传回局部敏感度</title><desc>x等于1，y等于2，w等于1，b等于0，v等于二分之一，c等于1。前向得到z等于1，预测等于1.5，损失等于四分之一；反向四参数偏导为负二分之一、负二分之一、负1、负1。</desc>
+<defs><marker id="greenArrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 Z" fill="#0b806c"/></marker><marker id="orangeArrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 Z" fill="#c35922"/></marker></defs>
+<rect width="1400" height="1030" fill="#fffdf6"/>
+<g font-family="Noto Sans CJK SC, Noto Sans, sans-serif">
+<text x="55" y="50" font-size="22" fill="#0b806c" font-weight="400" text-anchor="start">数学之美 / 31 链式法则与反向传播</text>
+<text x="55" y="112" font-size="42" fill="#213b3d" font-weight="700" text-anchor="start">先算数值，再传回局部敏感度</text>
+<text x="55" y="165" font-size="25" fill="#213b3d" font-weight="400" text-anchor="start">z = wx + b，ŷ = vz + c，L = (ŷ − y)²；数据 x = 1，y = 2</text>
+<text x="65" y="226" font-size="27" fill="#0b806c" font-weight="600" text-anchor="start">前向：沿运算顺序求值</text>
+<rect x="65" y="282" width="250" height="105" rx="16" fill="#eef5ed" stroke="#dce4de" stroke-width="2"/>
+<text x="190" y="315" font-size="21" fill="#657d78" font-weight="400" text-anchor="middle">输入</text>
+<text x="190" y="362" font-size="32" fill="#0b806c" font-weight="600" text-anchor="middle">x = 1</text>
+<rect x="405" y="282" width="250" height="105" rx="16" fill="#eef5ed" stroke="#dce4de" stroke-width="2"/>
+<text x="530" y="315" font-size="21" fill="#657d78" font-weight="400" text-anchor="middle">第一层</text>
+<text x="530" y="362" font-size="32" fill="#0b806c" font-weight="600" text-anchor="middle">z = 1</text>
+<rect x="745" y="282" width="250" height="105" rx="16" fill="#eef5ed" stroke="#dce4de" stroke-width="2"/>
+<text x="870" y="315" font-size="21" fill="#657d78" font-weight="400" text-anchor="middle">第二层</text>
+<text x="870" y="362" font-size="32" fill="#0b806c" font-weight="600" text-anchor="middle">ŷ = 1.5</text>
+<rect x="1085" y="282" width="250" height="105" rx="16" fill="#eef5ed" stroke="#dce4de" stroke-width="2"/>
+<text x="1210" y="315" font-size="21" fill="#657d78" font-weight="400" text-anchor="middle">损失</text>
+<text x="1210" y="362" font-size="32" fill="#0b806c" font-weight="600" text-anchor="middle">L = 1/4</text>
+<path d="M315 340 L405 340" fill="none" stroke="#0b806c" stroke-width="4" marker-end="url(#greenArrow)"/>
+<text x="360.0" y="267" font-size="24" fill="#0b806c" font-weight="500" text-anchor="middle">×1，+0</text>
+<path d="M655 340 L745 340" fill="none" stroke="#0b806c" stroke-width="4" marker-end="url(#greenArrow)"/>
+<text x="700.0" y="267" font-size="24" fill="#0b806c" font-weight="500" text-anchor="middle">×1/2，+1</text>
+<path d="M995 340 L1085 340" fill="none" stroke="#0b806c" stroke-width="4" marker-end="url(#greenArrow)"/>
+<text x="1040.0" y="267" font-size="24" fill="#0b806c" font-weight="500" text-anchor="middle">(ŷ − 2)²</text>
+<line x1="55" y1="430" x2="1345" y2="430" stroke="#dce4de" stroke-width="2"/>
+<text x="65" y="480" font-size="27" fill="#c35922" font-weight="600" text-anchor="start">反向：下游导数 × 本步局部倍率</text>
+<rect x="405" y="545" width="250" height="110" rx="16" fill="#f9eddf" stroke="#eed9c4" stroke-width="2"/>
+<text x="530.0" y="580" font-size="21" fill="#c35922" font-weight="400" text-anchor="middle">对 z 的敏感度</text>
+<text x="530.0" y="624" font-size="27" fill="#c35922" font-weight="600" text-anchor="middle">∂L/∂z = −1/2</text>
+<rect x="745" y="545" width="250" height="110" rx="16" fill="#f9eddf" stroke="#eed9c4" stroke-width="2"/>
+<text x="870.0" y="580" font-size="21" fill="#c35922" font-weight="400" text-anchor="middle">对 ŷ 的敏感度</text>
+<text x="870.0" y="624" font-size="27" fill="#c35922" font-weight="600" text-anchor="middle">∂L/∂ŷ = −1</text>
+<rect x="1125" y="545" width="210" height="110" rx="16" fill="#f9eddf" stroke="#eed9c4" stroke-width="2"/>
+<text x="1230.0" y="580" font-size="21" fill="#c35922" font-weight="400" text-anchor="middle">从 L 出发</text>
+<text x="1230.0" y="624" font-size="27" fill="#c35922" font-weight="600" text-anchor="middle">∂L/∂L = 1</text>
+<path d="M1125 600 L995 600" fill="none" stroke="#c35922" stroke-width="4" marker-end="url(#orangeArrow)"/>
+<path d="M745 600 L655 600" fill="none" stroke="#c35922" stroke-width="4" marker-end="url(#orangeArrow)"/>
+<text x="1060" y="533" font-size="21" fill="#c35922" font-weight="500" text-anchor="middle">乘 2(ŷ − y) = −1</text>
+<text x="700" y="690" font-size="22" fill="#c35922" font-weight="500" text-anchor="middle">乘 v = 1/2</text>
+<path d="M470 655 L470 730 L190 730 L190 822" fill="none" stroke="#c35922" stroke-width="4" marker-end="url(#orangeArrow)"/>
+<path d="M575 655 L575 780 L530 780 L530 822" fill="none" stroke="#c35922" stroke-width="4" marker-end="url(#orangeArrow)"/>
+<path d="M820 655 L820 775 L870 775 L870 822" fill="none" stroke="#c35922" stroke-width="4" marker-end="url(#orangeArrow)"/>
+<path d="M930 655 L930 730 L1210 730 L1210 822" fill="none" stroke="#c35922" stroke-width="4" marker-end="url(#orangeArrow)"/>
+<text x="270" y="717" font-size="22" fill="#c35922" font-weight="400" text-anchor="start">乘 x = 1</text>
+<text x="595" y="750" font-size="22" fill="#c35922" font-weight="400" text-anchor="start">乘 1</text>
+<text x="835" y="755" font-size="22" fill="#c35922" font-weight="400" text-anchor="start">乘 z = 1</text>
+<text x="1050" y="717" font-size="22" fill="#c35922" font-weight="400" text-anchor="start">乘 1</text>
+<rect x="65" y="825" width="250" height="105" rx="16" fill="#fffdf6" stroke="#c35922" stroke-width="2"/>
+<text x="190" y="861" font-size="24" fill="#657d78" font-weight="400" text-anchor="middle">w = 1</text>
+<text x="190" y="906" font-size="25" fill="#c35922" font-weight="600" text-anchor="middle">∂L/∂w = −1/2</text>
+<rect x="405" y="825" width="250" height="105" rx="16" fill="#fffdf6" stroke="#c35922" stroke-width="2"/>
+<text x="530" y="861" font-size="24" fill="#657d78" font-weight="400" text-anchor="middle">b = 0</text>
+<text x="530" y="906" font-size="25" fill="#c35922" font-weight="600" text-anchor="middle">∂L/∂b = −1/2</text>
+<rect x="745" y="825" width="250" height="105" rx="16" fill="#fffdf6" stroke="#c35922" stroke-width="2"/>
+<text x="870" y="861" font-size="24" fill="#657d78" font-weight="400" text-anchor="middle">v = 1/2</text>
+<text x="870" y="906" font-size="25" fill="#c35922" font-weight="600" text-anchor="middle">∂L/∂v = −1</text>
+<rect x="1085" y="825" width="250" height="105" rx="16" fill="#fffdf6" stroke="#c35922" stroke-width="2"/>
+<text x="1210" y="861" font-size="24" fill="#657d78" font-weight="400" text-anchor="middle">c = 1</text>
+<text x="1210" y="906" font-size="25" fill="#c35922" font-weight="600" text-anchor="middle">∂L/∂c = −1</text>
+<text x="65" y="970" font-size="25" fill="#657d78" font-weight="400" text-anchor="start">每个偏导都固定其他独立参数；z 与 ŷ 按依赖关系变化</text>
+<text x="55" y="1002" font-size="20" fill="#657d78" font-weight="400" text-anchor="start">数学之美 · 原创图解 · 局部变化与计算图</text>
+</g></svg>
