@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="670" viewBox="0 0 1200 670" role="img" aria-labelledby="title desc"><title id="title">同一条边的两种存法</title><desc id="desc">左边是按P G F S顺序排列的四乘四邻接矩阵，四个1位于P G、P F、G F、F S。右边是P指向G和F、G指向F、F指向S、S空的邻接表。两侧突出同一条P到F的边。</desc><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,5 L0,10 Z" fill="#087F83"/></marker><marker id="orangeArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,5 L0,10 Z" fill="#CD6A22"/></marker></defs><rect width="1200" height="670" fill="#F7F9FB"/><g font-family="Noto Sans CJK SC, sans-serif">
+<text x="48" y="58" font-size="31" fill="#192C3C" font-weight="700" text-anchor="start">同一条边的两种存法</text>
+<text x="48" y="99" font-size="21" fill="#526779" font-weight="400" text-anchor="start">青色突出 P → F：它在矩阵里占一个格，在邻接表里占一个条目</text>
+<rect x="48" y="135" width="554" height="433" rx="18" fill="white" stroke="#D9E2E8"/>
+<rect x="634" y="135" width="518" height="433" rx="18" fill="white" stroke="#D9E2E8"/>
+<text x="77" y="184" font-size="25" fill="#192C3C" font-weight="600" text-anchor="start">邻接矩阵</text>
+<text x="663" y="184" font-size="25" fill="#192C3C" font-weight="600" text-anchor="start">邻接表</text>
+<text x="77" y="217" font-size="18" fill="#526779" font-weight="400" text-anchor="start">行是起点，列是终点</text>
+<text x="242.5" y="255" font-size="22" fill="#526779" font-weight="600" text-anchor="middle">P</text>
+<text x="299.5" y="255" font-size="22" fill="#526779" font-weight="600" text-anchor="middle">G</text>
+<text x="356.5" y="255" font-size="22" fill="#526779" font-weight="600" text-anchor="middle">F</text>
+<text x="413.5" y="255" font-size="22" fill="#526779" font-weight="600" text-anchor="middle">S</text>
+<text x="176" y="313" font-size="22" fill="#526779" font-weight="600" text-anchor="middle">P</text>
+<rect x="214" y="276" width="57" height="57" fill="#FFFFFF" stroke="#D9E2E8" stroke-width="1"/>
+<text x="242.5" y="313" font-size="24" fill="#192C3C" font-weight="400" text-anchor="middle">0</text>
+<rect x="271" y="276" width="57" height="57" fill="#FFFFFF" stroke="#D9E2E8" stroke-width="1"/>
+<text x="299.5" y="313" font-size="24" fill="#192C3C" font-weight="400" text-anchor="middle">1</text>
+<rect x="328" y="276" width="57" height="57" fill="#E1F3F1" stroke="#087F83" stroke-width="3"/>
+<text x="356.5" y="313" font-size="24" fill="#087F83" font-weight="700" text-anchor="middle">1</text>
+<rect x="385" y="276" width="57" height="57" fill="#FFFFFF" stroke="#D9E2E8" stroke-width="1"/>
+<text x="413.5" y="313" font-size="24" fill="#192C3C" font-weight="400" text-anchor="middle">0</text>
+<text x="176" y="370" font-size="22" fill="#526779" font-weight="600" text-anchor="middle">G</text>
+<rect x="214" y="333" width="57" height="57" fill="#FFFFFF" stroke="#D9E2E8" stroke-width="1"/>
+<text x="242.5" y="370" font-size="24" fill="#192C3C" font-weight="400" text-anchor="middle">0</text>
+<rect x="271" y="333" width="57" height="57" fill="#FFFFFF" stroke="#D9E2E8" stroke-width="1"/>
+<text x="299.5" y="370" font-size="24" fill="#192C3C" font-weight="400" text-anchor="middle">0</text>
+<rect x="328" y="333" width="57" height="57" fill="#FFFFFF" stroke="#D9E2E8" stroke-width="1"/>
+<text x="356.5" y="370" font-size="24" fill="#192C3C" font-weight="400" text-anchor="middle">1</text>
+<rect x="385" y="333" width="57" height="57" fill="#FFFFFF" stroke="#D9E2E8" stroke-width="1"/>
+<text x="413.5" y="370" font-size="24" fill="#192C3C" font-weight="400" text-anchor="middle">0</text>
+<text x="176" y="427" font-size="22" fill="#526779" font-weight="600" text-anchor="middle">F</text>
+<rect x="214" y="390" width="57" height="57" fill="#FFFFFF" stroke="#D9E2E8" stroke-width="1"/>
+<text x="242.5" y="427" font-size="24" fill="#192C3C" font-weight="400" text-anchor="middle">0</text>
+<rect x="271" y="390" width="57" height="57" fill="#FFFFFF" stroke="#D9E2E8" stroke-width="1"/>
+<text x="299.5" y="427" font-size="24" fill="#192C3C" font-weight="400" text-anchor="middle">0</text>
+<rect x="328" y="390" width="57" height="57" fill="#FFFFFF" stroke="#D9E2E8" stroke-width="1"/>
+<text x="356.5" y="427" font-size="24" fill="#192C3C" font-weight="400" text-anchor="middle">0</text>
+<rect x="385" y="390" width="57" height="57" fill="#FFFFFF" stroke="#D9E2E8" stroke-width="1"/>
+<text x="413.5" y="427" font-size="24" fill="#192C3C" font-weight="400" text-anchor="middle">1</text>
+<text x="176" y="484" font-size="22" fill="#526779" font-weight="600" text-anchor="middle">S</text>
+<rect x="214" y="447" width="57" height="57" fill="#FFFFFF" stroke="#D9E2E8" stroke-width="1"/>
+<text x="242.5" y="484" font-size="24" fill="#192C3C" font-weight="400" text-anchor="middle">0</text>
+<rect x="271" y="447" width="57" height="57" fill="#FFFFFF" stroke="#D9E2E8" stroke-width="1"/>
+<text x="299.5" y="484" font-size="24" fill="#192C3C" font-weight="400" text-anchor="middle">0</text>
+<rect x="328" y="447" width="57" height="57" fill="#FFFFFF" stroke="#D9E2E8" stroke-width="1"/>
+<text x="356.5" y="484" font-size="24" fill="#192C3C" font-weight="400" text-anchor="middle">0</text>
+<rect x="385" y="447" width="57" height="57" fill="#FFFFFF" stroke="#D9E2E8" stroke-width="1"/>
+<text x="413.5" y="484" font-size="24" fill="#192C3C" font-weight="400" text-anchor="middle">0</text>
+<text x="700" y="283" font-size="24" fill="#192C3C" font-weight="600" text-anchor="start">P</text>
+<text x="755" y="283" font-size="24" fill="#526779" font-weight="400" text-anchor="start">→</text>
+<rect x="803" y="251" width="64" height="45" rx="8" fill="#F7F9FB" stroke="#D9E2E8" stroke-width="1"/>
+<text x="835" y="283" font-size="24" fill="#192C3C" font-weight="400" text-anchor="middle">G</text>
+<rect x="890" y="251" width="64" height="45" rx="8" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="922" y="283" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">F</text>
+<text x="700" y="349" font-size="24" fill="#192C3C" font-weight="600" text-anchor="start">G</text>
+<text x="755" y="349" font-size="24" fill="#526779" font-weight="400" text-anchor="start">→</text>
+<rect x="803" y="317" width="64" height="45" rx="8" fill="#F7F9FB" stroke="#D9E2E8" stroke-width="1"/>
+<text x="835" y="349" font-size="24" fill="#192C3C" font-weight="400" text-anchor="middle">F</text>
+<text x="700" y="415" font-size="24" fill="#192C3C" font-weight="600" text-anchor="start">F</text>
+<text x="755" y="415" font-size="24" fill="#526779" font-weight="400" text-anchor="start">→</text>
+<rect x="803" y="383" width="64" height="45" rx="8" fill="#F7F9FB" stroke="#D9E2E8" stroke-width="1"/>
+<text x="835" y="415" font-size="24" fill="#192C3C" font-weight="400" text-anchor="middle">S</text>
+<text x="700" y="481" font-size="24" fill="#192C3C" font-weight="600" text-anchor="start">S</text>
+<text x="755" y="481" font-size="24" fill="#526779" font-weight="400" text-anchor="start">→</text>
+<text x="803" y="481" font-size="21" fill="#526779" font-weight="400" text-anchor="start">空列表</text>
+<text x="77" y="541" font-size="19" fill="#526779" font-weight="400" text-anchor="start">4 × 4 = 16 个格</text>
+<text x="663" y="541" font-size="19" fill="#526779" font-weight="400" text-anchor="start">4 份顶点入口 + 4 条边记录</text>
+<text x="48" y="616" font-size="21" fill="#526779" font-weight="400" text-anchor="start">两种表示都只记录直接相邻。P 行 S 列为 0，并不意味着从 P 无法到达 S。</text>
+</g></svg>

@@ -7,7 +7,7 @@
       </template>
       <template #after-content><SeriesPager :series="series" :entry="entry" /></template>
     </CollectionArticle>
-    <TheoryFigureViewer :assetPrefix="'/collections-assets/' + series.id + '/'" v-if="series.section === 'column' && ['llm-to-agent-learning', 'cloudnative'].includes(series.id)" />
+    <TheoryFigureViewer :assetPrefix="'/collections-assets/' + series.id + '/'" v-if="series.section === 'column' && ['llm-to-agent-learning', 'cloudnative', 'math-beauty'].includes(series.id)" />
   </div>
 </template>
 <script setup lang="ts">

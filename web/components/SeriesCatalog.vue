@@ -4,7 +4,7 @@
     <div class="column-grid">
       <NuxtLink v-for="series in collections" :key="series.path" :to="series.catalogPath || series.path" class="column-card series-card">
         <img v-if="series.cover" :src="series.cover" :alt="series.title + '封面'" loading="lazy" width="640" height="360" />
-        <span class="eyebrow">{{ section === 'store' ? '小说合集' : '知识专题' }} · {{ series.count || series.expectedEntries }}{{ section === 'store' ? '章' : '篇' }}</span>
+        <span class="eyebrow">{{ section === 'store' ? '小说合集' : '知识专题' }} · {{ series.availableEntries.length < series.count ? series.availableEntries.length : (series.count || series.expectedEntries) }}{{ section === 'store' ? '章' : '篇' }}<template v-if="series.availableEntries.length < series.count">已上线 / {{ series.count }}篇规划</template></span>
         <h2>{{ series.title }}</h2><p>{{ series.summary }}</p><span class="entry-action">查看目录 <span aria-hidden="true">↗</span></span>
       </NuxtLink>
     </div>

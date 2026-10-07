@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900"><title>先知道在哪一组，再判断组内是谁</title><desc>四符号概率模型。标记X为0的概率3/4，其组内A、B概率2/3、1/3；标记X为1的概率1/4，其组内C、D各1/2。路径概率相乘恢复A的1/2、B的1/4、C和D的1/8。</desc><g font-family="Noto Sans CJK SC, sans-serif">
+<rect x="0" y="0" width="1400" height="900" fill="#fffdf6" stroke="none" rx="0" />
+<text x="55" y="50" font-size="22" fill="#0b806c" font-weight="400" text-anchor="start">数学之美 / 28 条件信息与预测</text>
+<text x="55" y="112" font-size="42" fill="#213b3d" font-weight="700" text-anchor="start">先知道在哪一组，再判断组内是谁</text>
+<text x="55" y="165" font-size="26" fill="#213b3d" font-weight="400" text-anchor="start">概率树只分解联合分布；能否提前获得 X，必须另外核查</text>
+<text x="590" y="224" font-size="25" fill="#718582" font-weight="500" text-anchor="middle">标记 X</text>
+<text x="1000" y="224" font-size="25" fill="#718582" font-weight="500" text-anchor="middle">符号 Y</text>
+<text x="1240" y="224" font-size="25" fill="#718582" font-weight="500" text-anchor="middle">联合概率</text>
+<line x1="250" y1="490" x2="530" y2="350" stroke="#0b806c" stroke-width="4" />
+<line x1="250" y1="490" x2="530" y2="650" stroke="#2b6f9f" stroke-width="4" />
+<line x1="650" y1="350" x2="965" y2="280" stroke="#0b806c" stroke-width="4" />
+<line x1="650" y1="350" x2="965" y2="435" stroke="#0b806c" stroke-width="4" />
+<line x1="650" y1="650" x2="965" y2="600" stroke="#2b6f9f" stroke-width="4" />
+<line x1="650" y1="650" x2="965" y2="755" stroke="#2b6f9f" stroke-width="4" />
+<circle cx="220" cy="490" r="38" fill="#213b3d" stroke="none" stroke-width="3"/>
+<text x="220" y="500" font-size="32" fill="#ffffff" font-weight="600" text-anchor="middle">?</text>
+<text x="220" y="557" font-size="29" fill="#213b3d" font-weight="500" text-anchor="middle">尚未知 Y</text>
+<text x="365" y="361" font-size="32" fill="#0b806c" font-weight="600" text-anchor="middle">3/4</text>
+<text x="365" y="639" font-size="32" fill="#2b6f9f" font-weight="600" text-anchor="middle">1/4</text>
+<rect x="530" y="302" width="120" height="96" fill="#fffdf6" stroke="#0b806c" rx="12" />
+<text x="590" y="343" font-size="29" fill="#0b806c" font-weight="600" text-anchor="middle">X = 0</text>
+<text x="590" y="380" font-size="26" fill="#0b806c" font-weight="400" text-anchor="middle">A / B</text>
+<rect x="530" y="602" width="120" height="96" fill="#fffdf6" stroke="#2b6f9f" rx="12" />
+<text x="590" y="643" font-size="29" fill="#2b6f9f" font-weight="600" text-anchor="middle">X = 1</text>
+<text x="590" y="680" font-size="26" fill="#2b6f9f" font-weight="400" text-anchor="middle">C / D</text>
+<text x="810" y="282" font-size="30" fill="#0b806c" font-weight="600" text-anchor="middle">2/3</text>
+<text x="810" y="429" font-size="30" fill="#0b806c" font-weight="600" text-anchor="middle">1/3</text>
+<text x="810" y="589" font-size="30" fill="#2b6f9f" font-weight="600" text-anchor="middle">1/2</text>
+<text x="810" y="754" font-size="30" fill="#2b6f9f" font-weight="600" text-anchor="middle">1/2</text>
+<circle cx="1000" cy="280" r="35" fill="#0b806c" stroke="none" stroke-width="3"/>
+<text x="1000" y="291" font-size="34" fill="#ffffff" font-weight="600" text-anchor="middle">A</text>
+<text x="1070" y="289" font-size="25" fill="#0b806c" font-weight="500" text-anchor="start">(3/4) × (2/3) = 1/2</text>
+<circle cx="1000" cy="435" r="35" fill="#0b806c" stroke="none" stroke-width="3"/>
+<text x="1000" y="446" font-size="34" fill="#ffffff" font-weight="600" text-anchor="middle">B</text>
+<text x="1070" y="444" font-size="25" fill="#0b806c" font-weight="500" text-anchor="start">(3/4) × (1/3) = 1/4</text>
+<circle cx="1000" cy="600" r="35" fill="#2b6f9f" stroke="none" stroke-width="3"/>
+<text x="1000" y="611" font-size="34" fill="#ffffff" font-weight="600" text-anchor="middle">C</text>
+<text x="1070" y="609" font-size="25" fill="#2b6f9f" font-weight="500" text-anchor="start">(1/4) × (1/2) = 1/8</text>
+<circle cx="1000" cy="755" r="35" fill="#2b6f9f" stroke="none" stroke-width="3"/>
+<text x="1000" y="766" font-size="34" fill="#ffffff" font-weight="600" text-anchor="middle">D</text>
+<text x="1070" y="764" font-size="25" fill="#2b6f9f" font-weight="500" text-anchor="start">(1/4) × (1/2) = 1/8</text>
+<text x="700" y="828" font-size="28" fill="#213b3d" font-weight="500" text-anchor="middle">同一组内先归一化；沿一条完整路径再相乘</text>
+<text x="55" y="872" font-size="20" fill="#718582" font-weight="400" text-anchor="start">数学之美 · 原创图解 · 有限概率模型</text>
+</g></svg>

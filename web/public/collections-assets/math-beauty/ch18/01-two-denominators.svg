@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc"><title id="title">两个百分数，站在两个不同的分母上</title><desc id="desc">10000个窗口按真实状态分成故障100与健康9900。故障组告警99、漏报1；健康组误报99、正常9801。故障检出99/100，健康误报99/9900。所有框为示意大小。</desc><rect width="1400" height="900" fill="#fffdf7"/>
+<text x="55" y="50" fill="#127965" font-family="Noto Sans CJK SC, sans-serif" font-size="21" font-weight="500" text-anchor="start">数学之美  /  18  告警与分母</text>
+<text x="55" y="111" fill="#233a3b" font-family="Noto Sans CJK SC, sans-serif" font-size="40" font-weight="700" text-anchor="start">两个百分数，站在两个不同的分母上</text>
+<text x="55" y="162" fill="#233a3b" font-family="Noto Sans CJK SC, sans-serif" font-size="26" font-weight="400" text-anchor="start">先按事后核查状态分组，再数各组中多少窗口发出了告警</text>
+<rect x="485" y="205" width="430" height="95" rx="12" fill="#eef4ee"/>
+<text x="700" y="247" fill="#6f7e79" font-family="Noto Sans CJK SC, sans-serif" font-size="25" font-weight="500" text-anchor="middle">全部检测窗口</text>
+<text x="700" y="286" fill="#233a3b" font-family="Noto Sans CJK SC, sans-serif" font-size="35" font-weight="700" text-anchor="middle">10000</text>
+<line x1="700" y1="300" x2="700" y2="328" stroke="#6f7e79" stroke-width="3" stroke-linecap="round"/>
+<line x1="330" y1="328" x2="1070" y2="328" stroke="#6f7e79" stroke-width="3" stroke-linecap="round"/>
+<line x1="330" y1="328" x2="330" y2="360" stroke="#6f7e79" stroke-width="3" stroke-linecap="round"/>
+<line x1="1070" y1="328" x2="1070" y2="360" stroke="#6f7e79" stroke-width="3" stroke-linecap="round"/>
+<rect x="100" y="360" width="460" height="115" rx="12" fill="#e5f2eb"/>
+<rect x="840" y="360" width="460" height="115" rx="12" fill="#edf1f1"/>
+<text x="330" y="405" fill="#233a3b" font-family="Noto Sans CJK SC, sans-serif" font-size="28" font-weight="500" text-anchor="middle">确有故障</text>
+<text x="330" y="453" fill="#127965" font-family="Noto Sans CJK SC, sans-serif" font-size="40" font-weight="700" text-anchor="middle">100</text>
+<text x="1070" y="405" fill="#233a3b" font-family="Noto Sans CJK SC, sans-serif" font-size="28" font-weight="500" text-anchor="middle">健康</text>
+<text x="1070" y="453" fill="#2a6694" font-family="Noto Sans CJK SC, sans-serif" font-size="40" font-weight="700" text-anchor="middle">9900</text>
+<line x1="330" y1="475" x2="330" y2="510" stroke="#6f7e79" stroke-width="3" stroke-linecap="round"/>
+<line x1="192.5" y1="510" x2="467.5" y2="510" stroke="#6f7e79" stroke-width="3" stroke-linecap="round"/>
+<line x1="192.5" y1="510" x2="192.5" y2="555" stroke="#6f7e79" stroke-width="3" stroke-linecap="round"/>
+<line x1="467.5" y1="510" x2="467.5" y2="555" stroke="#6f7e79" stroke-width="3" stroke-linecap="round"/>
+<line x1="1070" y1="475" x2="1070" y2="510" stroke="#6f7e79" stroke-width="3" stroke-linecap="round"/>
+<line x1="932.5" y1="510" x2="1207.5" y2="510" stroke="#6f7e79" stroke-width="3" stroke-linecap="round"/>
+<line x1="932.5" y1="510" x2="932.5" y2="555" stroke="#6f7e79" stroke-width="3" stroke-linecap="round"/>
+<line x1="1207.5" y1="510" x2="1207.5" y2="555" stroke="#6f7e79" stroke-width="3" stroke-linecap="round"/>
+<rect x="70" y="555" width="245" height="116" rx="12" fill="#e5f2eb"/>
+<text x="192.5" y="595" fill="#127965" font-family="Noto Sans CJK SC, sans-serif" font-size="23" font-weight="500" text-anchor="middle">告警 · 真阳性</text>
+<text x="192.5" y="647" fill="#127965" font-family="Noto Sans CJK SC, sans-serif" font-size="38" font-weight="700" text-anchor="middle">99</text>
+<rect x="345" y="555" width="245" height="116" rx="12" fill="#f2f1eb"/>
+<text x="467.5" y="595" fill="#6f7e79" font-family="Noto Sans CJK SC, sans-serif" font-size="23" font-weight="500" text-anchor="middle">未告警 · 漏报</text>
+<text x="467.5" y="647" fill="#6f7e79" font-family="Noto Sans CJK SC, sans-serif" font-size="38" font-weight="700" text-anchor="middle">1</text>
+<rect x="810" y="555" width="245" height="116" rx="12" fill="#f7e8d9"/>
+<text x="932.5" y="595" fill="#bc5d25" font-family="Noto Sans CJK SC, sans-serif" font-size="23" font-weight="500" text-anchor="middle">告警 · 误报</text>
+<text x="932.5" y="647" fill="#bc5d25" font-family="Noto Sans CJK SC, sans-serif" font-size="38" font-weight="700" text-anchor="middle">99</text>
+<rect x="1085" y="555" width="245" height="116" rx="12" fill="#edf1f1"/>
+<text x="1207.5" y="595" fill="#2a6694" font-family="Noto Sans CJK SC, sans-serif" font-size="23" font-weight="500" text-anchor="middle">未告警 · 正常</text>
+<text x="1207.5" y="647" fill="#2a6694" font-family="Noto Sans CJK SC, sans-serif" font-size="38" font-weight="700" text-anchor="middle">9801</text>
+<text x="330" y="736" fill="#127965" font-family="Noto Sans CJK SC, sans-serif" font-size="33" font-weight="700" text-anchor="middle">99 ÷ 100 = 99%</text>
+<text x="1070" y="736" fill="#bc5d25" font-family="Noto Sans CJK SC, sans-serif" font-size="33" font-weight="700" text-anchor="middle">99 ÷ 9900 = 1%</text>
+<text x="330" y="779" fill="#6f7e79" font-family="Noto Sans CJK SC, sans-serif" font-size="25" font-weight="400" text-anchor="middle">分母：全部故障窗口</text>
+<text x="1070" y="779" fill="#6f7e79" font-family="Noto Sans CJK SC, sans-serif" font-size="25" font-weight="400" text-anchor="middle">分母：全部健康窗口</text>
+<text x="700" y="827" fill="#233a3b" font-family="Noto Sans CJK SC, sans-serif" font-size="24" font-weight="500" text-anchor="middle">框的面积不表示数量；两个告警格子都是 99</text>
+<text x="55" y="875" fill="#6f7e79" font-family="Noto Sans CJK SC, sans-serif" font-size="18" font-weight="400" text-anchor="start">原创图解  ·  虚构设备告警台账  ·  数量单位：检测窗口</text>
+</svg>

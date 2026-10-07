@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="800" viewBox="0 0 1120 800" role="img" aria-labelledby="title desc">
+<title id="title">图3 桶内候选没有缩小时的查找退化</title><desc id="desc">h(x)为除以4取余。键1、5、9、13、17全放入1号桶，使用链表逐项检查。查询21也进入1号桶，五次原始键比较全部不相等，才可返回未找到。推广到键1、5直到4n减3时，查询4n加1需核对n项。</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,5 L0,10 Z" fill="#286ab0"/></marker><marker id="green-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,5 L0,10 Z" fill="#147d64"/></marker></defs>
+<rect width="1120" height="800" fill="#f8fafc"/>
+<g font-family="Noto Sans CJK SC, Microsoft YaHei, sans-serif">
+<text x="48" y="62" font-size="32" fill="#10243a" font-weight="700" text-anchor="start">算出了桶号，核对还没有结束</text>
+<text x="48" y="107" font-size="23" fill="#53677d" font-weight="400" text-anchor="start">教学模型：h(x) = x mod 4；同桶记录用链表逐项检查</text>
+<text x="48" y="173" font-size="22" fill="#53677d" font-weight="400" text-anchor="start">四个桶</text>
+<rect x="48" y="198" width="180" height="74" rx="10" fill="white" stroke="#d8e1ec" stroke-width="2" />
+<text x="73" y="243" font-size="24" fill="#53677d" font-weight="400" text-anchor="start">0号桶</text>
+<text x="205" y="243" font-size="22" fill="#53677d" font-weight="400" text-anchor="end">空</text>
+<rect x="48" y="292" width="180" height="74" rx="10" fill="#fff0ec" stroke="#b44840" stroke-width="2" />
+<text x="73" y="337" font-size="24" fill="#b44840" font-weight="700" text-anchor="start">1号桶</text>
+<rect x="48" y="386" width="180" height="74" rx="10" fill="white" stroke="#d8e1ec" stroke-width="2" />
+<text x="73" y="431" font-size="24" fill="#53677d" font-weight="400" text-anchor="start">2号桶</text>
+<text x="205" y="431" font-size="22" fill="#53677d" font-weight="400" text-anchor="end">空</text>
+<rect x="48" y="480" width="180" height="74" rx="10" fill="white" stroke="#d8e1ec" stroke-width="2" />
+<text x="73" y="525" font-size="24" fill="#53677d" font-weight="400" text-anchor="start">3号桶</text>
+<text x="205" y="525" font-size="22" fill="#53677d" font-weight="400" text-anchor="end">空</text>
+<text x="300" y="216" font-size="29" fill="#286ab0" font-weight="700" text-anchor="start">查询21 → h(21) = 1</text>
+<text x="300" y="257" font-size="22" fill="#53677d" font-weight="400" text-anchor="start">进入1号桶后，仍要逐个比较完整的键</text>
+<line x1="240" y1="329" x2="279" y2="329" stroke="#286ab0" stroke-width="3" marker-end="url(#arrow)" />
+<rect x="292" y="292" width="112" height="74" rx="10" fill="#e9f2fc" stroke="#286ab0" stroke-width="2" />
+<text x="348" y="341" font-size="32" fill="#286ab0" font-weight="700" text-anchor="middle">1</text>
+<text x="348" y="411" font-size="24" fill="#b44840" font-weight="400" text-anchor="middle">1 ≠ 21</text>
+<text x="348" y="449" font-size="20" fill="#53677d" font-weight="400" text-anchor="middle">第1次</text>
+<line x1="412" y1="329" x2="434" y2="329" stroke="#286ab0" stroke-width="3" marker-end="url(#arrow)" />
+<rect x="442" y="292" width="112" height="74" rx="10" fill="#e9f2fc" stroke="#286ab0" stroke-width="2" />
+<text x="498" y="341" font-size="32" fill="#286ab0" font-weight="700" text-anchor="middle">5</text>
+<text x="498" y="411" font-size="24" fill="#b44840" font-weight="400" text-anchor="middle">5 ≠ 21</text>
+<text x="498" y="449" font-size="20" fill="#53677d" font-weight="400" text-anchor="middle">第2次</text>
+<line x1="562" y1="329" x2="584" y2="329" stroke="#286ab0" stroke-width="3" marker-end="url(#arrow)" />
+<rect x="592" y="292" width="112" height="74" rx="10" fill="#e9f2fc" stroke="#286ab0" stroke-width="2" />
+<text x="648" y="341" font-size="32" fill="#286ab0" font-weight="700" text-anchor="middle">9</text>
+<text x="648" y="411" font-size="24" fill="#b44840" font-weight="400" text-anchor="middle">9 ≠ 21</text>
+<text x="648" y="449" font-size="20" fill="#53677d" font-weight="400" text-anchor="middle">第3次</text>
+<line x1="712" y1="329" x2="734" y2="329" stroke="#286ab0" stroke-width="3" marker-end="url(#arrow)" />
+<rect x="742" y="292" width="112" height="74" rx="10" fill="#e9f2fc" stroke="#286ab0" stroke-width="2" />
+<text x="798" y="341" font-size="32" fill="#286ab0" font-weight="700" text-anchor="middle">13</text>
+<text x="798" y="411" font-size="24" fill="#b44840" font-weight="400" text-anchor="middle">13 ≠ 21</text>
+<text x="798" y="449" font-size="20" fill="#53677d" font-weight="400" text-anchor="middle">第4次</text>
+<line x1="862" y1="329" x2="884" y2="329" stroke="#286ab0" stroke-width="3" marker-end="url(#arrow)" />
+<rect x="892" y="292" width="112" height="74" rx="10" fill="#e9f2fc" stroke="#286ab0" stroke-width="2" />
+<text x="948" y="341" font-size="32" fill="#286ab0" font-weight="700" text-anchor="middle">17</text>
+<text x="948" y="411" font-size="24" fill="#b44840" font-weight="400" text-anchor="middle">17 ≠ 21</text>
+<text x="948" y="449" font-size="20" fill="#53677d" font-weight="400" text-anchor="middle">第5次</text>
+<text x="300" y="514" font-size="26" fill="#b44840" font-weight="700" text-anchor="start">5个键全部不相等</text>
+<text x="300" y="558" font-size="26" fill="#10243a" font-weight="700" text-anchor="start">核对5次之后，才能回答“未找到”</text>
+<line x1="48" y1="610" x2="1072" y2="610" stroke="#d8e1ec" stroke-width="2" />
+<text x="48" y="657" font-size="25" fill="#10243a" font-weight="700" text-anchor="start">推广到n个键：1，5，9，…，4n − 3</text>
+<text x="48" y="700" font-size="24" fill="#b44840" font-weight="700" text-anchor="start">查询4n + 1仍进入1号桶，需要n次原键核对</text>
+<text x="48" y="750" font-size="21" fill="#53677d" font-weight="400" text-anchor="start">本图只计桶内核对；散列计算、桶空间及更新费用还需另列</text>
+<text x="48" y="783" font-size="20" fill="#53677d" font-weight="400" text-anchor="start">桶数没有减少这些输入的候选量，不能据此许诺平均常数时间</text>
+</g>
+</svg>

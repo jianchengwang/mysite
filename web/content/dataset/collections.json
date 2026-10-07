@@ -903,6 +903,316 @@
         }
       ],
       "cover": "/collections-assets/wenroudao/assets/cover.png"
+    },
+    {
+      "id": "math-beauty",
+      "section": "column",
+      "title": "数学之美",
+      "summary": "从一张地图、一次查找、一组数据出发，追到定义、假设与必要推导，再回到软件工程和AI里的具体问题。",
+      "introduction": "一张不按比例画的地图为什么仍然有用？有限样本究竟能告诉我们多少？数学上等价的公式，交给机器为什么会算出不同结果？这套40章合集从这些问题进入关系、数量、线性结构、概率、信息、优化与计算边界。每一部都从一个小实例打开，建立需要的数学，再回到同一个实例检查结论。关键步骤给出可跟随的推导，也保留方法会失效的条件和反例。",
+      "readingGuide": "每一部从一个具体实例出发，补上定义、假设与必要推导，再回到实例检查答案。遇到数学符号会先说明含义；证明与模型的适用条件一并保留。",
+      "attribution": "作者：Jiancheng Wang。本系列独立原创，与吴军同名著作没有改写或摘要关系。",
+      "published": true,
+      "plannedEntries": 40,
+      "expectedGroups": 8,
+      "groups": [
+        {
+          "id": "part-1",
+          "title": "第1部 关系与结构",
+          "description": "从地铁图开始，写清对象、条件与连接，最后回到不同目标怎样改变路线选择。",
+          "entries": [
+            {
+              "slug": "modeling-map",
+              "title": "一张地铁图，究竟保留了什么",
+              "order": 1,
+              "published": true
+            },
+            {
+              "slug": "logic-sets-conditions",
+              "title": "把一句话说清楚：命题、集合与条件",
+              "order": 2,
+              "published": true
+            },
+            {
+              "slug": "relations-to-graphs",
+              "title": "从关系到图：节点和边从哪里来",
+              "order": 3,
+              "published": true
+            },
+            {
+              "slug": "loop-invariants",
+              "title": "局部步骤，怎样保证全局正确",
+              "order": 4,
+              "published": true
+            },
+            {
+              "slug": "dijkstra-shortest-paths",
+              "title": "一条最短路，凭什么是最短的",
+              "order": 5,
+              "published": true
+            },
+            {
+              "slug": "route-objectives",
+              "title": "回到路线图：换一种目标，答案就变了",
+              "order": 6,
+              "published": true
+            }
+          ]
+        },
+        {
+          "id": "part-2",
+          "title": "第2部 数量与代价",
+          "description": "从小选择组成的大空间出发，研究计数、碰撞、比较下界和增长率，回到查找方案的完整成本。",
+          "entries": [
+            {
+              "slug": "counting-configurations",
+              "title": "十个开关，为什么有一千多种状态",
+              "order": 7,
+              "published": true
+            },
+            {
+              "slug": "pigeonhole-collisions",
+              "title": "有限的编号，为什么一定会发生碰撞",
+              "order": 8,
+              "published": true
+            },
+            {
+              "slug": "decision-tree-bounds",
+              "title": "一个问题，最多能排除多少可能",
+              "order": 9,
+              "published": true
+            },
+            {
+              "slug": "divide-conquer-cost",
+              "title": "分而治之：工作量到底去了哪里",
+              "order": 10,
+              "published": true
+            },
+            {
+              "slug": "search-total-cost",
+              "title": "回到查找：把索引、比较和维护成本一起算",
+              "order": 11,
+              "published": true
+            }
+          ]
+        },
+        {
+          "id": "part-3",
+          "title": "第3部 线性结构",
+          "description": "从一条预测线出发，理解向量、点积、矩阵、秩与投影，回到最小二乘的几何解释。",
+          "entries": [
+            {
+              "slug": "fitting-line",
+              "title": "几个数据点，怎样决定一条预测线",
+              "order": 12,
+              "published": true
+            },
+            {
+              "slug": "vectors-and-directions",
+              "title": "向量：一串数字，也是一个方向",
+              "order": 13,
+              "published": true
+            },
+            {
+              "slug": "dot-products-and-projections",
+              "title": "点积：怎样量出重合的那一部分",
+              "order": 14,
+              "published": true
+            },
+            {
+              "slug": "matrices-as-transformations",
+              "title": "矩阵：把许多关系写成一次变换",
+              "order": 15,
+              "published": true
+            },
+            {
+              "slug": "rank-and-nullspace",
+              "title": "秩与零空间：为什么答案可能不唯一",
+              "order": 16,
+              "published": true
+            },
+            {
+              "slug": "least-squares-projection",
+              "title": "回到数据：最小二乘原来是一次投影",
+              "order": 17,
+              "published": true
+            }
+          ]
+        },
+        {
+          "id": "part-4",
+          "title": "第4部 概率与统计",
+          "description": "从误报告警出发，建立事件、条件概率、期望方差与抽样误差，再设计可支持判断的评估。",
+          "entries": [
+            {
+              "slug": "base-rates-and-alerts",
+              "title": "告警很灵，为什么收到的却常是假消息",
+              "order": 18,
+              "published": true
+            },
+            {
+              "slug": "probability-spaces",
+              "title": "概率究竟在给什么分配数字",
+              "order": 19,
+              "published": true
+            },
+            {
+              "slug": "bayesian-updates",
+              "title": "一条新证据，怎样改变原来的判断",
+              "order": 20,
+              "published": true
+            },
+            {
+              "slug": "expectation-variance-correlation",
+              "title": "平均值之外：波动与相关性",
+              "order": 21,
+              "published": true
+            },
+            {
+              "slug": "sampling-error",
+              "title": "从样本到整体，误差能缩小多少",
+              "order": 22,
+              "published": true
+            },
+            {
+              "slug": "evaluating-alerts",
+              "title": "回到告警：怎样做一次可信的评估",
+              "order": 23,
+              "published": true
+            }
+          ]
+        },
+        {
+          "id": "part-5",
+          "title": "第5部 信息与编码",
+          "description": "从压缩长度出发，连接对数、概率、码树、熵与分布失配，回到压缩和预测的可比较代价。",
+          "entries": [
+            {
+              "slug": "limits-of-compression",
+              "title": "一段内容，究竟还能压缩多少",
+              "order": 24,
+              "published": true
+            },
+            {
+              "slug": "why-information-is-logarithmic",
+              "title": "为什么信息量要取对数",
+              "order": 25,
+              "published": true
+            },
+            {
+              "slug": "entropy-and-code-length",
+              "title": "熵：平均编码长度的下界从哪里来",
+              "order": 26,
+              "published": true
+            },
+            {
+              "slug": "distribution-mismatch",
+              "title": "用错了分布，要多付出多少代价",
+              "order": 27,
+              "published": true
+            },
+            {
+              "slug": "conditional-information-and-prediction",
+              "title": "回到预测：少一点不确定性，究竟意味着什么",
+              "order": 28,
+              "published": true
+            }
+          ]
+        },
+        {
+          "id": "part-6",
+          "title": "第6部 变化与优化",
+          "description": "沿用小数据集，定义误差与约束，理解局部近似、链式关系、梯度步长和凸性，再比较拟合与验证。",
+          "entries": [
+            {
+              "slug": "loss-and-constraints",
+              "title": "模型错了多少，能用一个数说清吗",
+              "order": 29,
+              "published": false
+            },
+            {
+              "slug": "derivatives-local-linearization",
+              "title": "导数：把变化写成局部直线",
+              "order": 30,
+              "published": false
+            },
+            {
+              "slug": "chain-rule",
+              "title": "多层运算，怎样把变化一层层传回",
+              "order": 31,
+              "published": false
+            },
+            {
+              "slug": "gradient-step-size",
+              "title": "顺着梯度走，步子多大才合适",
+              "order": 32,
+              "published": false
+            },
+            {
+              "slug": "convexity",
+              "title": "什么条件下，局部最优就是全局最优",
+              "order": 33,
+              "published": false
+            },
+            {
+              "slug": "generalization-regularization",
+              "title": "回到拟合：训练更好，为什么预测更差",
+              "order": 34,
+              "published": false
+            }
+          ]
+        },
+        {
+          "id": "part-7",
+          "title": "第7部 数值计算",
+          "description": "从有限位数的表示出发，区分表示误差、问题敏感性与算法稳定性，回到数值结果的可信程度。",
+          "entries": [
+            {
+              "slug": "floating-point",
+              "title": "0.1为什么不能总被机器准确写下",
+              "order": 35,
+              "published": false
+            },
+            {
+              "slug": "conditioning",
+              "title": "一点点误差，为什么会被放大",
+              "order": 36,
+              "published": false
+            },
+            {
+              "slug": "numerical-stability",
+              "title": "同一个公式，换种写法为什么更准",
+              "order": 37,
+              "published": false
+            },
+            {
+              "slug": "numerical-reliability",
+              "title": "回到模型：怎样判断一个数值结果可信到几位",
+              "order": 38,
+              "published": false
+            }
+          ]
+        },
+        {
+          "id": "part-8",
+          "title": "第8部 计算边界",
+          "description": "用停机问题的具体反证认识通用判定的边界，再回到有限范围内能够建立的程序保证。",
+          "entries": [
+            {
+              "slug": "halting-problem",
+              "title": "能写一个判断所有程序会不会结束的程序吗",
+              "order": 39,
+              "published": false
+            },
+            {
+              "slug": "mathematical-guarantees",
+              "title": "回到一个真实系统：数学能保证什么",
+              "order": 40,
+              "published": false
+            }
+          ]
+        }
+      ]
     }
   ]
 }

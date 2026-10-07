@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="790" viewBox="0 0 1200 790" role="img" aria-labelledby="title desc">
+<title id="title">重新赋权，再实际运行最短路</title><desc id="desc">C站拆成绿色站台与橙色站台两个状态。P的两边各重4；Q的乘车边各重2，换乘边重1加lambda。lambda为0时，T先有暂定值8，经过橙色站台的7改善它；lambda为2时，候选9不能改善8。</desc>
+<rect width="1200" height="790" fill="#FAFBFC"/>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#8295A3"/></marker></defs>
+<g font-family="Noto Sans CJK SC, PingFang SC, Microsoft YaHei, sans-serif">
+<text x="52" y="58" font-size="32" fill="#18334A" font-weight="700" text-anchor="start">重新赋权，再实际运行最短路</text>
+<text x="52" y="101" font-size="23" fill="#536777" font-weight="400" text-anchor="start">C绿与C橙属于同一个站；边权和必须等于约定的比较代价</text>
+<line x1="105" y1="300" x2="600" y2="180" stroke="#17659E" stroke-width="6"/>
+<line x1="600" y1="180" x2="1095" y2="300" stroke="#17659E" stroke-width="6"/>
+<line x1="105" y1="300" x2="315" y2="410" stroke="#247C68" stroke-width="6"/>
+<line x1="315" y1="410" x2="575" y2="410" stroke="#247C68" stroke-width="6"/>
+<line x1="575" y1="410" x2="840" y2="410" stroke="#AD6A12" stroke-width="6" stroke-dasharray="10 7"/>
+<line x1="840" y1="410" x2="1095" y2="300" stroke="#AD6A12" stroke-width="6"/>
+<circle cx="105" cy="300" r="35" fill="white" stroke="#18334A" stroke-width="4"/>
+<text x="105" y="310" font-size="27" fill="#18334A" font-weight="700" text-anchor="middle">S</text>
+<circle cx="600" cy="180" r="35" fill="white" stroke="#17659E" stroke-width="4"/>
+<text x="600" y="190" font-size="27" fill="#17659E" font-weight="700" text-anchor="middle">A</text>
+<circle cx="1095" cy="300" r="35" fill="white" stroke="#18334A" stroke-width="4"/>
+<text x="1095" y="310" font-size="27" fill="#18334A" font-weight="700" text-anchor="middle">T</text>
+<circle cx="315" cy="410" r="35" fill="white" stroke="#247C68" stroke-width="4"/>
+<text x="315" y="420" font-size="27" fill="#247C68" font-weight="700" text-anchor="middle">B</text>
+<circle cx="575" cy="410" r="35" fill="white" stroke="#247C68" stroke-width="4"/>
+<text x="575" y="420" font-size="27" fill="#247C68" font-weight="700" text-anchor="middle">C绿</text>
+<circle cx="840" cy="410" r="35" fill="white" stroke="#AD6A12" stroke-width="4"/>
+<text x="840" y="420" font-size="27" fill="#AD6A12" font-weight="700" text-anchor="middle">C橙</text>
+<text x="335" y="210" font-size="27" fill="#17659E" font-weight="600" text-anchor="middle">4</text>
+<text x="865" y="210" font-size="27" fill="#17659E" font-weight="600" text-anchor="middle">4</text>
+<text x="190" y="382" font-size="27" fill="#247C68" font-weight="600" text-anchor="middle">2</text>
+<text x="445" y="385" font-size="27" fill="#247C68" font-weight="600" text-anchor="middle">2</text>
+<text x="975" y="384" font-size="27" fill="#AD6A12" font-weight="600" text-anchor="middle">2</text>
+<rect x="637" y="343" width="140" height="42" rx="10" fill="#FFF2D9" stroke="none" stroke-width="2"/>
+<text x="707" y="373" font-size="28" fill="#AD6A12" font-weight="700" text-anchor="middle">1＋λ</text>
+<text x="707" y="476" font-size="23" fill="#AD6A12" font-weight="500" text-anchor="middle">换乘只在这条边计入</text>
+<line x1="52" y1="508" x2="1148" y2="508" stroke="#DCE3E8" stroke-width="2"/>
+<rect x="52" y="535" width="526" height="194" rx="12" fill="#E8F3EE" stroke="none" stroke-width="2"/>
+<text x="80" y="574" font-size="25" fill="#247C68" font-weight="700" text-anchor="start">λ = 0：换乘边重1</text>
+<text x="80" y="615" font-size="24" fill="#18334A" font-weight="400" text-anchor="start">先经A找到P：d(T) = 8</text>
+<text x="80" y="654" font-size="24" fill="#18334A" font-weight="400" text-anchor="start">经C橙：5＋2＝7 &lt; 8</text>
+<text x="80" y="701" font-size="25" fill="#247C68" font-weight="700" text-anchor="start">更新为7，返回Q</text>
+<rect x="622" y="535" width="526" height="194" rx="12" fill="#E4F0F8" stroke="none" stroke-width="2"/>
+<text x="650" y="574" font-size="25" fill="#17659E" font-weight="700" text-anchor="start">λ = 2：换乘边重3</text>
+<text x="650" y="615" font-size="24" fill="#18334A" font-weight="400" text-anchor="start">先经A找到P：d(T) = 8</text>
+<text x="650" y="654" font-size="24" fill="#18334A" font-weight="400" text-anchor="start">经C橙：7＋2＝9 &gt; 8</text>
+<text x="650" y="701" font-size="25" fill="#17659E" font-weight="700" text-anchor="start">保留8，返回P</text>
+<text x="52" y="770" font-size="23" fill="#536777" font-weight="400" text-anchor="start">两次运行使用同一套定案规则；不能在T第一次被发现时就退出</text>
+</g>
+</svg>

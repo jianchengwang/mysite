@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="800" viewBox="0 0 1120 800" role="img" aria-labelledby="title desc">
+<title id="title">图1 一次排序成本需要分摊给多次查询</title><desc id="desc">对1024条静态无序记录，统一按三路比较器调用计费。查询一次时扫描预算1024，排序后二分预算9217加11等于9228；查询十次时扫描预算10240，排序后二分预算9217加110等于9327。蓝色代表查询，橙色代表一次排序。预算上界不是实测耗时。</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,5 L0,10 Z" fill="#286ab0"/></marker><marker id="green-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,5 L0,10 Z" fill="#147d64"/></marker></defs>
+<rect width="1120" height="800" fill="#f8fafc"/>
+<g font-family="Noto Sans CJK SC, Microsoft YaHei, sans-serif">
+<text x="48" y="62" font-size="32" fill="#10243a" font-weight="700" text-anchor="start">先付一次整理费，再分摊查询</text>
+<text x="48" y="106" font-size="23" fill="#53677d" font-weight="400" text-anchor="start">n = 1024；计费单位：一次三路比较器调用</text>
+<rect x="48" y="137" width="22" height="22" rx="3" fill="#286ab0" stroke="#286ab0" stroke-width="2" />
+<text x="82" y="157" font-size="21" fill="#53677d" font-weight="400" text-anchor="start">查询比较</text>
+<rect x="260" y="137" width="22" height="22" rx="3" fill="#aa6943" stroke="#aa6943" stroke-width="2" />
+<text x="294" y="157" font-size="21" fill="#53677d" font-weight="400" text-anchor="start">一次排序：9217</text>
+<text x="1072" y="157" font-size="21" fill="#53677d" font-weight="400" text-anchor="end">以下均为预算上界</text>
+<line x1="300.0" y1="212" x2="300.0" y2="624" stroke="#d8e1ec" stroke-width="1" />
+<text x="300.0" y="201" font-size="20" fill="#53677d" font-weight="400" text-anchor="middle">0</text>
+<line x1="625.0" y1="212" x2="625.0" y2="624" stroke="#d8e1ec" stroke-width="1" />
+<text x="625.0" y="201" font-size="20" fill="#53677d" font-weight="400" text-anchor="middle">5000</text>
+<line x1="950.0" y1="212" x2="950.0" y2="624" stroke="#d8e1ec" stroke-width="1" />
+<text x="950.0" y="201" font-size="20" fill="#53677d" font-weight="400" text-anchor="middle">10000</text>
+<text x="48" y="297" font-size="30" fill="#10243a" font-weight="700" text-anchor="start">q = 1</text>
+<text x="270" y="288" font-size="22" fill="#53677d" font-weight="400" text-anchor="end">扫描</text>
+<rect x="300" y="263" width="66.56" height="38" rx="0" fill="#286ab0" stroke="#286ab0" stroke-width="2" />
+<text x="380.56" y="290" font-size="24" fill="#286ab0" font-weight="700" text-anchor="start">1024</text>
+<text x="270" y="367" font-size="22" fill="#53677d" font-weight="400" text-anchor="end">排序后二分</text>
+<rect x="300" y="342" width="599.105" height="38" rx="0" fill="#aa6943" stroke="#aa6943" stroke-width="2" />
+<rect x="899.105" y="342" width="0.7150000000000001" height="38" fill="#286ab0"/>
+<text x="913.82" y="369" font-size="24" fill="#10243a" font-weight="700" text-anchor="start">9228</text>
+<text x="300" y="414" font-size="22" fill="#53677d" font-weight="400" text-anchor="start">9217 + 11 = 9228</text>
+<text x="48" y="502" font-size="30" fill="#10243a" font-weight="700" text-anchor="start">q = 10</text>
+<text x="270" y="493" font-size="22" fill="#53677d" font-weight="400" text-anchor="end">扫描</text>
+<rect x="300" y="468" width="665.6" height="38" rx="0" fill="#286ab0" stroke="#286ab0" stroke-width="2" />
+<text x="979.6" y="495" font-size="24" fill="#286ab0" font-weight="700" text-anchor="start">10240</text>
+<text x="270" y="572" font-size="22" fill="#53677d" font-weight="400" text-anchor="end">排序后二分</text>
+<rect x="300" y="547" width="599.105" height="38" rx="0" fill="#aa6943" stroke="#aa6943" stroke-width="2" />
+<rect x="899.105" y="547" width="7.15" height="38" fill="#286ab0"/>
+<text x="920.255" y="574" font-size="24" fill="#10243a" font-weight="700" text-anchor="start">9327</text>
+<text x="300" y="619" font-size="22" fill="#53677d" font-weight="400" text-anchor="start">9217 + 110 = 9327</text>
+<line x1="48" y1="645" x2="1072" y2="645" stroke="#d8e1ec" stroke-width="2" />
+<text x="48" y="692" font-size="24" fill="#b44840" font-weight="700" text-anchor="start">q = 9：9316 ＞ 9216</text>
+<text x="597" y="692" font-size="24" fill="#147d64" font-weight="700" text-anchor="start">q = 10：9327 ＜ 10240</text>
+<text x="48" y="746" font-size="22" fill="#53677d" font-weight="400" text-anchor="start">第10次起，两条预算交叉；不保证每组输入的实际耗费都按此排序</text>
+<text x="48" y="780" font-size="20" fill="#53677d" font-weight="400" text-anchor="start">未计读取、复制、搬动及缓存访问；条形共用同一尺度</text>
+</g>
+</svg>

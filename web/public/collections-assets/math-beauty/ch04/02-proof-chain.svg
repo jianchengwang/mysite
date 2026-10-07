@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="770" viewBox="0 0 1200 770" role="img" aria-labelledby="title desc">
+<title id="title">两条理由合成完整保证</title><desc id="desc">初始化建立循环不变量，保持步骤使其在每轮之后成立，退出条件使已处理范围成为全部输入。这证明部分正确性。另由非负整数剩余项数严格减少证明终止，两者合成完整保证。</desc>
+<rect width="1200" height="770" fill="#FAFBFC"/>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#17659E"/></marker><marker id="gold-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#AD6A12"/></marker></defs>
+<g font-family="Noto Sans CJK SC, PingFang SC, Microsoft YaHei, sans-serif">
+<text x="52" y="57" font-size="32" fill="#18334A" font-weight="700" text-anchor="start">两条理由合成完整保证</text>
+<text x="52" y="97" font-size="23" fill="#536777" font-weight="400" text-anchor="start">先证明停下时答案正确，再证明一定会停下</text>
+<rect x="52" y="155" width="284" height="220" rx="12" fill="#E4F0F8" stroke="none" stroke-width="2"/>
+<text x="76" y="199" font-size="28" fill="#17659E" font-weight="700" text-anchor="start">初始化</text>
+<text x="76" y="248" font-size="21" fill="#18334A" font-weight="400" text-anchor="start">i = 1，M = 第1项</text>
+<text x="76" y="291" font-size="21" fill="#18334A" font-weight="400" text-anchor="start">只有一项可比较</text>
+<text x="76" y="334" font-size="21" fill="#18334A" font-weight="400" text-anchor="start">承诺在起点成立</text>
+<rect x="458" y="155" width="284" height="220" rx="12" fill="#E4F0F8" stroke="none" stroke-width="2"/>
+<text x="482" y="199" font-size="28" fill="#17659E" font-weight="700" text-anchor="start">保持</text>
+<text x="482" y="248" font-size="21" fill="#18334A" font-weight="400" text-anchor="start">纳入下一项</text>
+<text x="482" y="291" font-size="21" fill="#18334A" font-weight="400" text-anchor="start">比较并更新 M、i</text>
+<text x="482" y="334" font-size="21" fill="#18334A" font-weight="400" text-anchor="start">同一条承诺继续成立</text>
+<rect x="864" y="155" width="284" height="220" rx="12" fill="#E4F0F8" stroke="none" stroke-width="2"/>
+<text x="888" y="199" font-size="28" fill="#17659E" font-weight="700" text-anchor="start">退出</text>
+<text x="888" y="248" font-size="21" fill="#18334A" font-weight="400" text-anchor="start">不变量：i ≤ n</text>
+<text x="888" y="291" font-size="21" fill="#18334A" font-weight="400" text-anchor="start">退出条件：i ≥ n</text>
+<text x="888" y="334" font-size="21" fill="#18334A" font-weight="400" text-anchor="start">合起来：i = n</text>
+<line x1="350" y1="265" x2="442" y2="265" stroke="#17659E" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="756" y1="265" x2="848" y2="265" stroke="#17659E" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="600" y1="394" x2="600" y2="428" stroke="#17659E" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="600" y="477" font-size="27" fill="#17659E" font-weight="600" text-anchor="middle">如果循环结束，M 就是全部输入的最大值</text>
+<rect x="52" y="527" width="1096" height="124" rx="12" fill="#FFF2D9" stroke="none" stroke-width="2"/>
+<text x="78" y="574" font-size="26" fill="#AD6A12" font-weight="600" text-anchor="start">五项示例的剩余项数  n − i：4 → 3 → 2 → 1 → 0</text>
+<text x="78" y="619" font-size="23" fill="#18334A" font-weight="400" text-anchor="start">非负整数，每轮严格减少 1；循环必定在有限步内结束</text>
+<text x="600" y="721" font-size="28" fill="#18334A" font-weight="700" text-anchor="middle">部分正确性 + 终止性 = 完整的正确性保证</text>
+</g>
+</svg>

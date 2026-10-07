@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="730" viewBox="0 0 1200 730" role="img" aria-labelledby="title desc"><title id="title">删去绕行，仍然到达同一个终点</title><desc id="desc">一个四节点有向图包含A到B、B到C、C到B、B到D。游走A B C B D重复经过B。删掉B C B绕行，得到路径A B D，边数由4减到2。</desc><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,5 L0,10 Z" fill="#087F83"/></marker><marker id="orangeArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,5 L0,10 Z" fill="#CD6A22"/></marker></defs><rect width="1200" height="730" fill="#F7F9FB"/><g font-family="Noto Sans CJK SC, sans-serif">
+<text x="48" y="58" font-size="31" fill="#192C3C" font-weight="700" text-anchor="start">删去绕行，仍然到达同一个终点</text>
+<text x="48" y="99" font-size="21" fill="#526779" font-weight="400" text-anchor="start">独立示例：四条边 A → B、B → C、C → B、B → D</text>
+<rect x="48" y="134" width="1104" height="233" rx="18" fill="white" stroke="#D9E2E8"/>
+<path d="M212.0,246.0 L408.0,246.0" stroke="#087F83" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<path d="M465,228 Q579,143 692,228" fill="none" stroke="#087F83" stroke-width="3" marker-end="url(#arrow)"/>
+<path d="M692,264 Q579,343 465,264" fill="none" stroke="#087F83" stroke-width="3" marker-end="url(#arrow)"/>
+<path d="M449,219 C540,140 881,140 984,219" fill="none" stroke="#087F83" stroke-width="3" marker-end="url(#arrow)"/>
+<circle cx="185" cy="246" r="27" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="185" y="254" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">A</text>
+<circle cx="440" cy="246" r="27" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="440" y="254" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">B</text>
+<circle cx="717" cy="246" r="27" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="717" y="254" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">C</text>
+<circle cx="1000" cy="246" r="27" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="1000" y="254" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">D</text>
+<text x="578" y="219" font-size="17" fill="#526779" font-weight="400" text-anchor="middle">去 C</text>
+<text x="579" y="323" font-size="17" fill="#526779" font-weight="400" text-anchor="middle">回 B</text>
+<text x="871" y="167" font-size="17" fill="#526779" font-weight="400" text-anchor="middle">到 D</text>
+<text x="74" y="412" font-size="23" fill="#192C3C" font-weight="600" text-anchor="start">原游走</text>
+<rect x="412" y="399" width="420" height="85" rx="15" fill="#FFF1E7" stroke="#CD6A22" stroke-dasharray="7 5"/>
+<path d="M316.0,440.0 L428.0,440.0" stroke="#087F83" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<path d="M481.0,440.0 L593.0,440.0" stroke="#087F83" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<path d="M646.0,440.0 L758.0,440.0" stroke="#087F83" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<path d="M811.0,440.0 L923.0,440.0" stroke="#087F83" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<circle cx="292" cy="440" r="24" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="292" y="448" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">A</text>
+<circle cx="457" cy="440" r="24" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="457" y="448" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">B</text>
+<circle cx="622" cy="440" r="24" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="622" y="448" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">C</text>
+<circle cx="787" cy="440" r="24" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="787" y="448" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">B</text>
+<circle cx="952" cy="440" r="24" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="952" y="448" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">D</text>
+<text x="1075" y="448" font-size="22" fill="#526779" font-weight="400" text-anchor="middle">4 条边</text>
+<text x="622" y="521" font-size="21" fill="#CD6A22" font-weight="600" text-anchor="middle">删掉从 B 出发又回到 B 的这段绕行</text>
+<text x="74" y="594" font-size="23" fill="#192C3C" font-weight="600" text-anchor="start">留下的路径</text>
+<path d="M316.0,596.0 L593.0,596.0" stroke="#087F83" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<path d="M646.0,596.0 L923.0,596.0" stroke="#087F83" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<circle cx="292" cy="596" r="24" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="292" y="604" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">A</text>
+<circle cx="622" cy="596" r="24" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="622" y="604" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">B</text>
+<circle cx="952" cy="596" r="24" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="952" y="604" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">D</text>
+<text x="1075" y="604" font-size="22" fill="#087F83" font-weight="600" text-anchor="middle">2 条边</text>
+<text x="48" y="686" font-size="21" fill="#526779" font-weight="400" text-anchor="start">衔接仍合法：保留下来的 B → D，正是原来第二次到达 B 后使用的那条边。</text>
+</g></svg>

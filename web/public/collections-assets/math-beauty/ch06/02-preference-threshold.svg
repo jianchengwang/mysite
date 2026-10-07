@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+<title id="title">同一组时间，换一把比较尺</title><desc id="desc">实际换乘时间固定为1分钟。横轴是每次换乘的额外偏好负担lambda，纵轴是比较代价。P为常数8，Q为7加lambda。二者在lambda等于1时相交；左侧Q更低，右侧P更低。</desc>
+<rect width="1200" height="760" fill="#FAFBFC"/>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#8295A3"/></marker></defs>
+<g font-family="Noto Sans CJK SC, PingFang SC, Microsoft YaHei, sans-serif">
+<text x="52" y="58" font-size="32" fill="#18334A" font-weight="700" text-anchor="start">同一组时间，换一把比较尺</text>
+<text x="52" y="101" font-size="23" fill="#536777" font-weight="400" text-anchor="start">实际时间固定：P为8分钟，Q为7分钟；这里只改变偏好参数λ</text>
+<text x="112" y="160" font-size="22" fill="#536777" font-weight="400" text-anchor="start">比较代价（分钟等价值）</text>
+<rect x="170" y="192" width="240" height="388" rx="0" fill="#E8F3EE" stroke="none" stroke-width="2"/>
+<rect x="410" y="192" width="480" height="388" rx="0" fill="#E4F0F8" stroke="none" stroke-width="2"/>
+<line x1="160" y1="490" x2="900" y2="490" stroke="#D5DFE5" stroke-width="1.5"/>
+<text x="135" y="498" font-size="22" fill="#536777" font-weight="400" text-anchor="middle">7</text>
+<line x1="160" y1="400" x2="900" y2="400" stroke="#D5DFE5" stroke-width="1.5"/>
+<text x="135" y="408" font-size="22" fill="#536777" font-weight="400" text-anchor="middle">8</text>
+<line x1="160" y1="310" x2="900" y2="310" stroke="#D5DFE5" stroke-width="1.5"/>
+<text x="135" y="318" font-size="22" fill="#536777" font-weight="400" text-anchor="middle">9</text>
+<line x1="160" y1="220" x2="900" y2="220" stroke="#D5DFE5" stroke-width="1.5"/>
+<text x="135" y="228" font-size="22" fill="#536777" font-weight="400" text-anchor="middle">10</text>
+<line x1="160" y1="590" x2="925" y2="590" stroke="#8295A3" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="160" y1="590" x2="160" y2="185" stroke="#8295A3" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="170" y1="590" x2="170" y2="600" stroke="#8295A3" stroke-width="2"/>
+<text x="170" y="633" font-size="23" fill="#536777" font-weight="400" text-anchor="middle">0</text>
+<line x1="410" y1="590" x2="410" y2="600" stroke="#8295A3" stroke-width="2"/>
+<text x="410" y="633" font-size="23" fill="#536777" font-weight="400" text-anchor="middle">1</text>
+<line x1="650" y1="590" x2="650" y2="600" stroke="#8295A3" stroke-width="2"/>
+<text x="650" y="633" font-size="23" fill="#536777" font-weight="400" text-anchor="middle">2</text>
+<line x1="890" y1="590" x2="890" y2="600" stroke="#8295A3" stroke-width="2"/>
+<text x="890" y="633" font-size="23" fill="#536777" font-weight="400" text-anchor="middle">3</text>
+<line x1="410" y1="195" x2="410" y2="589" stroke="#8C9AAA" stroke-width="2" stroke-dasharray="6 7"/>
+<line x1="170" y1="400" x2="890" y2="400" stroke="#17659E" stroke-width="6"/>
+<line x1="170" y1="490" x2="890" y2="220" stroke="#247C68" stroke-width="6"/>
+<circle cx="170" cy="400" r="6" fill="#17659E" stroke="#17659E" stroke-width="1"/>
+<circle cx="890" cy="400" r="6" fill="#17659E" stroke="#17659E" stroke-width="1"/>
+<circle cx="170" cy="490" r="6" fill="#247C68" stroke="#247C68" stroke-width="1"/>
+<circle cx="890" cy="220" r="6" fill="#247C68" stroke="#247C68" stroke-width="1"/>
+<circle cx="410" cy="400" r="11" fill="white" stroke="#18334A" stroke-width="3"/>
+<text x="446" y="445" font-size="23" fill="#18334A" font-weight="600" text-anchor="start">λ = 1，两路代价都是8</text>
+<text x="935" y="229" font-size="27" fill="#247C68" font-weight="700" text-anchor="start">Q：7＋λ</text>
+<text x="935" y="410" font-size="27" fill="#17659E" font-weight="700" text-anchor="start">P：8</text>
+<text x="285" y="270" font-size="28" fill="#247C68" font-weight="700" text-anchor="middle">Q更低</text>
+<text x="675" y="545" font-size="28" fill="#17659E" font-weight="700" text-anchor="middle">P更低</text>
+<text x="590" y="680" font-size="22" fill="#536777" font-weight="400" text-anchor="middle">λ：每次换乘的额外负担（分钟等价值／次）</text>
+<text x="65" y="726" font-size="23" fill="#536777" font-weight="400" text-anchor="start">分数改变，不表示列车多运行了几分钟；λ = 2时，Q的实际时间仍是7分钟</text>
+</g>
+</svg>

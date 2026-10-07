@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="750" viewBox="0 0 1120 750" role="img" aria-labelledby="title desc">
+<title id="title">图2 有序数组插入的定位与搬动成本</title><desc id="desc">在有剩余空位的有序数组10、20、30、40、50中插入15。二分先确定10和20之间的插入点，随后按50、40、30、20的次序右移四个已有元素，最后写入15。定位比较次数与四次搬动、一次新写入分别计费。</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,5 L0,10 Z" fill="#286ab0"/></marker><marker id="green-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,5 L0,10 Z" fill="#147d64"/></marker></defs>
+<rect width="1120" height="750" fill="#f8fafc"/>
+<g font-family="Noto Sans CJK SC, Microsoft YaHei, sans-serif">
+<text x="48" y="62" font-size="32" fill="#10243a" font-weight="700" text-anchor="start">找到位置以后，还要腾出位置</text>
+<text x="48" y="107" font-size="23" fill="#53677d" font-weight="400" text-anchor="start">在紧凑有序数组中插入15；假定末尾已有足够空位</text>
+<text x="48" y="167" font-size="25" fill="#286ab0" font-weight="700" text-anchor="start">① 查位置：确定15在10与20之间</text>
+<text x="48" y="207" font-size="21" fill="#53677d" font-weight="400" text-anchor="start">插入前</text>
+<rect x="70" y="235" width="136" height="82" rx="10" fill="white" stroke="#d8e1ec" stroke-width="2" />
+<text x="138" y="287" font-size="31" fill="#10243a" font-weight="700" text-anchor="middle">10</text>
+<text x="138" y="228" font-size="18" fill="#53677d" font-weight="400" text-anchor="middle">位置 0</text>
+<rect x="230" y="235" width="136" height="82" rx="10" fill="white" stroke="#d8e1ec" stroke-width="2" />
+<text x="298" y="287" font-size="31" fill="#10243a" font-weight="700" text-anchor="middle">20</text>
+<text x="298" y="228" font-size="18" fill="#53677d" font-weight="400" text-anchor="middle">位置 1</text>
+<rect x="390" y="235" width="136" height="82" rx="10" fill="white" stroke="#d8e1ec" stroke-width="2" />
+<text x="458" y="287" font-size="31" fill="#10243a" font-weight="700" text-anchor="middle">30</text>
+<text x="458" y="228" font-size="18" fill="#53677d" font-weight="400" text-anchor="middle">位置 2</text>
+<rect x="550" y="235" width="136" height="82" rx="10" fill="white" stroke="#d8e1ec" stroke-width="2" />
+<text x="618" y="287" font-size="31" fill="#10243a" font-weight="700" text-anchor="middle">40</text>
+<text x="618" y="228" font-size="18" fill="#53677d" font-weight="400" text-anchor="middle">位置 3</text>
+<rect x="710" y="235" width="136" height="82" rx="10" fill="white" stroke="#d8e1ec" stroke-width="2" />
+<text x="778" y="287" font-size="31" fill="#10243a" font-weight="700" text-anchor="middle">50</text>
+<text x="778" y="228" font-size="18" fill="#53677d" font-weight="400" text-anchor="middle">位置 4</text>
+<rect x="870" y="235" width="136" height="82" rx="10" fill="#f0f3f7" stroke="#d8e1ec" stroke-width="2" stroke-dasharray="7 5"/>
+<text x="938" y="287" font-size="25" fill="#53677d" font-weight="700" text-anchor="middle">空位</text>
+<text x="938" y="228" font-size="18" fill="#53677d" font-weight="400" text-anchor="middle">位置 5</text>
+<line x1="298" y1="327" x2="458" y2="478" stroke="#286ab0" stroke-width="3" marker-end="url(#arrow)" />
+<line x1="458" y1="327" x2="618" y2="478" stroke="#286ab0" stroke-width="3" marker-end="url(#arrow)" />
+<line x1="618" y1="327" x2="778" y2="478" stroke="#286ab0" stroke-width="3" marker-end="url(#arrow)" />
+<line x1="778" y1="327" x2="938" y2="478" stroke="#286ab0" stroke-width="3" marker-end="url(#arrow)" />
+<line x1="138" y1="327" x2="138" y2="478" stroke="#d8e1ec" stroke-width="2" stroke-dasharray="6 6"/>
+<rect x="230" y="385" width="136" height="59" rx="10" fill="#e8f5ef" stroke="#147d64" stroke-width="2" />
+<text x="298" y="424" font-size="25" fill="#147d64" font-weight="700" text-anchor="middle">写入15</text>
+<line x1="298" y1="449" x2="298" y2="478" stroke="#147d64" stroke-width="3" marker-end="url(#green-arrow)" />
+<text x="620" y="167" font-size="25" fill="#286ab0" font-weight="700" text-anchor="start">② 腾位置：先从右端搬起</text>
+
+<text x="48" y="471" font-size="21" fill="#53677d" font-weight="400" text-anchor="start">插入后</text>
+<rect x="70" y="489" width="136" height="82" rx="10" fill="white" stroke="#d8e1ec" stroke-width="2" />
+<text x="138" y="541" font-size="31" fill="#10243a" font-weight="700" text-anchor="middle">10</text>
+<rect x="230" y="489" width="136" height="82" rx="10" fill="#e8f5ef" stroke="#147d64" stroke-width="2" />
+<text x="298" y="541" font-size="31" fill="#147d64" font-weight="700" text-anchor="middle">15</text>
+<rect x="390" y="489" width="136" height="82" rx="10" fill="#e9f2fc" stroke="#286ab0" stroke-width="2" />
+<text x="458" y="541" font-size="31" fill="#286ab0" font-weight="700" text-anchor="middle">20</text>
+<rect x="550" y="489" width="136" height="82" rx="10" fill="#e9f2fc" stroke="#286ab0" stroke-width="2" />
+<text x="618" y="541" font-size="31" fill="#286ab0" font-weight="700" text-anchor="middle">30</text>
+<rect x="710" y="489" width="136" height="82" rx="10" fill="#e9f2fc" stroke="#286ab0" stroke-width="2" />
+<text x="778" y="541" font-size="31" fill="#286ab0" font-weight="700" text-anchor="middle">40</text>
+<rect x="870" y="489" width="136" height="82" rx="10" fill="#e9f2fc" stroke="#286ab0" stroke-width="2" />
+<text x="938" y="541" font-size="31" fill="#286ab0" font-weight="700" text-anchor="middle">50</text>
+<text x="48" y="628" font-size="28" fill="#10243a" font-weight="700" text-anchor="start">4次已有元素搬动 + 1次新元素写入</text>
+<text x="48" y="674" font-size="22" fill="#53677d" font-weight="400" text-anchor="start">定位的比较费用另计；比较与搬动不能直接统称为“比较次数”</text>
+<text x="48" y="715" font-size="21" fill="#53677d" font-weight="400" text-anchor="start">推广：若插在n项数组的最前端，需要搬动n项；扩容成本仍要另外计入</text>
+</g>
+</svg>

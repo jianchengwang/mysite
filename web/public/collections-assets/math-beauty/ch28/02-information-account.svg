@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900"><title>正文变短之后，标记也要入账</title><desc>四符号熵为1.75。已知标记后的条件熵为0.9387218755。标记熵为0.8112781245，与剩余熵相加仍为1.75。各条长度使用同一比例。图示理论熵基准而非实际码长。</desc><g font-family="Noto Sans CJK SC, sans-serif">
+<rect x="0" y="0" width="1400" height="900" fill="#fffdf6" stroke="none" rx="0" />
+<text x="55" y="50" font-size="22" fill="#0b806c" font-weight="400" text-anchor="start">数学之美 / 28 条件信息与预测</text>
+<text x="55" y="112" font-size="42" fill="#213b3d" font-weight="700" text-anchor="start">正文变短之后，标记也要入账</text>
+<text x="55" y="165" font-size="26" fill="#213b3d" font-weight="400" text-anchor="start">同一组四符号；比较熵与理想平均长度基准，单位为位 / 符号</text>
+<rect x="830" y="204" width="22" height="22" fill="#c35922" stroke="none" rx="0" />
+<text x="865" y="226" font-size="24" fill="#c35922" font-weight="500" text-anchor="start">标记 X</text>
+<rect x="1040" y="204" width="22" height="22" fill="#0b806c" stroke="none" rx="0" />
+<text x="1075" y="226" font-size="24" fill="#0b806c" font-weight="500" text-anchor="start">组内剩余 Y</text>
+<text x="55" y="317" font-size="29" fill="#213b3d" font-weight="500" text-anchor="start">不提供标记</text>
+<text x="55" y="355" font-size="26" fill="#718582" font-weight="400" text-anchor="start">H(Y)</text>
+<text x="55" y="481" font-size="29" fill="#213b3d" font-weight="500" text-anchor="start">接收方已知 X</text>
+<text x="55" y="519" font-size="26" fill="#718582" font-weight="400" text-anchor="start">H(Y|X)</text>
+<text x="55" y="645" font-size="29" fill="#213b3d" font-weight="500" text-anchor="start">连同标记一起</text>
+<text x="55" y="683" font-size="26" fill="#718582" font-weight="400" text-anchor="start">H(X) + H(Y|X)</text>
+<rect x="340" y="290" width="875.0" height="64" fill="#2b6f9f" stroke="none" rx="0" />
+<text x="777.5" y="333" font-size="31" fill="#ffffff" font-weight="600" text-anchor="middle">1.750000</text>
+<rect x="340" y="454" width="469.36093777043357" height="64" fill="#0b806c" stroke="none" rx="0" />
+<text x="574.6804688852168" y="497" font-size="31" fill="#ffffff" font-weight="600" text-anchor="middle">0.938722</text>
+<rect x="809.3609377704336" y="454" width="405.63906222956643" height="64" fill="none" stroke="#718582" rx="0" stroke-dasharray="8 7"/>
+<text x="1012.1804688852168" y="497" font-size="29" fill="#718582" font-weight="500" text-anchor="middle">已在 X 中</text>
+<rect x="340" y="618" width="405.63906222956643" height="64" fill="#c35922" stroke="none" rx="0" />
+<rect x="745.6390622295664" y="618" width="469.36093777043357" height="64" fill="#0b806c" stroke="none" rx="0" />
+<text x="542.8195311147832" y="661" font-size="31" fill="#ffffff" font-weight="600" text-anchor="middle">0.811278</text>
+<text x="980.3195311147832" y="661" font-size="31" fill="#ffffff" font-weight="600" text-anchor="middle">0.938722</text>
+<line x1="340" y1="707" x2="340" y2="716" stroke="#718582" stroke-width="2" />
+<text x="340" y="748" font-size="22" fill="#718582" font-weight="400" text-anchor="middle">0</text>
+<line x1="590.0" y1="707" x2="590.0" y2="716" stroke="#718582" stroke-width="2" />
+<text x="590.0" y="748" font-size="22" fill="#718582" font-weight="400" text-anchor="middle">0.5</text>
+<line x1="840" y1="707" x2="840" y2="716" stroke="#718582" stroke-width="2" />
+<text x="840" y="748" font-size="22" fill="#718582" font-weight="400" text-anchor="middle">1</text>
+<line x1="1090.0" y1="707" x2="1090.0" y2="716" stroke="#718582" stroke-width="2" />
+<text x="1090.0" y="748" font-size="22" fill="#718582" font-weight="400" text-anchor="middle">1.5</text>
+<line x1="1215.0" y1="707" x2="1215.0" y2="716" stroke="#718582" stroke-width="2" />
+<text x="1215.0" y="748" font-size="22" fill="#718582" font-weight="400" text-anchor="middle">1.75</text>
+<line x1="340" y1="707" x2="1215.0" y2="707" stroke="#718582" stroke-width="2" />
+<text x="1268" y="334" font-size="28" fill="#2b6f9f" font-weight="600" text-anchor="middle">1.75</text>
+<text x="1268" y="661" font-size="28" fill="#0b806c" font-weight="600" text-anchor="middle">1.75</text>
+<text x="700" y="806" font-size="28" fill="#213b3d" font-weight="500" text-anchor="middle">逐符号码仍有整数限制：已知 X，组内正文需 1 位</text>
+<text x="55" y="872" font-size="20" fill="#718582" font-weight="400" text-anchor="start">数学之美 · 原创图解 · 有限概率模型</text>
+</g></svg>

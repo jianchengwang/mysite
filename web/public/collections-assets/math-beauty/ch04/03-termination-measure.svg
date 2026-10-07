@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+<title id="title">持续下降为何未必终止</title><desc id="desc">上方整数剩余项数从4每轮减1，依次为4、3、2、1、0，四轮后停止。下方使用精确数，1每轮除以2，依次为1、二分之一、四分之一、八分之一、十六分之一，任意有限轮后仍大于0。</desc>
+<rect width="1200" height="720" fill="#FAFBFC"/>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#17659E"/></marker><marker id="gold-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#AD6A12"/></marker></defs>
+<g font-family="Noto Sans CJK SC, PingFang SC, Microsoft YaHei, sans-serif">
+<text x="52" y="57" font-size="32" fill="#18334A" font-weight="700" text-anchor="start">持续下降，为何未必终止</text>
+<text x="52" y="99" font-size="23" fill="#536777" font-weight="400" text-anchor="start">有下界 + 严格下降，还需要检查数值所在的范围</text>
+<text x="52" y="158" font-size="26" fill="#17659E" font-weight="600" text-anchor="start">剩余项数：非负整数</text>
+<rect x="84" y="196" width="116" height="77" rx="12" fill="#E4F0F8" stroke="#17659E" stroke-width="2"/>
+<text x="142" y="247" font-size="34" fill="#17659E" font-weight="600" text-anchor="middle">4</text>
+<text x="142" y="310" font-size="21" fill="#536777" font-weight="400" text-anchor="middle">第0轮</text>
+<line x1="208" y1="235" x2="263" y2="235" stroke="#17659E" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="236" y="189" font-size="21" fill="#17659E" font-weight="400" text-anchor="middle">−1</text>
+<rect x="275" y="196" width="116" height="77" rx="12" fill="#E4F0F8" stroke="#17659E" stroke-width="2"/>
+<text x="333" y="247" font-size="34" fill="#17659E" font-weight="600" text-anchor="middle">3</text>
+<text x="333" y="310" font-size="21" fill="#536777" font-weight="400" text-anchor="middle">第1轮</text>
+<line x1="399" y1="235" x2="454" y2="235" stroke="#17659E" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="427" y="189" font-size="21" fill="#17659E" font-weight="400" text-anchor="middle">−1</text>
+<rect x="466" y="196" width="116" height="77" rx="12" fill="#E4F0F8" stroke="#17659E" stroke-width="2"/>
+<text x="524" y="247" font-size="34" fill="#17659E" font-weight="600" text-anchor="middle">2</text>
+<text x="524" y="310" font-size="21" fill="#536777" font-weight="400" text-anchor="middle">第2轮</text>
+<line x1="590" y1="235" x2="645" y2="235" stroke="#17659E" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="618" y="189" font-size="21" fill="#17659E" font-weight="400" text-anchor="middle">−1</text>
+<rect x="657" y="196" width="116" height="77" rx="12" fill="#E4F0F8" stroke="#17659E" stroke-width="2"/>
+<text x="715" y="247" font-size="34" fill="#17659E" font-weight="600" text-anchor="middle">1</text>
+<text x="715" y="310" font-size="21" fill="#536777" font-weight="400" text-anchor="middle">第3轮</text>
+<line x1="781" y1="235" x2="836" y2="235" stroke="#17659E" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="809" y="189" font-size="21" fill="#17659E" font-weight="400" text-anchor="middle">−1</text>
+<rect x="848" y="196" width="116" height="77" rx="12" fill="#E4F0F8" stroke="#17659E" stroke-width="2"/>
+<text x="906" y="247" font-size="34" fill="#17659E" font-weight="600" text-anchor="middle">0</text>
+<text x="906" y="310" font-size="21" fill="#536777" font-weight="400" text-anchor="middle">第4轮</text>
+<text x="1049" y="245" font-size="27" fill="#17659E" font-weight="700" text-anchor="middle">停止</text>
+<line x1="976" y1="235" x2="1009" y2="235" stroke="#17659E" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="52" y="381" font-size="26" fill="#AD6A12" font-weight="600" text-anchor="start">精确数值 x：每轮除以 2</text>
+<rect x="84" y="418" width="116" height="77" rx="12" fill="#FFF2D9" stroke="#AD6A12" stroke-width="2"/>
+<text x="142" y="469" font-size="30" fill="#AD6A12" font-weight="600" text-anchor="middle">1</text>
+<text x="142" y="532" font-size="21" fill="#536777" font-weight="400" text-anchor="middle">第0轮</text>
+<line x1="208" y1="457" x2="263" y2="457" stroke="#AD6A12" stroke-width="3" marker-end="url(#gold-arrow)"/>
+<text x="236" y="411" font-size="21" fill="#AD6A12" font-weight="400" text-anchor="middle">÷2</text>
+<rect x="275" y="418" width="116" height="77" rx="12" fill="#FFF2D9" stroke="#AD6A12" stroke-width="2"/>
+<text x="333" y="469" font-size="30" fill="#AD6A12" font-weight="600" text-anchor="middle">1/2</text>
+<text x="333" y="532" font-size="21" fill="#536777" font-weight="400" text-anchor="middle">第1轮</text>
+<line x1="399" y1="457" x2="454" y2="457" stroke="#AD6A12" stroke-width="3" marker-end="url(#gold-arrow)"/>
+<text x="427" y="411" font-size="21" fill="#AD6A12" font-weight="400" text-anchor="middle">÷2</text>
+<rect x="466" y="418" width="116" height="77" rx="12" fill="#FFF2D9" stroke="#AD6A12" stroke-width="2"/>
+<text x="524" y="469" font-size="30" fill="#AD6A12" font-weight="600" text-anchor="middle">1/4</text>
+<text x="524" y="532" font-size="21" fill="#536777" font-weight="400" text-anchor="middle">第2轮</text>
+<line x1="590" y1="457" x2="645" y2="457" stroke="#AD6A12" stroke-width="3" marker-end="url(#gold-arrow)"/>
+<text x="618" y="411" font-size="21" fill="#AD6A12" font-weight="400" text-anchor="middle">÷2</text>
+<rect x="657" y="418" width="116" height="77" rx="12" fill="#FFF2D9" stroke="#AD6A12" stroke-width="2"/>
+<text x="715" y="469" font-size="30" fill="#AD6A12" font-weight="600" text-anchor="middle">1/8</text>
+<text x="715" y="532" font-size="21" fill="#536777" font-weight="400" text-anchor="middle">第3轮</text>
+<line x1="781" y1="457" x2="836" y2="457" stroke="#AD6A12" stroke-width="3" marker-end="url(#gold-arrow)"/>
+<text x="809" y="411" font-size="21" fill="#AD6A12" font-weight="400" text-anchor="middle">÷2</text>
+<rect x="848" y="418" width="116" height="77" rx="12" fill="#FFF2D9" stroke="#AD6A12" stroke-width="2"/>
+<text x="906" y="469" font-size="30" fill="#AD6A12" font-weight="600" text-anchor="middle">1/16</text>
+<text x="906" y="532" font-size="21" fill="#536777" font-weight="400" text-anchor="middle">第4轮</text>
+<line x1="976" y1="457" x2="1010" y2="457" stroke="#AD6A12" stroke-width="3" marker-end="url(#gold-arrow)"/>
+<text x="1051" y="469" font-size="36" fill="#AD6A12" font-weight="700" text-anchor="middle">…</text>
+<text x="52" y="611" font-size="24" fill="#18334A" font-weight="600" text-anchor="start">每个有限步骤之后，x 仍然大于 0，条件 x &gt; 0 一直成立</text>
+<text x="52" y="656" font-size="22" fill="#536777" font-weight="400" text-anchor="start">这里使用精确数值；不依赖计算机浮点数的舍入或下溢</text>
+</g>
+</svg>

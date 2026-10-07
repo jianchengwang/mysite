@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900"><title>少数条件更难猜，平均仍更好猜</title><desc>另设的二元反例。常见组概率0.98，Y恒为0，熵0。罕见组概率0.02，Y为0或1各一半，熵1。Y的边缘概率为0.99与0.01，熵0.0807931359。条件熵平均为0.02。</desc><g font-family="Noto Sans CJK SC, sans-serif">
+<rect x="0" y="0" width="1400" height="900" fill="#fffdf6" stroke="none" rx="0" />
+<text x="55" y="50" font-size="22" fill="#0b806c" font-weight="400" text-anchor="start">数学之美 / 28 条件信息与预测</text>
+<text x="55" y="112" font-size="42" fill="#213b3d" font-weight="700" text-anchor="start">少数条件更难猜，平均仍更好猜</text>
+<text x="55" y="165" font-size="26" fill="#213b3d" font-weight="400" text-anchor="start">另一个二元模型：X 分组，Y 只取 0 或 1；与四符号例分开计算</text>
+<text x="70" y="245" font-size="29" fill="#0b806c" font-weight="600" text-anchor="start">常见组：P(X = 常见) = 0.98</text>
+<text x="770" y="245" font-size="29" fill="#c35922" font-weight="600" text-anchor="start">罕见组：P(X = 罕见) = 0.02</text>
+<line x1="700" y1="218" x2="700" y2="420" stroke="#dce4de" stroke-width="2" />
+<rect x="70" y="275" width="540" height="60" fill="#0b806c" stroke="none" rx="0" />
+<text x="340" y="315" font-size="28" fill="#ffffff" font-weight="600" text-anchor="middle">Y = 0，概率 1</text>
+<text x="70" y="391" font-size="30" fill="#0b806c" font-weight="500" text-anchor="start">H(Y|X = 常见) = 0 位</text>
+<rect x="770" y="275" width="270" height="60" fill="#c35922" stroke="none" rx="0" />
+<rect x="1040" y="275" width="270" height="60" fill="#2b6f9f" stroke="none" rx="0" />
+<text x="905" y="315" font-size="27" fill="#ffffff" font-weight="600" text-anchor="middle">Y = 0：1/2</text>
+<text x="1175" y="315" font-size="27" fill="#ffffff" font-weight="600" text-anchor="middle">Y = 1：1/2</text>
+<text x="770" y="391" font-size="30" fill="#c35922" font-weight="500" text-anchor="start">H(Y|X = 罕见) = 1 位</text>
+<line x1="55" y1="440" x2="1345" y2="440" stroke="#dce4de" stroke-width="2" />
+<text x="55" y="495" font-size="31" fill="#213b3d" font-weight="600" text-anchor="start">平均要带上组概率：0.98 × 0 + 0.02 × 1 = 0.02</text>
+<text x="65" y="588" font-size="28" fill="#213b3d" font-weight="500" text-anchor="start">原来的 H(Y)</text>
+<rect x="475" y="552" width="61.4027832808925" height="50" fill="#2b6f9f" stroke="none" rx="0" />
+<text x="554.4027832808925" y="588" font-size="28" fill="#2b6f9f" font-weight="600" text-anchor="start">0.080793</text>
+<text x="65" y="673" font-size="28" fill="#213b3d" font-weight="500" text-anchor="start">加权后的 H(Y|X)</text>
+<rect x="475" y="637" width="15.200000000000001" height="50" fill="#0b806c" stroke="none" rx="0" />
+<text x="508.2" y="673" font-size="28" fill="#0b806c" font-weight="600" text-anchor="start">0.020000</text>
+<text x="65" y="758" font-size="28" fill="#213b3d" font-weight="500" text-anchor="start">某一组 H(Y|X = 罕见)</text>
+<rect x="475" y="722" width="760" height="50" fill="#c35922" stroke="none" rx="0" />
+<text x="1253" y="758" font-size="28" fill="#c35922" font-weight="600" text-anchor="start">1.000000</text>
+<line x1="475" y1="790" x2="1235" y2="790" stroke="#718582" stroke-width="2" />
+<line x1="475" y1="790" x2="475" y2="799" stroke="#718582" stroke-width="2" />
+<text x="475" y="832" font-size="23" fill="#718582" font-weight="400" text-anchor="middle">0</text>
+<line x1="665.0" y1="790" x2="665.0" y2="799" stroke="#718582" stroke-width="2" />
+<text x="665.0" y="832" font-size="23" fill="#718582" font-weight="400" text-anchor="middle">0.25</text>
+<line x1="855.0" y1="790" x2="855.0" y2="799" stroke="#718582" stroke-width="2" />
+<text x="855.0" y="832" font-size="23" fill="#718582" font-weight="400" text-anchor="middle">0.5</text>
+<line x1="1045.0" y1="790" x2="1045.0" y2="799" stroke="#718582" stroke-width="2" />
+<text x="1045.0" y="832" font-size="23" fill="#718582" font-weight="400" text-anchor="middle">0.75</text>
+<line x1="1235" y1="790" x2="1235" y2="799" stroke="#718582" stroke-width="2" />
+<text x="1235" y="832" font-size="23" fill="#718582" font-weight="400" text-anchor="middle">1</text>
+<text x="1273" y="832" font-size="24" fill="#718582" font-weight="400" text-anchor="start">位</text>
+<text x="55" y="872" font-size="20" fill="#718582" font-weight="400" text-anchor="start">数学之美 · 原创图解 · 有限概率模型</text>
+</g></svg>

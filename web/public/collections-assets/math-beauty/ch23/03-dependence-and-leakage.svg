@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc"><title id="title">行数变多，证据未必变新</title><desc id="desc">三种评估陷阱：一条告警复制多次不能增加独立样本；同一次故障的相邻窗口分进开发集与测试集可能泄漏共同来源信息；在同一测试集反复选阈值，不能把赢家的分数当作独立证据。</desc>
+<rect width="1400" height="900" fill="#fffdf7"/>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6f7e79"/></marker></defs>
+<text x="55" y="50" font-family="Noto Sans CJK SC, sans-serif" font-size="21" font-weight="500" fill="#127965" text-anchor="start">数学之美  /  23  可信的评估</text>
+<text x="55" y="111" font-family="Noto Sans CJK SC, sans-serif" font-size="40" font-weight="700" fill="#233a3b" text-anchor="start">行数变多，证据未必变新</text>
+<text x="55" y="164" font-family="Noto Sans CJK SC, sans-serif" font-size="25" font-weight="400" fill="#233a3b" text-anchor="start">相关性与信息泄漏，要沿着记录的来源检查</text>
+<rect x="60" y="210" width="1280" height="174" rx="14" fill="#edf1f1" stroke="none" stroke-width="1"/>
+<text x="86" y="253" font-family="Noto Sans CJK SC, sans-serif" font-size="27" font-weight="700" fill="#233a3b" text-anchor="start">重复通知</text>
+<text x="86" y="296" font-family="Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#6f7e79" text-anchor="start">同一结果复制</text>
+<rect x="340" y="241" width="128" height="91" rx="14" fill="#e5f2eb" stroke="none" stroke-width="1"/>
+<text x="404" y="278" font-family="Noto Sans CJK SC, sans-serif" font-size="25" font-weight="700" fill="#127965" text-anchor="middle">告警 A</text>
+<text x="404" y="310" font-family="Noto Sans CJK SC, sans-serif" font-size="19" font-weight="400" fill="#127965" text-anchor="middle">一份结果</text>
+<line x1="483" y1="287" x2="536" y2="287" stroke="#6f7e79" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<rect x="560" y="248" width="91" height="77" rx="7" fill="#ffffff" stroke="#d4dfd8" stroke-width="2"/>
+<text x="605" y="296" font-family="Noto Sans CJK SC, sans-serif" font-size="31" font-weight="700" fill="#127965" text-anchor="middle">A</text>
+<rect x="665" y="248" width="91" height="77" rx="7" fill="#ffffff" stroke="#d4dfd8" stroke-width="2"/>
+<text x="710" y="296" font-family="Noto Sans CJK SC, sans-serif" font-size="31" font-weight="700" fill="#127965" text-anchor="middle">A</text>
+<rect x="770" y="248" width="91" height="77" rx="7" fill="#ffffff" stroke="#d4dfd8" stroke-width="2"/>
+<text x="815" y="296" font-family="Noto Sans CJK SC, sans-serif" font-size="31" font-weight="700" fill="#127965" text-anchor="middle">A</text>
+<rect x="875" y="248" width="91" height="77" rx="7" fill="#ffffff" stroke="#d4dfd8" stroke-width="2"/>
+<text x="920" y="296" font-family="Noto Sans CJK SC, sans-serif" font-size="31" font-weight="700" fill="#127965" text-anchor="middle">A</text>
+<text x="1020" y="271" font-family="Noto Sans CJK SC, sans-serif" font-size="28" font-weight="700" fill="#bc5d25" text-anchor="start">4行 ≠ 4次</text>
+<text x="1020" y="312" font-family="Noto Sans CJK SC, sans-serif" font-size="28" font-weight="700" fill="#bc5d25" text-anchor="start">独立核查</text>
+<rect x="60" y="410" width="1280" height="189" rx="14" fill="#ffffff" stroke="#d4dfd8" stroke-width="2"/>
+<text x="86" y="452" font-family="Noto Sans CJK SC, sans-serif" font-size="25" font-weight="700" fill="#233a3b" text-anchor="start">相邻窗口跨集合</text>
+<text x="86" y="496" font-family="Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#6f7e79" text-anchor="start">同一次持续故障</text>
+<rect x="340" y="443" width="177" height="100" rx="14" fill="#e5f2eb" stroke="none" stroke-width="1"/>
+<text x="428" y="481" font-family="Noto Sans CJK SC, sans-serif" font-size="25" font-weight="500" fill="#233a3b" text-anchor="middle">窗口1</text>
+<text x="428" y="520" font-family="Noto Sans CJK SC, sans-serif" font-size="25" font-weight="700" fill="#127965" text-anchor="middle">开发</text>
+<rect x="542" y="443" width="177" height="100" rx="14" fill="#f7e8d9" stroke="none" stroke-width="1"/>
+<text x="630" y="481" font-family="Noto Sans CJK SC, sans-serif" font-size="25" font-weight="500" fill="#233a3b" text-anchor="middle">窗口2</text>
+<text x="630" y="520" font-family="Noto Sans CJK SC, sans-serif" font-size="25" font-weight="700" fill="#bc5d25" text-anchor="middle">测试</text>
+<rect x="744" y="443" width="177" height="100" rx="14" fill="#e5f2eb" stroke="none" stroke-width="1"/>
+<text x="832" y="481" font-family="Noto Sans CJK SC, sans-serif" font-size="25" font-weight="500" fill="#233a3b" text-anchor="middle">窗口3</text>
+<text x="832" y="520" font-family="Noto Sans CJK SC, sans-serif" font-size="25" font-weight="700" fill="#127965" text-anchor="middle">开发</text>
+<line x1="346" y1="563" x2="912" y2="563" stroke="#127965" stroke-width="3" stroke-linecap="round"/>
+<line x1="346" y1="553" x2="346" y2="563" stroke="#127965" stroke-width="3" stroke-linecap="round"/>
+<line x1="912" y1="553" x2="912" y2="563" stroke="#127965" stroke-width="3" stroke-linecap="round"/>
+<text x="1020" y="458" font-family="Noto Sans CJK SC, sans-serif" font-size="25" font-weight="700" fill="#bc5d25" text-anchor="start">标签与输入</text>
+<text x="1020" y="499" font-family="Noto Sans CJK SC, sans-serif" font-size="25" font-weight="700" fill="#bc5d25" text-anchor="start">可能共享来源</text>
+<text x="1020" y="548" font-family="Noto Sans CJK SC, sans-serif" font-size="20" font-weight="400" fill="#6f7e79" text-anchor="start">先识别事故与设备组</text>
+<rect x="60" y="625" width="1280" height="177" rx="14" fill="#edf1f1" stroke="none" stroke-width="1"/>
+<text x="86" y="670" font-family="Noto Sans CJK SC, sans-serif" font-size="27" font-weight="700" fill="#233a3b" text-anchor="start">反复选择</text>
+<text x="86" y="712" font-family="Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#6f7e79" text-anchor="start">测试也参与调参</text>
+<rect x="340" y="652" width="185" height="112" rx="14" fill="#e8f0f6" stroke="none" stroke-width="1"/>
+<text x="432" y="693" font-family="Noto Sans CJK SC, sans-serif" font-size="23" font-weight="600" fill="#233a3b" text-anchor="middle">看测试结果</text>
+<text x="432" y="734" font-family="Noto Sans CJK SC, sans-serif" font-size="21" font-weight="400" fill="#6f7e79" text-anchor="middle">原测试集</text>
+<line x1="528" y1="710" x2="545" y2="710" stroke="#6f7e79" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<rect x="551" y="652" width="185" height="112" rx="14" fill="#f7e8d9" stroke="none" stroke-width="1"/>
+<text x="643" y="693" font-family="Noto Sans CJK SC, sans-serif" font-size="23" font-weight="600" fill="#233a3b" text-anchor="middle">重选阈值</text>
+<text x="643" y="734" font-family="Noto Sans CJK SC, sans-serif" font-size="21" font-weight="400" fill="#6f7e79" text-anchor="middle">挑更高的分</text>
+<line x1="739" y1="710" x2="756" y2="710" stroke="#6f7e79" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<rect x="762" y="652" width="185" height="112" rx="14" fill="#f7e8d9" stroke="none" stroke-width="1"/>
+<text x="854" y="693" font-family="Noto Sans CJK SC, sans-serif" font-size="23" font-weight="600" fill="#233a3b" text-anchor="middle">再报同一分数</text>
+<text x="854" y="734" font-family="Noto Sans CJK SC, sans-serif" font-size="21" font-weight="400" fill="#6f7e79" text-anchor="middle">已参与选择</text>
+<text x="1030" y="680" font-family="Noto Sans CJK SC, sans-serif" font-size="24" font-weight="700" fill="#127965" text-anchor="start">冻结选定版本</text>
+<text x="1030" y="722" font-family="Noto Sans CJK SC, sans-serif" font-size="24" font-weight="700" fill="#127965" text-anchor="start">另留新数据验证</text>
+<text x="65" y="860" font-family="Noto Sans CJK SC, sans-serif" font-size="24" font-weight="400" fill="#6f7e79" text-anchor="start">按组或时间段隔离有助于减少明显问题，但仍需检验独立性和代表性</text>
+</svg>

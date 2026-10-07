@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="660" viewBox="0 0 1200 660" role="img" aria-labelledby="title desc">
+<title id="title">先检查可行，再比较好坏</title><desc id="desc">候选路线P和Q先检查连接可通行且不使用禁用楼梯。P两个条件都真，保留。Q连接可通行为真，但不使用禁用楼梯为假，因此排除。可行集合只有P。</desc>
+<rect width="1200" height="660" fill="#FAFBFC"/>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#8295A3"/></marker></defs>
+<g font-family="Noto Sans CJK SC, PingFang SC, Microsoft YaHei, sans-serif">
+<text x="52" y="58" font-size="32" fill="#18334A" font-weight="700" text-anchor="start">先检查可行，再比较好坏</text>
+<text x="52" y="100" font-size="23" fill="#536777" font-weight="400" text-anchor="start">本情形：C站换乘只有禁用楼梯；P沿途符合要求</text>
+<text x="145" y="169" font-size="23" fill="#536777" font-weight="500" text-anchor="middle">候选路线</text>
+<text x="440" y="169" font-size="23" fill="#536777" font-weight="500" text-anchor="middle">L(r)：连接可通行</text>
+<text x="748" y="169" font-size="23" fill="#536777" font-weight="500" text-anchor="middle">¬B(r)：不走禁用楼梯</text>
+<text x="1050" y="169" font-size="23" fill="#536777" font-weight="500" text-anchor="middle">筛选结果</text>
+<rect x="65" y="210" width="170" height="107" rx="12" fill="#EDF0F3" stroke="none" stroke-width="2"/>
+<text x="150" y="255" font-size="30" fill="#17659E" font-weight="700" text-anchor="middle">P</text>
+<text x="150" y="289" font-size="17" fill="#536777" font-weight="400" text-anchor="middle">S → A → T</text>
+<rect x="340" y="210" width="210" height="107" rx="12" fill="#E8F3EE" stroke="none" stroke-width="2"/>
+<rect x="645" y="210" width="210" height="107" rx="12" fill="#E8F3EE" stroke="none" stroke-width="2"/>
+<text x="445" y="275" font-size="32" fill="#247C68" font-weight="700" text-anchor="middle">真</text>
+<text x="750" y="275" font-size="32" fill="#247C68" font-weight="700" text-anchor="middle">真</text>
+<rect x="955" y="210" width="190" height="107" rx="12" fill="#E4F0F8" stroke="none" stroke-width="2"/>
+<text x="1050" y="275" font-size="29" fill="#17659E" font-weight="700" text-anchor="middle">保留P</text>
+<line x1="245" y1="264" x2="325" y2="264" stroke="#8295A3" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="560" y1="264" x2="630" y2="264" stroke="#8295A3" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="865" y1="264" x2="940" y2="264" stroke="#8295A3" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="65" y="367" width="170" height="107" rx="12" fill="#EDF0F3" stroke="none" stroke-width="2"/>
+<text x="150" y="412" font-size="30" fill="#247C68" font-weight="700" text-anchor="middle">Q</text>
+<text x="150" y="446" font-size="17" fill="#536777" font-weight="400" text-anchor="middle">S → B → C → T</text>
+<rect x="340" y="367" width="210" height="107" rx="12" fill="#E8F3EE" stroke="none" stroke-width="2"/>
+<rect x="645" y="367" width="210" height="107" rx="12" fill="#F9E8E6" stroke="none" stroke-width="2"/>
+<text x="445" y="432" font-size="32" fill="#247C68" font-weight="700" text-anchor="middle">真</text>
+<text x="750" y="432" font-size="32" fill="#AD4D46" font-weight="700" text-anchor="middle">假</text>
+<rect x="955" y="367" width="190" height="107" rx="12" fill="#F9E8E6" stroke="none" stroke-width="2"/>
+<text x="1050" y="432" font-size="29" fill="#AD4D46" font-weight="700" text-anchor="middle">排除Q</text>
+<line x1="245" y1="421" x2="325" y2="421" stroke="#8295A3" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="560" y1="421" x2="630" y2="421" stroke="#8295A3" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="865" y1="421" x2="940" y2="421" stroke="#8295A3" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="65" y1="515" x2="1145" y2="515" stroke="#DCE3E8" stroke-width="2"/>
+<text x="65" y="563" font-size="27" fill="#18334A" font-weight="600" text-anchor="start">可行条件：L(r) ∧ ¬B(r)</text>
+<text x="690" y="563" font-size="29" fill="#17659E" font-weight="700" text-anchor="start">R = {P，Q}   →   F = {P}</text>
+<text x="65" y="615" font-size="23" fill="#536777" font-weight="400" text-anchor="start">Q的7分钟不能抵消通行限制；若P也不通，答案应是“无可行路线”</text>
+</g>
+</svg>

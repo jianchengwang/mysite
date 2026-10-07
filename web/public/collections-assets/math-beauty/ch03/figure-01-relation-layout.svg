@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="620" viewBox="0 0 1320 620" role="img" aria-labelledby="title desc"><title id="title">一份关系，两种画法</title><desc id="desc">关系为P到G、P到F、G到F、F到S。两种布局保留全部四个节点和四条有向边。</desc><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,5 L0,10 Z" fill="#087F83"/></marker><marker id="orangeArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,5 L0,10 Z" fill="#CD6A22"/></marker></defs><rect width="1320" height="620" fill="#F7F9FB"/><g font-family="Noto Sans CJK SC, sans-serif">
+<text x="48" y="57" font-size="31" fill="#192C3C" font-weight="700" text-anchor="start">一份关系，两种画法</text>
+<text x="48" y="97" font-size="21" fill="#526779" font-weight="400" text-anchor="start">P 页面 · G 推荐 · F 特征 · S 存储      箭头约定：使用者 → 被使用者</text>
+<rect x="48" y="133" width="290" height="386" rx="18" fill="white" stroke="#D9E2E8"/>
+<rect x="370" y="133" width="420" height="386" rx="18" fill="white" stroke="#D9E2E8"/>
+<rect x="822" y="133" width="450" height="386" rx="18" fill="white" stroke="#D9E2E8"/>
+<text x="75" y="184" font-size="24" fill="#192C3C" font-weight="600" text-anchor="start">有序对集合</text>
+<text x="193" y="255" font-size="28" fill="#087F83" font-weight="500" text-anchor="middle">(P, G)</text>
+<text x="193" y="318" font-size="28" fill="#087F83" font-weight="500" text-anchor="middle">(P, F)</text>
+<text x="193" y="381" font-size="28" fill="#087F83" font-weight="500" text-anchor="middle">(G, F)</text>
+<text x="193" y="444" font-size="28" fill="#087F83" font-weight="500" text-anchor="middle">(F, S)</text>
+<text x="397" y="184" font-size="24" fill="#192C3C" font-weight="600" text-anchor="start">画法一</text>
+<path d="M462.0,264.0 L635.0,264.0" stroke="#087F83" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<path d="M452.57136708331115,284.499928263863 L534.174676049409,379.7037887243105" stroke="#087F83" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<path d="M650.1332337160305,285.0834578549618 L574.9902415217416,379.01219809782305" stroke="#087F83" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<path d="M582.0,404.0 L696.0,404.0" stroke="#087F83" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<circle cx="435" cy="264" r="27" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="435" y="272" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">P</text>
+<circle cx="667" cy="264" r="27" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="667" y="272" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">G</text>
+<circle cx="555" cy="404" r="27" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="555" y="412" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">F</text>
+<circle cx="728" cy="404" r="27" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="728" y="412" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">S</text>
+<text x="849" y="184" font-size="24" fill="#192C3C" font-weight="600" text-anchor="start">画法二</text>
+<path d="M935.0,264.0 L1153.0,264.0" stroke="#087F83" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<path d="M931.4893864840584,277.3134789819392 L1157.160727130005,405.2210619473313" stroke="#087F83" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<path d="M1185.0,291.0 L1185.0,389.0" stroke="#087F83" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<path d="M1158.0,421.0 L940.0,421.0" stroke="#087F83" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<circle cx="908" cy="264" r="27" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="908" y="272" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">P</text>
+<circle cx="1185" cy="264" r="27" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="1185" y="272" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">G</text>
+<circle cx="1185" cy="421" r="27" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="1185" y="429" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">F</text>
+<circle cx="908" cy="421" r="27" fill="#E1F3F1" stroke="#087F83" stroke-width="2"/>
+<text x="908" y="429" font-size="24" fill="#087F83" font-weight="600" text-anchor="middle">S</text>
+<text x="48" y="568" font-size="21" fill="#526779" font-weight="400" text-anchor="start">检查方式：逐条核对边的起点与终点。位置、线长和弯曲程度不改变这里的关系。</text>
+</g></svg>

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="790" viewBox="0 0 1200 790" role="img" aria-labelledby="title desc">
+<title id="title">任意竞争路径都要先越过边界</title><desc id="desc">确认u之前，取任意从S到u的路径P。x是路径上首个未确认节点y的前一站。x的距离正确并且已松弛x到y。选最小保证d(u)不大于d(y)，非负余段保证P到y代价不大于P总代价。</desc>
+<rect width="1200" height="790" fill="#FAFBFC"/>
+<defs><marker id="arrow-blue" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#17659E"/></marker><marker id="arrow-gold" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#AD6A12"/></marker><marker id="arrow-red" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#B13F39"/></marker><marker id="arrow-muted" viewBox="0 0 10 10" markerWidth="9" markerHeight="9" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#536777"/></marker></defs>
+<g font-family="Noto Sans CJK SC, PingFang SC, Microsoft YaHei, sans-serif">
+<text x="52" y="57" font-size="32" fill="#18334A" font-weight="700" text-anchor="start">任意竞争路径，都要先越过这条边界</text>
+<text x="52" y="99" font-size="23" fill="#536777" font-weight="400" text-anchor="start">确认u之前：取任意一条从S到u的路径P，找第一个未确认节点y</text>
+<rect x="54" y="147" width="392" height="232" rx="18" fill="#E4F0F8" stroke="none" stroke-width="2"/>
+<text x="80" y="189" font-size="25" fill="#17659E" font-weight="600" text-anchor="start">已确认集合K</text>
+<text x="497" y="189" font-size="25" fill="#536777" font-weight="600" text-anchor="start">尚未确认</text>
+<line x1="466" y1="143" x2="466" y2="384" stroke="#536777" stroke-width="2" stroke-dasharray="7 7"/>
+<line x1="142" y1="279" x2="315" y2="279" stroke="#17659E" stroke-width="4" marker-end="url(#arrow-blue)" stroke-dasharray="7 6"/>
+<line x1="382" y1="279" x2="566" y2="279" stroke="#17659E" stroke-width="5" marker-end="url(#arrow-blue)"/>
+<line x1="634" y1="279" x2="733" y2="279" stroke="#AD6A12" stroke-width="4" marker-end="url(#arrow-gold)"/>
+<line x1="756" y1="279" x2="949" y2="279" stroke="#AD6A12" stroke-width="4" marker-end="url(#arrow-gold)" stroke-dasharray="7 6"/>
+<text x="745" y="288" font-size="24" fill="#AD6A12" font-weight="400" text-anchor="middle">…</text>
+<circle cx="109" cy="279" r="31" fill="#E4F0F8" stroke="#17659E" stroke-width="3"/>
+<text x="109" y="289" font-size="30" fill="#17659E" font-weight="600" text-anchor="middle">S</text>
+<circle cx="349" cy="279" r="31" fill="#E4F0F8" stroke="#17659E" stroke-width="3"/>
+<text x="349" y="289" font-size="30" fill="#17659E" font-weight="600" text-anchor="middle">x</text>
+<circle cx="600" cy="279" r="31" fill="#FAFBFC" stroke="#17659E" stroke-width="3"/>
+<text x="600" y="289" font-size="30" fill="#17659E" font-weight="600" text-anchor="middle">y</text>
+<circle cx="991" cy="279" r="31" fill="#FFF2D9" stroke="#AD6A12" stroke-width="3"/>
+<text x="991" y="289" font-size="30" fill="#AD6A12" font-weight="600" text-anchor="middle">u</text>
+<text x="347" y="344" font-size="22" fill="#17659E" font-weight="400" text-anchor="middle">d(x)已正确</text>
+<text x="600" y="344" font-size="21" fill="#17659E" font-weight="400" text-anchor="middle">P上首个未确认节点</text>
+<text x="991" y="344" font-size="21" fill="#AD6A12" font-weight="400" text-anchor="middle">本轮选中的最小值</text>
+<text x="790" y="235" font-size="22" fill="#AD6A12" font-weight="400" text-anchor="middle">余段边权都≥0</text>
+<text x="81" y="430" font-size="26" fill="#18334A" font-weight="600" text-anchor="start">每个不等号，都有一个具体理由</text>
+<text x="83" y="493" font-size="27" fill="#17659E" font-weight="600" text-anchor="start">d(u) ≤ d(y)</text>
+<text x="661" y="493" font-size="24" fill="#536777" font-weight="400" text-anchor="start">u在未确认节点中取最小</text>
+<text x="83" y="565" font-size="27" fill="#17659E" font-weight="600" text-anchor="start">d(y) ≤ P走到y的代价</text>
+<text x="661" y="565" font-size="24" fill="#536777" font-weight="400" text-anchor="start">x已正确，而且x→y已被松弛</text>
+<text x="83" y="637" font-size="27" fill="#AD6A12" font-weight="600" text-anchor="start">P走到y的代价 ≤ P的总代价</text>
+<text x="661" y="637" font-size="24" fill="#536777" font-weight="400" text-anchor="start">余段非负，累计代价不会下降</text>
+<line x1="80" y1="671" x2="1124" y2="671" stroke="#D5DEE5" stroke-width="2"/>
+<text x="600" y="722" font-size="29" fill="#18334A" font-weight="600" text-anchor="middle">所以：d(u) ≤ 每一条到u的路径的代价</text>
+<text x="600" y="761" font-size="23" fill="#536777" font-weight="400" text-anchor="middle">d(u)本身也能达到，因此可以安全确认</text>
+</g>
+</svg>
