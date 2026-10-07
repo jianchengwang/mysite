@@ -1,167 +1,39 @@
 <template>
-  <div class="flex flex-col lg:flex-row gap-8 max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <article class="flex-1 min-w-0 max-w-4xl w-full sketch-card bg-white relative">
-      <div class="p-4 md:p-8">
-        <div class="pb-8 mb-8 border-b-2 border-zinc-900 text-center relative">
-          <h1 class="text-4xl md:text-5xl font-bold text-zinc-900 mb-4 font-hand transform -rotate-1">{{ (doc as any).title }}</h1>
-          <button class="markdown-theme-btn sketch-border-3 w-10 h-10 flex items-center justify-center hover:bg-zinc-100" @click="showThemePanel = !showThemePanel" aria-label="Markdown theme settings">
-            <span class="icon-dots leading-none -mt-2 text-zinc-800">...</span>
-          </button>
-          <div v-if="showThemePanel" class="markdown-theme-panel sketch-border-2">
-            <div v-for="theme in themes" :key="theme.value" @click="setTheme(theme.value)" :class="{active: theme.value === currentTheme}">
-              {{ theme.label }}
-            </div>
-          </div>
-        </div>
-        <div :class="['prose max-w-none', currentTheme, 'font-sans text-xl leading-relaxed']">
-          <ContentRenderer :value="doc" />
-        </div>
-        <div class="mt-12 flex flex-wrap gap-6 justify-center">
-          <a v-if="(doc as any).link" :href="(doc as any).link" target="_blank" rel="noopener noreferrer"
-            class="sketch-button bg-yellow-50 flex items-center">
-            Visit Website
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-              <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-            </svg>
-          </a>
-          <NuxtLink v-if="!hideBack && backTo && backLabel" :to="backTo"
-            class="sketch-button bg-blue-50">
-            ← {{ backLabel }}
-          </NuxtLink>
-        </div>
-      </div>
+  <div :class="['article-frame', { 'novel-reading-frame': novel, 'reader-preferences-frame': unifiedReader }, unifiedReader ? 'reader-' + theme : '']" :style="unifiedReader ? { '--reading-size': fontSize + 'px' } : undefined">
+    <article v-if="doc" class="reading-article">
+      <nav class="article-breadcrumb" :aria-label="novel ? '阅读路径' : 'Breadcrumb'"><NuxtLink to="/">{{ novel ? '首页' : 'Home' }}</NuxtLink><template v-if="collection !== 'about' && collection !== 'links'"><span aria-hidden="true">/</span><NuxtLink :to="'/' + collection">{{ novel ? '故事' : displayTitle(collection) }}</NuxtLink><template v-if="seriesTitle && seriesPath"><span aria-hidden="true">/</span><NuxtLink :to="seriesPath">{{ seriesTitle }}</NuxtLink></template></template></nav>
+      <header class="article-heading"><p class="eyebrow">{{ seriesTitle || collection }}<template v-if="contentDate(doc)"> · {{ contentDate(doc) }}</template></p><h1>{{ heading || displayTitle((doc as any).title) }}</h1>
+        <ReaderSettings v-if="unifiedReader" :fontSize="fontSize" :theme="theme" @resize="resize" @theme="setTheme" />
+        <details v-else class="reading-settings"><summary>Reading style</summary><div><button v-for="style in styles" :key="style.value" :aria-pressed="currentStyle === style.value" @click="currentStyle = style.value">{{ style.label }}</button></div></details>
+      </header>
+      <details v-if="tocLinks.length" class="mobile-toc"><summary>{{ unifiedReader ? '本章小节' : 'On this page' }}</summary><TableOfContents :links="tocLinks" /></details>
+      <slot name="before-content" /><div :class="['article-body prose', unifiedReader ? (novel ? '' : 'prose-github') : currentStyle]"><ContentRenderer :value="renderedDoc" /></div>
+      <slot name="after-content" /><div class="article-end"><a v-if="(doc as any).link" :href="(doc as any).link" target="_blank" rel="noopener noreferrer" class="primary-link">Visit website ↗</a><NuxtLink v-if="!hideBack && backTo && backLabel" :to="backTo" class="text-link">← {{ backLabel }}</NuxtLink></div>
     </article>
-    <aside class="lg:w-72 shrink-0">
-      <TableOfContents class="TableOfContents sketch-border-2" :links="(doc as any).body?.toc?.links" />
-    </aside>
-    <button
-      v-if="showTopBtn"
-      class="back-to-top-btn sketch-border-3 sketch-shadow-sm"
-      @click="scrollToTop"
-      aria-label="Back to top"
-    >
-      ↑
-    </button>
+    <aside v-if="tocLinks.length" class="article-toc"><TableOfContents :links="tocLinks" /></aside>
+    <button v-if="showTopBtn" class="back-to-top icon-button" :aria-label="novel ? '回到顶部' : 'Back to top'" @click="scrollToTop">↑</button>
   </div>
 </template>
-
-<style scoped>
-.TableOfContents {
-  position: sticky;
-  top: 100px;
-  align-self: flex-start;
-  max-height: calc(100vh - 120px);
-  overflow-y: auto;
-  z-index: 10;
-  background: #fff;
-  padding: 20px 16px;
-  min-width: 240px;
-}
-
-.back-to-top-btn {
-  position: fixed;
-  right: 32px;
-  bottom: 48px;
-  z-index: 50;
-  background: #fff;
-  color: #18181b;
-  width: 50px;
-  height: 50px;
-  font-size: 1.8em;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.back-to-top-btn:hover {
-  transform: translateY(-4px);
-  @apply bg-zinc-50;
-}
-
-.markdown-theme-btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: white;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.icon-dots {
-  font-family: inherit;
-  font-size: 1.5em;
-  letter-spacing: 0.1em;
-}
-
-.markdown-theme-panel {
-  position: absolute;
-  top: 56px;
-  right: 0;
-  background: #fff;
-  min-width: 140px;
-  z-index: 100;
-  padding: 8px 0;
-  box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.1);
-}
-
-.markdown-theme-panel > div {
-  padding: 8px 20px;
-  cursor: pointer;
-  font-size: 1.1em;
-  font-family: 'Patrick Hand', sans-serif;
-  color: #18181b;
-  transition: all 0.2s;
-}
-
-.markdown-theme-panel > div.active,
-.markdown-theme-panel > div:hover {
-  background: #f4f4f5;
-  @apply font-bold;
-}
-</style>
-
 <script setup lang="ts">
-import { defineProps, ref, onMounted, onUnmounted } from 'vue'
-const props = defineProps({
-  collection: { type: String, required: true },
-  backTo: { type: String, required: false },
-  backLabel: { type: String, required: false },
-  hideBack: { type: Boolean, default: false }
-})
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { contentDate, displayTitle } from '~/utils/contentPresentation'
+import { novelReadingDocument } from '~/utils/novelParagraphs.mjs'
+const props = defineProps<{ collection: string; backTo?: string; backLabel?: string; hideBack?: boolean; heading?: string; seriesTitle?: string; seriesPath?: string; novel?: boolean }>()
+const unifiedReader = computed(() => props.collection === 'column' || props.collection === 'store')
+const { fontSize, theme, resize, setTheme } = useReaderPreferences()
 const route = useRoute()
-const { data: doc } = await useAsyncData(route.path, () => {
-  return (queryCollection(props.collection as any) as any).path(route.path).first()
-})
-definePageMeta({
-  layout: 'article'
-})
-// 回到顶部按钮逻辑
+const articlePath = route.path.replace(/\/+$/, '') || '/'
+const { data: doc } = await useAsyncData('article:' + props.collection + ':' + articlePath, () => (queryCollection(props.collection as any) as any).path(articlePath).first())
+if (!doc.value) throw createError({ statusCode: 404, statusMessage: 'Article not found' })
+const tocLinks = computed(() => (doc.value as any)?.body?.toc?.links || [])
+const renderedDoc = computed(() => props.novel ? novelReadingDocument(doc.value) : doc.value)
+const styles = [{ value: 'prose-github', label: 'GitHub' }, { value: 'prose-notion', label: 'Notion' }, { value: 'prose-jianshu', label: 'Jianshu' }]
+const currentStyle = ref('prose-github')
 const showTopBtn = ref(false)
-const scrollToTop = () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-const handleScroll = () => {
-  showTopBtn.value = window.scrollY > 300
-}
+const handleScroll = () => { showTopBtn.value = window.scrollY > 600 }
+const scrollToTop = () => { window.scrollTo({ top: 0, behavior: 'smooth' }) }
 onMounted(() => {
-  window.addEventListener('scroll', handleScroll)
+  window.addEventListener('scroll', handleScroll, { passive: true })
 })
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
-})
-// Markdown 主题切换逻辑
-const themes = [
-  { value: 'prose-github', label: 'GitHub' },
-  { value: 'prose-notion', label: 'Notion' },
-  { value: 'prose-jianshu', label: 'Jianshu' }
-]
-const currentTheme = ref('prose-github')
-const showThemePanel = ref(false)
-function setTheme(theme) {
-  currentTheme.value = theme
-  showThemePanel.value = false
-}
-</script> 
+onUnmounted(() => { window.removeEventListener('scroll', handleScroll) })
+</script>

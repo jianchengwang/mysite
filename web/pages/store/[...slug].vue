@@ -1,7 +1,6 @@
-<template>
-  <CollectionArticle collection="store" backTo="/store" backLabel="Back to Store" />
-</template>
-
+<template><SeriesPage :key="route.path" /></template>
 <script setup lang="ts">
-import CollectionArticle from '~/components/CollectionArticle.vue'
+const route = useRoute()
+definePageMeta({ layout: 'series' })
 </script>
+

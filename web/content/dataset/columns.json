@@ -2,8 +2,8 @@
   "columns": [
     {
       "id": "cloudnative",
-      "title": "Cloud Native",
-      "description": "Cloud native technologies and practices, including Docker, Kubernetes, and microservices architecture.",
+      "title": "云原生",
+      "description": "从一个应用怎样运行开始，逐步理解容器、Kubernetes、网络、存储、交付与观测，把零散工具连成一套可以解释和排查的系统。",
       "path": "/column/cloudnative/1-setup"
     }
   ]

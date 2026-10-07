@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+node_modules
+.pnpm-store
+.output
+.nuxt
+.data
+.nitro
+.cache
+dist
+*.log
+.DS_Store

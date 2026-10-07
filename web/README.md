@@ -1,10 +1,10 @@
 # Personal Website
 
-A modern, minimalist personal website built with Nuxt 3, featuring a blog, documentation system, and column sections.
+A modern, minimalist personal website built with Nuxt 4, featuring a blog, documentation system, and column sections.
 
 ## Tech Stack
 
-- **Framework**: [Nuxt 3](https://nuxt.com/)
+- **Framework**: [Nuxt 4](https://nuxt.com/)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/)
 - **Content**: [Nuxt Content](https://content.nuxtjs.org/)
 - **Deployment**: Static Site Generation
@@ -13,7 +13,7 @@ A modern, minimalist personal website built with Nuxt 3, featuring a blog, docum
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
+- Node.js 25.x
 - pnpm (recommended) or npm
 
 ### Setup
@@ -42,7 +42,6 @@ The site will be available at `http://localhost:3000`
 web/
 ├── components/        # Vue components
 ├── content/          # Markdown and JSON content
-│   ├── store/         # Store pages
 │   ├── tech/         # Tech blog posts
 │   └── column/       # Column content and navigation
 ├── layouts/          # Page layouts
@@ -54,8 +53,7 @@ web/
 ### Content Management
 
 - **Tech**: Add markdown files to `content/tech/`
-- **Store**: Add markdown files to `content/store/`
-- **Columns**: Update `content/column/columns.json`
+- **Columns and stories**: Markdown in `content/column/` and `content/store/wenroudao-long/`; collection catalog in `content/dataset/collections.json`.
 
 ## Building and Deployment
 
@@ -128,3 +126,7 @@ NUXT_PUBLIC_SITE_URL=https://your-site.com
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Mac mini production deployment
+
+Run `../deploy/macmini/deploy.sh` from this repository to build isolated Docker images and switch the local production service after candidate verification. See [the deployment guide](../deploy/macmini/README.md). The current frontend contains Tech, Column, Store (温柔刀60 chapters), Links and About; English, Tools and Games are archived from this frontend. See [published-content source maintenance](../docs/public-content-source.md) for LLM36/73, the novel source paths and build verification.

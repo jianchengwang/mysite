@@ -1,0 +1,908 @@
+{
+  "collections": [
+    {
+      "id": "cloudnative",
+      "section": "column",
+      "title": "云原生",
+      "summary": "从一个应用怎样运行开始，逐步理解容器、Kubernetes、网络、存储、交付与观测，把零散工具连成一套可以解释和排查的系统。",
+      "published": true,
+      "groups": [
+        {
+          "id": "runtime",
+          "title": "先看应用怎样运行",
+          "entries": [
+            {
+              "slug": "1-setup",
+              "title": "从一次上线事故理解云原生",
+              "description": "从一个读书笔记程序怎样持续给人使用出发，逐步理解镜像、容器、多副本，以及 Kubernetes 为什么要持续检查运行状态。",
+              "order": 1,
+              "published": true
+            },
+            {
+              "slug": "2-container-base",
+              "title": "容器如何隔离进程",
+              "description": "从读书笔记服务的内存、文件、网络和停机故障出发，理解 Linux 容器的 namespaces、cgroups、rootfs 与运行边界。",
+              "order": 2,
+              "published": true
+            },
+            {
+              "slug": "3-docker",
+              "title": "从代码到可重复镜像",
+              "description": "理解 Dockerfile、构建上下文、层缓存与多阶段构建，建立能追溯、能测试、能维护的镜像交付过程。",
+              "order": 3,
+              "published": true
+            }
+          ]
+        },
+        {
+          "id": "orchestration",
+          "title": "再把多个实例组织起来",
+          "entries": [
+            {
+              "slug": "4-k8s/k8s-apiresources",
+              "title": "Kubernetes 如何让应用持续运行",
+              "description": "沿着一次 Deployment 提交理解 API、控制器、调度器与 kubelet，区分容器重启、Pod 替换和业务恢复。",
+              "order": 4,
+              "published": true
+            },
+            {
+              "slug": "4-k8s/k8s-network",
+              "title": "从域名到 Pod 的一次请求",
+              "description": "沿着读书笔记 API 的请求路径，理解 Service、EndpointSlice、DNS、入口路由与就绪状态，并用分层证据定位网络故障。",
+              "order": 5,
+              "published": true
+            },
+            {
+              "slug": "4-k8s/k8s-configuration",
+              "title": "配置与数据为什么需要独立生命周期",
+              "description": "从配置更新、图片持久化和数据库升级出发，理解 ConfigMap、Secret、PV、PVC 与 StatefulSet 的责任边界。",
+              "order": 6,
+              "published": true
+            }
+          ]
+        },
+        {
+          "id": "delivery",
+          "title": "让变化能够安全发生",
+          "entries": [
+            {
+              "slug": "5-helm",
+              "title": "多套环境怎样共用一份配置",
+              "description": "用读书笔记 API 理解 Helm 与 Kustomize，分清共享配置、环境差异、版本和发布边界。",
+              "order": 7,
+              "published": true
+            },
+            {
+              "slug": "health-and-capacity",
+              "title": "健康检查与弹性为什么会适得其反",
+              "description": "用慢启动、连接池耗尽和突发流量三个场景，理解探针、资源声明、HPA 与故障域。",
+              "order": 8,
+              "published": true
+            },
+            {
+              "slug": "6-cicd",
+              "title": "一次发布怎样才算完成",
+              "description": "从镜像制品到滚动更新、优雅退出与数据库兼容，理解CI、CD和GitOps各自负责的事。",
+              "order": 9,
+              "published": true
+            }
+          ]
+        },
+        {
+          "id": "operations",
+          "title": "最后回到真实问题",
+          "entries": [
+            {
+              "slug": "7-monitor",
+              "title": "用证据排查一次慢请求",
+              "description": "从一次读取笔记变慢出发，串起指标、日志与追踪，理解分位数、采样、SLO和告警的边界。",
+              "order": 10,
+              "published": true
+            },
+            {
+              "slug": "4-k8s/k8s-namespace",
+              "title": "从最小权限建立安全边界",
+              "description": "沿着镜像、进程、集群身份、网络与凭据逐层缩小权限，理解每项保护能挡住什么以及挡不住什么。",
+              "order": 11,
+              "published": true
+            },
+            {
+              "slug": "architecture-tradeoffs",
+              "title": "微服务 网格与Serverless该在什么时候出现",
+              "description": "从一次摘要任务拆分出发，讨论服务边界、重试和幂等，再判断服务网格、Operator与Serverless的收益和代价。",
+              "order": 12,
+              "published": true
+            },
+            {
+              "slug": "debugging-capstone",
+              "title": "把一条故障链查到底",
+              "description": "用读书笔记服务的四个教学现场，串联镜像、Pod、网络、配置、容量与发布，练习提出假设和寻找证据。",
+              "order": 13,
+              "published": true
+            }
+          ]
+        }
+      ],
+      "catalogPath": "/column/cloudnative",
+      "cover": "/collections-assets/cloudnative/cloud-native-cover-landscape.png",
+      "expectedEntries": 13,
+      "plannedEntries": 13,
+      "expectedGroups": 4
+    },
+    {
+      "id": "llm-to-agent-learning",
+      "section": "column",
+      "title": "从LLM到Agent · 理论路线",
+      "summary": "从信息表示和学习出发，用可核算的例子与白板图逐步理解大模型、后训练、推理和Agent系统。",
+      "published": true,
+      "cover": null,
+      "expectedEntries": 36,
+      "plannedEntries": 36,
+      "expectedGroups": 1,
+      "groups": [
+        {
+          "id": "articles",
+          "title": "理论与机制",
+          "entries": [
+            {
+              "slug": "01",
+              "order": 1,
+              "title": "01｜AI地图：模型、训练方法、产品与系统各在哪一层",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "02",
+              "order": 2,
+              "title": "02｜文字怎样变成token：切分、词表与长度的代价",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "03",
+              "order": 3,
+              "title": "03｜向量和矩阵：信息如何进入可学习的计算",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "04",
+              "order": 4,
+              "title": "04｜预测为何是一组概率：从分数到损失",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "05",
+              "order": 5,
+              "title": "05｜什么才算学会：拟合、泛化与数据分布",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "06",
+              "order": 6,
+              "title": "06｜神经网络在算什么：加权、非线性和多层表示",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "07",
+              "order": 7,
+              "title": "07｜参数怎样更新：梯度、反向传播与训练资源",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "08",
+              "order": 8,
+              "title": "08｜Attention：当前位置怎样读取其他位置",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "09",
+              "order": 9,
+              "title": "09｜Transformer：把一层计算接成深网络",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "10",
+              "order": 10,
+              "title": "10｜预训练：为什么接着预测能学到语言与任务",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "11",
+              "order": 11,
+              "title": "11｜数据、参数与算力：规模为什么有用，也为什么有代价",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "12",
+              "order": 12,
+              "title": "12｜MoE：很多参数，为什么每次只用一部分",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "13",
+              "order": 13,
+              "title": "13｜SFT：怎样用示范把基础模型教成助手",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "14",
+              "order": 14,
+              "title": "14｜微调为什么不必重练整个模型：从SFT到LoRA",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "15",
+              "order": 15,
+              "title": "15｜RLHF与DPO：人说“这个更好”，模型怎样学",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "16",
+              "order": 16,
+              "title": "16｜推理强化学习：答案可验证时，奖励怎样设计",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "17",
+              "order": 17,
+              "title": "17｜蒸馏：小模型究竟从大模型那里学了什么",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "18",
+              "order": 18,
+              "title": "18｜量化与压缩：少用几位，保住什么、损失什么",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "19",
+              "order": 19,
+              "title": "19｜一段回答怎样产生：自回归、采样与停止",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "20",
+              "order": 20,
+              "title": "20｜上下文为什么贵：prefill、decode与KV缓存",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "21",
+              "order": 21,
+              "title": "21｜推理时计算：多想、多试、核验分别增加什么",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "22",
+              "order": 22,
+              "title": "22｜幻觉、校准与拒答：流畅为什么不够",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "23",
+              "order": 23,
+              "title": "23｜评测模型：一个分数能支持多大结论",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "24",
+              "order": 24,
+              "title": "24｜图像怎样进入模型：表示与跨模态对齐",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "25",
+              "order": 25,
+              "title": "25｜图像怎样生成：从噪声到图，而非给文字换皮",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "26",
+              "order": 26,
+              "title": "26｜声音和视频：时间进入表示以后",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "27",
+              "order": 27,
+              "title": "27｜上下文学习与结构化输出：参数不变，行为为什么能变",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "28",
+              "order": 28,
+              "title": "28｜RAG：从找资料到有证据的回答",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "29",
+              "order": 29,
+              "title": "29｜记忆：系统记住的，到底是哪一层",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "30",
+              "order": 30,
+              "title": "30｜工具调用：语言怎样触发真实计算和操作",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "31",
+              "order": 31,
+              "title": "31｜MCP：协议解决连接，不替你决定信任",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "32",
+              "order": 32,
+              "title": "32｜Agent与工作流：目标、状态、动作和停止",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "33",
+              "order": 33,
+              "title": "33｜计划、搜索与多Agent：多做几步为何也会更脆弱",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "34",
+              "order": 34,
+              "title": "34｜安全与对齐：外部文字何时变成危险指令",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "35",
+              "order": 35,
+              "title": "35｜评价整个系统：正确率、成本、延迟与失败恢复",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            },
+            {
+              "slug": "36",
+              "order": 36,
+              "title": "36｜怎样读懂一份新模型报告，做出有依据的选择",
+              "published": true,
+              "cover": null,
+              "bodyImageStatus": "present"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wenroudao-long",
+      "section": "store",
+      "title": "温柔刀",
+      "summary": "长篇小说，六卷六十章。",
+      "published": true,
+      "expectedEntries": 60,
+      "expectedGroups": 6,
+      "groups": [
+        {
+          "id": "volume-01",
+          "title": "卷一 棺中旧案",
+          "entries": [
+            {
+              "slug": "01",
+              "title": "第一章 空棺进城",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "02",
+              "title": "第二章 屏风后一刀",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "03",
+              "title": "第三章 死人欠账",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "04",
+              "title": "第四章 半张脸",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "05",
+              "title": "第五章 运盐的人",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "06",
+              "title": "第六章 笑着签押",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "07",
+              "title": "第七章 后门药包",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "08",
+              "title": "第八章 柳湾沉木",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "09",
+              "title": "第九章 两道封钉",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "10",
+              "title": "第十章 一张旧借据",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "11",
+              "title": "第十一章 该烧的纸",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "12",
+              "title": "第十二章 白玉下的名字",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "13",
+              "title": "第十三章 坟前不归人",
+              "description": "",
+              "published": true,
+              "cover": null
+            }
+          ]
+        },
+        {
+          "id": "volume-02",
+          "title": "卷二 白玉面具",
+          "entries": [
+            {
+              "slug": "14",
+              "title": "第十四章 旧粮仓",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "15",
+              "title": "第十五章 春日初逢",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "16",
+              "title": "第十六章 山里来的银",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "17",
+              "title": "第十七章 七十二寨",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "18",
+              "title": "第十八章 没有官印的箱",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "19",
+              "title": "第十九章 金家的姑娘",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "20",
+              "title": "第二十章 未送出的证人",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "21",
+              "title": "第二十一章 夜闯金府",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "22",
+              "title": "第二十二章 那一刀",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "23",
+              "title": "第二十三章 活着的债",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "24",
+              "title": "第二十四章 两个人的夜饭",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "25",
+              "title": "第二十五章 门里面的人",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "26",
+              "title": "第二十六章 空缺的卷宗",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "27",
+              "title": "第二十七章 师父的回信",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "28",
+              "title": "第二十八章 第二个自己",
+              "description": "",
+              "published": true,
+              "cover": null
+            }
+          ]
+        },
+        {
+          "id": "volume-03",
+          "title": "卷三 扬州血网",
+          "entries": [
+            {
+              "slug": "29",
+              "title": "第二十九章 盐价一夜",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "30",
+              "title": "第三十章 老狼先动手",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "31",
+              "title": "第三十一章 刀口横来",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "32",
+              "title": "第三十二章 不杀的人",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "33",
+              "title": "第三十三章 有人来认衣裳",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "34",
+              "title": "第三十四章 屋瓦下",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "35",
+              "title": "第三十五章 信送往北方",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "36",
+              "title": "第三十六章 他不许查的人",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "37",
+              "title": "第三十七章 府门之外",
+              "description": "",
+              "published": true,
+              "cover": null
+            }
+          ]
+        },
+        {
+          "id": "volume-04",
+          "title": "卷四 师门风雨",
+          "entries": [
+            {
+              "slug": "38",
+              "title": "第三十八章 入京旧路",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "39",
+              "title": "第三十九章 牢门三次响",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "40",
+              "title": "第四十章 送别恩师",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "41",
+              "title": "第四十一章 棺外新漆",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "42",
+              "title": "第四十二章 开棺",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "43",
+              "title": "第四十三章 师妹不肯回头",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "44",
+              "title": "第四十四章 葬礼账",
+              "description": "",
+              "published": true,
+              "cover": null
+            }
+          ]
+        },
+        {
+          "id": "volume-05",
+          "title": "卷五 黑袍换面",
+          "entries": [
+            {
+              "slug": "45",
+              "title": "第四十五章 春娘要价",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "46",
+              "title": "第四十六章 一杯没有喝的酒",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "47",
+              "title": "第四十七章 帮主归来",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "48",
+              "title": "第四十八章 盐栈空了",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "49",
+              "title": "第四十九章 被换掉的声音",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "50",
+              "title": "第五十章 十二日北归",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "51",
+              "title": "第五十一章 谁来领人",
+              "description": "",
+              "published": true,
+              "cover": null
+            }
+          ]
+        },
+        {
+          "id": "volume-06",
+          "title": "卷六 温柔终刀",
+          "entries": [
+            {
+              "slug": "52",
+              "title": "第五十二章 宫门未开",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "53",
+              "title": "第五十三章 活着的旧案",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "54",
+              "title": "第五十四章 两条路",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "55",
+              "title": "第五十五章 我知道你是谁",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "56",
+              "title": "第五十六章 无法收回",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "57",
+              "title": "第五十七章 女儿的刀",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "58",
+              "title": "第五十八章 血缘之外",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "59",
+              "title": "第五十九章 姓名册",
+              "description": "",
+              "published": true,
+              "cover": null
+            },
+            {
+              "slug": "60",
+              "title": "第六十章 天亮以前",
+              "description": "",
+              "published": true,
+              "cover": null
+            }
+          ]
+        }
+      ],
+      "cover": "/collections-assets/wenroudao/assets/cover.png"
+    }
+  ]
+}

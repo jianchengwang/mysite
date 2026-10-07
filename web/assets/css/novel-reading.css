@@ -1,0 +1,34 @@
+.novel-reader .novel-reading-frame {
+  display: block;
+  width: min(100%, 704px);
+  padding: 42px 32px 0;
+  border-radius: 10px;
+}
+
+.novel-reader .article-body.prose {
+  font-size: var(--reading-size, 18px);
+  line-height: 1.9;
+  color: var(--ink);
+}
+
+.novel-reader .article-body.prose .novel-paragraph {
+  margin: 0 0 .72em;
+  text-indent: 0;
+  line-height: 1.9;
+  white-space: normal;
+}
+
+.novel-reader .article-body.prose .novel-divider {
+  margin: 1.3em 0;
+  text-indent: 0;
+  text-align: center;
+  white-space: normal;
+}
+
+@media (max-width: 767px) {
+  .novel-reader .novel-reading-frame {
+    width: 100%;
+    padding: 28px 22px 0;
+    border-radius: 0;
+  }
+}

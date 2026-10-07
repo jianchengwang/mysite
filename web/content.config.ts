@@ -1,5 +1,4 @@
 import { defineCollection, defineContentConfig } from '@nuxt/content'
-import { isAbsolute } from 'path'
 import { z } from 'zod'
 
 export default defineContentConfig({
@@ -9,19 +8,15 @@ export default defineContentConfig({
       type: 'page'
     }),
     store: defineCollection({
-      source: 'store/*.md',
+      source: 'store/wenroudao-long/*.md',
       type: 'page'
     }),
     column: defineCollection({
       source: 'column/**',
       type: 'page'
     }),
-    english: defineCollection({
-      source: 'english/**',
-      type: 'page'
-    }),
-    tools: defineCollection({
-      source: 'tools/**',
+    cloudnativeIntro: defineCollection({
+      source: 'cloudnative-intro.md',
       type: 'page'
     }),
     about: defineCollection({
@@ -33,7 +28,7 @@ export default defineContentConfig({
       type: 'page'
     }),
     dataset: defineCollection({
-      source: 'dataset/*.json',
+      source: 'dataset/columns.json',
       type: 'data',
       schema: z.object({
         // Define your JSON structure here

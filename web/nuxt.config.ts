@@ -1,6 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  devtools: { enabled: true },
+  devtools: { enabled: false },
+  buildDir: '.nuxt',
 
   modules: [
     '@nuxtjs/tailwindcss',
@@ -12,7 +13,11 @@ export default defineNuxtConfig({
     '~/assets/css/prose.css',
     '~/assets/css/markdown-theme-github.css',
     '~/assets/css/markdown-theme-notion.css',
-    '~/assets/css/markdown-theme-jianshu.css'
+    '~/assets/css/markdown-theme-jianshu.css',
+    '~/assets/css/reading.css',
+    '~/assets/css/series.css',
+    '~/assets/css/reader-settings.css',
+    '~/assets/css/novel-reading.css'
   ],
 
   content: {
@@ -38,14 +43,8 @@ export default defineNuxtConfig({
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: 'My personal website and blog' }
       ],
-      script: [
-        { src: '/coi-serviceworker.js' }
-      ],
       link: [
-        {
-          rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Indie+Flower&family=Architects+Daughter&display=swap'
-        }
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }
       ]
     }
   },
@@ -53,21 +52,9 @@ export default defineNuxtConfig({
   // Add runtime config
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || ''
-    }
-  },
-
-  routeRules: {
-    '/**': {
-      headers: {
-        'Cross-Origin-Opener-Policy': 'same-origin',
-        'Cross-Origin-Embedder-Policy': 'require-corp'
-      }
-    },
-    '/engines/**': {
-      headers: {
-        'Cross-Origin-Resource-Policy': 'cross-origin'
-      }
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || '',
+      collectionPreview: false,
+      siteUrl: 'https://www.jianchengwang.info'
     }
   },
 
@@ -150,28 +137,16 @@ export default defineNuxtConfig({
   },
 
   vite: {
-    worker: {
-      format: 'es'
-    },
-    server: {
-      headers: {
-        'Cross-Origin-Opener-Policy': 'same-origin',
-        'Cross-Origin-Embedder-Policy': 'require-corp',
-      },
-    },
     build: {
       rollupOptions: {
         output: {
           manualChunks(id) {
             if (!id.includes('node_modules')) return
 
-            if (id.includes('highlight.js') || id.includes('marked')) {
+            if (id.includes('highlight.js')) {
               return 'vendor-markdown'
             }
 
-            if (id.includes('vuedraggable') || id.includes('sortablejs')) {
-              return 'vendor-dnd'
-            }
           }
         }
       }

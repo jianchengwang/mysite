@@ -1,30 +1,14 @@
 <template>
-  <footer class="bg-white border-t-2 border-zinc-900 mt-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-
-      <!-- Copyright -->
-      <div class="pt-8 text-center">
-        <div class="w-full flex justify-center text-zinc-900 mb-4 flex-wrap gap-2 items-center">
-          <a rel="noopener" href="https://beian.miit.gov.cn/" target="_blank" class="hover:underline">闽ICP备16000680号-2</a>
-          <span class="mx-2 hidden sm:inline">|</span>
-          <a class="text-tfh flex items-center"
-            href="https://www.upyun.com/?utm_source=lianmeng&amp;utm_medium=referral" target="blank" title="又拍云"
-            aria-label="Visit UpYun"
-          >
-            <img
-              id="upyun" height="30" src="http://public.mysite.jianchengwang.info/upyun-logo.png" alt="upyun"
-              style="height: 30px;" class="grayscale hover:grayscale-0 transition-all opacity-80 hover:opacity-100" />
-          </a>
-        </div>
-        <p class="text-zinc-600 font-medium font-hand text-xl">
-          © {{ new Date().getFullYear() }} JianchengWang. <span class="sketch-border-2 px-2 py-0.5 ml-1">Hand-sketched with love.</span>
-        </p>
+  <footer class="site-footer">
+    <div class="site-shell footer-inner">
+      <div><NuxtLink to="/" class="footer-brand">JianchengWang.</NuxtLink><p>To be a free coder and creator.</p></div>
+      <div class="footer-links">
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">闽ICP备16000680号-2</a>
+        <a href="https://www.upyun.com/?utm_source=lianmeng&amp;utm_medium=referral" target="_blank" rel="noopener noreferrer" aria-label="Visit UpYun" title="又拍云" class="upyun-attribution">
+          <svg width="20" height="16" viewBox="0 0 24 18" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M6 16a5 5 0 0 1-1-10 7 7 0 0 1 13-1 5.5 5.5 0 0 1 0 11Z" /></svg>又拍云 <span>UpYun</span>
+        </a>
+        <span>© {{ new Date().getFullYear() }} JianchengWang</span>
       </div>
-
-
     </div>
   </footer>
 </template>
-
-<style scoped>
-</style>

@@ -15,6 +15,8 @@ import yaml from 'highlight.js/lib/languages/yaml'
 
 hljs.registerLanguage('bash', bash)
 hljs.registerLanguage('sh', bash)
+hljs.registerLanguage('shell', bash)
+hljs.registerLanguage('shellscript', bash)
 hljs.registerLanguage('css', css)
 hljs.registerLanguage('go', go)
 hljs.registerLanguage('java', java)

@@ -1,0 +1,18 @@
+.reader-preferences-frame .article-body.prose {font-size:var(--reading-size,18px);color:var(--ink)}
+.reader-preferences-frame.reader-night {--paper:#19221d;--surface:#25322b;--ink:#e5ece6;--muted:#a8b7ac;--line:#405047;--accent:#b7d3be;background:var(--paper);color:var(--ink);border-radius:10px}
+.reader-preferences-frame.reader-night .article-body.prose h1,
+.reader-preferences-frame.reader-night .article-body.prose h2,
+.reader-preferences-frame.reader-night .article-body.prose h3,
+.reader-preferences-frame.reader-night .article-body.prose h4,
+.reader-preferences-frame.reader-night .article-body.prose strong {color:var(--ink)}
+.reader-preferences-frame.reader-night .article-body.prose {--tw-prose-body:var(--ink);--tw-prose-headings:var(--ink);--tw-prose-bold:var(--ink);--tw-prose-links:var(--accent);--tw-prose-counters:var(--muted);--tw-prose-bullets:var(--muted)}
+.reader-preferences-frame.reader-night .article-body.prose h1 a,
+.reader-preferences-frame.reader-night .article-body.prose h2 a,
+.reader-preferences-frame.reader-night .article-body.prose h3 a,
+.reader-preferences-frame.reader-night .article-body.prose h4 a {color:var(--ink)}
+.reader-preferences-frame.reader-night .article-body.prose a {color:var(--accent)}
+.reader-preferences-frame.reader-night .article-body.prose blockquote {background:var(--surface);color:var(--ink);border-color:var(--accent)}
+.reader-preferences-frame.reader-night .article-body.prose :not(pre) > code {background:var(--surface);color:var(--ink)}
+.reader-preferences-frame.reader-night .article-body.prose th,
+.reader-preferences-frame.reader-night .article-body.prose tr:nth-child(even) {background:var(--surface)}
+.reader-preferences-frame.reader-night .article-body.prose hr {border-color:var(--line)}

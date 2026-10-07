@@ -1,56 +1,16 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <!-- Page Header -->
-    <div class="mb-12">
-      <h1 class="text-5xl font-bold text-zinc-900 mb-4 transform -rotate-1">{{ title }}</h1>
-      <p class="text-2xl text-zinc-600 font-hand">{{ subtitle }}</p>
-    </div>
-    <!-- Store Grid -->
-    <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-      <NuxtLink v-for="item in list" :key="(item as any).path" :to="(item as any).path"
-        class="group sketch-card hover:sketch-shadow-hover transition-all duration-200"
-        :aria-label="'Read more about ' + (item as any).title"
-      >
-        <div class="p-2">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-2xl font-bold text-zinc-800 group-hover:text-zinc-600 font-hand underline decoration-wavy decoration-zinc-300 group-hover:decoration-zinc-800">
-              {{ (item as any).title }}
-            </h2>
-          </div>
-          <p class="text-zinc-600 mb-4 text-lg">{{ (item as any).description }}</p>
-          <div class="flex justify-end">
-            <span class="sketch-button py-1 px-4 text-sm">Read More →</span>
-          </div>
-        </div>
+  <section class="site-shell collection-page">
+    <header class="page-heading"><p class="eyebrow">{{ title }} · {{ list.length }} entries</p><h1>{{ title }}</h1><p class="page-subtitle">{{ subtitle }}</p></header>
+    <div class="entry-grid">
+      <NuxtLink v-for="item in list" :key="item.path" :to="item.path" class="entry-card" :aria-label="'Read more about ' + item.title">
+        <div><p v-if="contentDate(item)" class="entry-date">{{ contentDate(item) }}</p><h2>{{ displayTitle(item.title) }}</h2><p class="entry-excerpt">{{ item.description }}</p></div>
+        <span class="entry-action">Read article <span aria-hidden="true">↗</span></span>
       </NuxtLink>
     </div>
-  </div>
+  </section>
 </template>
-
 <script setup lang="ts">
-import { defineProps } from 'vue'
-import type { PropType } from 'vue'
-
-interface CollectionItem { path: string; title: string; description: string }
-const props = defineProps({
-  title: String,
-  subtitle: String,
-  list: { type: Array as PropType<CollectionItem[]>, required: true }
-})
+import { contentDate, displayTitle } from '~/utils/contentPresentation'
+interface CollectionItem { path: string; title: string; description: string; meta?: Record<string, unknown> }
+defineProps<{ title?: string; subtitle?: string; list: CollectionItem[] }>()
 </script>
-
-<style scoped>
-.aspect-w-16 {
-  position: relative;
-  padding-bottom: 56.25%;
-}
-.aspect-w-16>* {
-  position: absolute;
-  height: 100%;
-  width: 100%;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-}
-</style> 
