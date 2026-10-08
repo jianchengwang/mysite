@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
 	"errors"
 	"io/fs"
@@ -23,6 +24,16 @@ type ContentStore interface {
 	GetContent(context.Context, string) (Content, error)
 }
 
+// Keep archived Store stories in persistent storage while withdrawing API reads.
+func retiredStoreContentPath(path string) bool {
+	switch path {
+	case "store/wenroudao.md", "store/changanluan.md", "store/mingyuelei.md":
+		return true
+	default:
+		return false
+	}
+}
+
 func (s *MySQLStore) ListContent(ctx context.Context) ([]Content, error) {
 	rows, e := s.DB.QueryContext(ctx, `SELECT path,content_sha256,imported_at FROM mysite_content ORDER BY path`)
 	if e != nil {
@@ -35,11 +46,16 @@ func (s *MySQLStore) ListContent(ctx context.Context) ([]Content, error) {
 		if e = rows.Scan(&c.Path, &c.SHA256, &c.ImportedAt); e != nil {
 			return nil, e
 		}
-		out = append(out, c)
+		if !retiredStoreContentPath(c.Path) {
+			out = append(out, c)
+		}
 	}
 	return out, rows.Err()
 }
 func (s *MySQLStore) GetContent(ctx context.Context, path string) (Content, error) {
+	if retiredStoreContentPath(path) {
+		return Content{}, sql.ErrNoRows
+	}
 	var c Content
 	e := s.DB.QueryRowContext(ctx, `SELECT path,content_sha256,body,imported_at FROM mysite_content WHERE path=?`, path).Scan(&c.Path, &c.SHA256, &c.Body, &c.ImportedAt)
 	return c, e

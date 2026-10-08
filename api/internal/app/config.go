@@ -9,11 +9,13 @@ import (
 
 type Config struct {
 	Address, APIKey, MySQLDSN, AppID, AppSecret string
+	MiMoAPIKey                                  string
 	Origins                                     []string
 }
 
 func LoadConfig() (Config, error) {
 	c := Config{Address: os.Getenv("LISTEN_ADDR"), APIKey: os.Getenv("BACKEND_ACCESS_KEY"), MySQLDSN: os.Getenv("MYSQL_DSN"), AppID: os.Getenv("WECHAT_APP_ID"), AppSecret: os.Getenv("WECHAT_APP_SECRET")}
+	c.MiMoAPIKey = strings.TrimSpace(os.Getenv("MIMO_API_KEY"))
 	if c.Address == "" {
 		c.Address = "127.0.0.1:8000"
 	}

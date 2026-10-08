@@ -60,7 +60,7 @@ func main() {
 	}
 	worker := &app.Worker{AccountID: config.AppID, Store: store, Publisher: app.NewWeChat(config.AppID, config.AppSecret), Images: app.SafeImageClient()}
 	go worker.Run(ctx)
-	server := app.HTTPServer(config.Address, (&app.Server{Config: config, Store: store, Content: store}).Handler())
+	server := app.HTTPServer(config.Address, (&app.Server{Config: config, Store: store, Content: store, TTS: app.NewTTSService(app.NewMiMoTTS(config.MiMoAPIKey))}).Handler())
 	go func() {
 		<-ctx.Done()
 		shutdownCtx, c := context.WithTimeout(context.Background(), 10*time.Second)

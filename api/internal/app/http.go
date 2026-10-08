@@ -22,6 +22,7 @@ type Server struct {
 	Config  Config
 	Store   Store
 	Content ContentStore
+	TTS     *TTSService
 }
 
 func jsonResponse(w http.ResponseWriter, status int, value any) {
@@ -47,6 +48,8 @@ func (s *Server) Handler() http.Handler {
 	})
 	mux.HandleFunc("POST /api/mp/draft", s.createDraft)
 	mux.HandleFunc("GET /api/tasks/{id}", s.getTask)
+	mux.HandleFunc("POST /api/tts", s.synthesizeTTS)
+	mux.HandleFunc("GET /api/tts/capabilities", s.ttsCapabilities)
 	mux.HandleFunc("GET /api/blog/content", func(w http.ResponseWriter, r *http.Request) {
 		if s.Content == nil {
 			problem(w, 503, "content store unavailable")
