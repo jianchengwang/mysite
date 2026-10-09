@@ -133,10 +133,17 @@ func (s *MySQLStore) Claim(ctx context.Context) (*Task, error) {
 		return nil, e
 	}
 	defer tx.Rollback()
-	t, e := scanTask(tx.QueryRowContext(ctx, `SELECT `+taskColumns+` FROM mysite_tasks WHERE destination_account_id=? AND status='queued' ORDER BY created_at LIMIT 1 FOR UPDATE SKIP LOCKED`, s.AccountID))
-	if errors.Is(e, ErrNotFound) {
+	// Do not sort the JSON payload: a base64 cover can exceed MySQL's sort buffer.
+	// Lock the small identifier first, then load that same row in this transaction.
+	var id string
+	e = tx.QueryRowContext(ctx, `SELECT id FROM mysite_tasks WHERE destination_account_id=? AND status='queued' ORDER BY created_at LIMIT 1 FOR UPDATE SKIP LOCKED`, s.AccountID).Scan(&id)
+	if errors.Is(e, sql.ErrNoRows) {
 		return nil, nil
 	}
+	if e != nil {
+		return nil, e
+	}
+	t, e := scanTask(tx.QueryRowContext(ctx, `SELECT `+taskColumns+` FROM mysite_tasks WHERE destination_account_id=? AND id=?`, s.AccountID, id))
 	if e != nil {
 		return nil, e
 	}

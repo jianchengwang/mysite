@@ -19,10 +19,11 @@ var keyPattern = regexp.MustCompile(`^[A-Za-z0-9._-]{16,128}$`)
 var taskPattern = regexp.MustCompile(`^[a-f0-9]{32}$`)
 
 type Server struct {
-	Config  Config
-	Store   Store
-	Content ContentStore
-	TTS     *TTSService
+	Config    Config
+	Store     Store
+	Content   ContentStore
+	TTS       *TTSService
+	SyncDraft *SyncDraftService
 }
 
 func jsonResponse(w http.ResponseWriter, status int, value any) {
@@ -44,9 +45,31 @@ func (s *Server) Handler() http.Handler {
 			problem(w, 503, "database unavailable")
 			return
 		}
+		if s.Config.DraftMode == "sync" && (s.SyncDraft == nil || s.SyncDraft.Cache.Ping(ctx) != nil) {
+			problem(w, 503, "receipt cache unavailable")
+			return
+		}
 		jsonResponse(w, 200, map[string]string{"status": "ready"})
 	})
 	mux.HandleFunc("POST /api/mp/draft", s.createDraft)
+	mux.HandleFunc("POST /api/mp/draft/update", s.updateDraftContent)
+	mux.HandleFunc("GET /api/mp/draft/result", s.syncDraftResult)
+	mux.HandleFunc("GET /api/mp/draft/capabilities", func(w http.ResponseWriter, r *http.Request) {
+		mode := s.Config.DraftMode
+		if mode == "" {
+			mode = "legacy"
+		}
+		version := 1
+		if mode == "sync" {
+			version = 2
+		}
+		prefix := ""
+		if mode == "sync" {
+			prefix = "v2."
+		}
+		jsonResponse(w, 200, map[string]any{"content_only_update_schema": "content_only_cas_v1", "content_only_update_path": "/api/mp/draft/update", "update_precondition": "fresh_content_sha256_not_provider_atomic_cas", "idempotency_guarantee": "while_receipt_retained", "receipt_absence_allows_retry": false, "provider_write_auto_retry": false, "idempotency_key_prefix": prefix, "mode": mode, "api_version": version, "requires_version_header": mode == "sync", "legacy_tasks_readable": true, "idempotency_retention_seconds": int64(s.Config.DraftCacheTTL / time.Second)})
+	})
+	mux.HandleFunc("GET /api/mp/draft/diagnostics", s.draftDiagnostics)
 	mux.HandleFunc("GET /api/tasks/{id}", s.getTask)
 	mux.HandleFunc("POST /api/tts", s.synthesizeTTS)
 	mux.HandleFunc("GET /api/tts/capabilities", s.ttsCapabilities)
@@ -94,7 +117,7 @@ func (s *Server) Handler() http.Handler {
 			}
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 			w.Header().Set("Vary", "Origin")
-			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Idempotency-Key, X-Backend-Key")
+			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Idempotency-Key, X-Backend-Key, X-MP-Draft-API")
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 			if r.Method == http.MethodOptions {
 				w.WriteHeader(http.StatusNoContent)
@@ -118,13 +141,17 @@ func (s *Server) Handler() http.Handler {
 	})
 }
 func (s *Server) createDraft(w http.ResponseWriter, r *http.Request) {
+	if s.Config.DraftMode == "sync" {
+		s.createSyncDraft(w, r)
+		return
+	}
 	if s.Config.AppID == "" || s.Config.AppSecret == "" {
-		problem(w, 503, "WeChat is not configured on the server")
+		draftProblem(w, 503, "WeChat is not configured on the server")
 		return
 	}
 	key := r.Header.Get("Idempotency-Key")
 	if !keyPattern.MatchString(key) {
-		problem(w, 400, "Idempotency-Key must be 16–128 letters, digits, dots, underscores or hyphens")
+		draftProblem(w, 400, "Idempotency-Key must be 16–128 letters, digits, dots, underscores or hyphens")
 		return
 	}
 	r.Body = http.MaxBytesReader(w, r.Body, 8<<20)
@@ -133,26 +160,26 @@ func (s *Server) createDraft(w http.ResponseWriter, r *http.Request) {
 	decoder.DisallowUnknownFields()
 	var payload DraftRequest
 	if e := decoder.Decode(&payload); e != nil {
-		problem(w, 400, "invalid or oversized JSON; client access_token is no longer accepted")
+		draftProblem(w, 400, "invalid or oversized JSON; client access_token is no longer accepted")
 		return
 	}
 	if decoder.Decode(new(any)) != io.EOF {
-		problem(w, 400, "request must contain one JSON object")
+		draftProblem(w, 400, "request must contain one JSON object")
 		return
 	}
 	if e := payload.Validate(); e != nil {
-		problem(w, 400, e.Error())
+		draftProblem(w, 400, e.Error())
 		return
 	}
 	data, _ := json.Marshal(payload)
 	hash := sha256.Sum256(append([]byte(s.Config.AppID+"\x00"), data...))
 	task, created, e := s.Store.Reserve(r.Context(), key, hex.EncodeToString(hash[:]), data)
 	if errors.Is(e, ErrConflict) {
-		problem(w, 409, e.Error())
+		draftProblem(w, 409, e.Error())
 		return
 	}
 	if e != nil {
-		problem(w, 503, "could not persist task; retry only with the same Idempotency-Key")
+		draftProblem(w, 503, "could not persist task; retry only with the same Idempotency-Key")
 		return
 	}
 	w.Header().Set("Location", "/api/tasks/"+task.ID)
@@ -161,7 +188,9 @@ func (s *Server) createDraft(w http.ResponseWriter, r *http.Request) {
 	if !created {
 		status = http.StatusOK
 	}
-	jsonResponse(w, status, task)
+	view := draftResponse(task)
+	logDraft(nil, DraftDiagnostic{TaskID: task.ID, Stage: view.Stage, Status: task.Status, ProviderErrcode: view.ProviderErrcode, ProviderHTTPStatus: view.ProviderHTTPStatus, RedactedMessage: view.RedactedMessage, Retryable: view.Retryable, Attempt: view.Attempt, Time: time.Now().UTC()})
+	jsonResponse(w, status, view)
 }
 func (s *Server) getTask(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
@@ -178,7 +207,7 @@ func (s *Server) getTask(w http.ResponseWriter, r *http.Request) {
 		problem(w, 503, "task store unavailable")
 		return
 	}
-	jsonResponse(w, 200, t)
+	jsonResponse(w, 200, draftResponse(t))
 }
 func HTTPServer(address string, h http.Handler) *http.Server {
 	return &http.Server{Addr: address, Handler: h, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 30 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16 << 10}

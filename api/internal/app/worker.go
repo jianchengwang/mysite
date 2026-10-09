@@ -26,6 +26,7 @@ type Worker struct {
 	Store     Store
 	Publisher Publisher
 	Images    *http.Client
+	Logger    *slog.Logger
 }
 type Receipt struct {
 	ImageSHA256 string `json:"image_sha256,omitempty"`
@@ -35,11 +36,12 @@ type Receipt struct {
 	RemoteID    string `json:"remote_id"`
 }
 type TaskResult struct {
-	PreparedContent string    `json:"prepared_content,omitempty"`
-	PreparedSHA256  string    `json:"prepared_sha256,omitempty"`
-	MediaID         string    `json:"media_id,omitempty"`
-	ArticleCount    int       `json:"article_count,omitempty"`
-	Receipts        []Receipt `json:"receipts"`
+	Diagnostic      *DraftDiagnostic `json:"diagnostic,omitempty"`
+	PreparedContent string           `json:"prepared_content,omitempty"`
+	PreparedSHA256  string           `json:"prepared_sha256,omitempty"`
+	MediaID         string           `json:"media_id,omitempty"`
+	ArticleCount    int              `json:"article_count,omitempty"`
+	Receipts        []Receipt        `json:"receipts"`
 }
 
 func prepareHTML(content string) ([]*html.Node, []*html.Node, error) {
@@ -113,15 +115,21 @@ func setSource(node *html.Node, value string) {
 func (w *Worker) process(ctx context.Context, t Task) {
 	ctx, cancel := context.WithTimeout(ctx, 4*time.Minute)
 	defer cancel()
-	result := TaskResult{Receipts: []Receipt{}}
+	result := TaskResult{Receipts: []Receipt{}, Diagnostic: &DraftDiagnostic{TaskID: t.ID, Stage: "preparing", Status: "processing", Attempt: 1, Time: time.Now().UTC()}}
 	var request DraftRequest
 	raw := func() json.RawMessage { b, _ := json.Marshal(result); return b }
 	finish := func(status, message string) {
+		result.Diagnostic.Status = status
+		result.Diagnostic.RedactedMessage = message
+		result.Diagnostic.Time = time.Now().UTC()
 		finalCtx, c := context.WithTimeout(context.Background(), 10*time.Second)
 		defer c()
 		if e := w.Store.Finish(finalCtx, t.ID, status, raw(), message); e != nil {
-			slog.Error("task finalization failed; lease expiry will require reconciliation", "task_id", t.ID)
+			result.Diagnostic.Status = "needs_reconciliation"
+			result.Diagnostic.Retryable = false
+			result.Diagnostic.RedactedMessage = "Task finalization failed; lease expiry requires reconciliation"
 		}
+		logDraft(w.Logger, *result.Diagnostic)
 	}
 	fail := func(e error) {
 		status := "failed"
@@ -129,13 +137,24 @@ func (w *Worker) process(ctx context.Context, t Task) {
 		if errors.As(e, &remote) && remote.Unknown {
 			status = "needs_reconciliation"
 		}
-		finish(status, e.Error())
+		message, code, httpStatus, retryable := diagnosticError(e)
+		result.Diagnostic.ProviderErrcode = code
+		result.Diagnostic.ProviderHTTPStatus = httpStatus
+		result.Diagnostic.Retryable = retryable && status == "failed"
+		finish(status, message)
 	}
 	checkpoint := func(stage string) error {
+		result.Diagnostic.Stage = stage
+		result.Diagnostic.Time = time.Now().UTC()
 		if e := w.Store.Checkpoint(ctx, t.ID, stage, raw()); e != nil {
 			return &RemoteError{true, "could not persist operation checkpoint; remote state must be inspected"}
 		}
+		logDraft(w.Logger, *result.Diagnostic)
 		return nil
+	}
+	if e := checkpoint("preparing"); e != nil {
+		fail(e)
+		return
 	}
 	if w.AccountID == "" || t.DestinationAccountID != w.AccountID {
 		finish("failed", "task destination does not match configured account; no remote operation attempted")
@@ -161,6 +180,10 @@ func (w *Worker) process(ctx context.Context, t Task) {
 		finish("failed", "a cover image is required")
 		return
 	}
+	if e := checkpoint("prepare_images"); e != nil {
+		fail(e)
+		return
+	}
 	// Download/decode EVERY image before any remote write.
 	loaded := map[string]ImageData{}
 	for _, reference := range append(func() []string {
@@ -180,6 +203,10 @@ func (w *Worker) process(ctx context.Context, t Task) {
 		}
 		loaded[reference] = image
 	}
+	if e := checkpoint("token"); e != nil {
+		fail(e)
+		return
+	}
 	token, e := w.Publisher.Token(ctx)
 	if e != nil {
 		fail(e)
@@ -191,6 +218,9 @@ func (w *Worker) process(ctx context.Context, t Task) {
 		return
 	}
 	upload := func(stage string, image ImageData, cover bool) (string, error) {
+		if e := checkpoint(stage + "_reserve"); e != nil {
+			return "", e
+		}
 		sum := sha256.Sum256(image.Data)
 		hash := hex.EncodeToString(sum[:])
 		purpose := "content"
@@ -247,6 +277,10 @@ func (w *Worker) process(ctx context.Context, t Task) {
 		fail(e)
 		return
 	}
+	if e := checkpoint("prepare_draft"); e != nil {
+		fail(e)
+		return
+	}
 	var rendered bytes.Buffer
 	for _, n := range nodes {
 		if e = html.Render(&rendered, n); e != nil {
@@ -267,6 +301,11 @@ func (w *Worker) process(ctx context.Context, t Task) {
 		fail(e)
 		return
 	}
+	if !validMediaID(draftID) {
+		fail(&RemoteError{Unknown: true, Message: "WeChat draft identifier missing or invalid; reconcile remote drafts before retrying"})
+		return
+	}
+	result.Diagnostic.Stage = "draft_add_confirmed"
 	result.MediaID = draftID
 	result.ArticleCount = 1
 	result.Receipts = append(result.Receipts, Receipt{Stage: "draft_add", RemoteID: draftID})

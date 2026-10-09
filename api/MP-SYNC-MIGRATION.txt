@@ -1,0 +1,79 @@
+公众号同步存稿 — 接口契约与迁移操作约束
+
+交付状态
+2026-10-09 当前状态复核：生产 API 镜像为 07074228-mpnosql-f0ec1ecaa40a，MP_DRAFT_MODE=sync，MP_DRAFT_CACHE_TTL=24h，容器健康。用户确认公众号草稿接口已经跑通。本次仅补齐 Git 源码与文档，不重新部署、不创建或更新任何真实草稿。默认配置仍为 legacy；现有生产显式启用 sync。
+父线程已报告第一、第二篇真实草稿经官方 draftget 全文/段落/摘要/thumb 验证，draftlist 恰两篇，无重复；该回读由测试 owner 完成，本任务没有再调用真实微信。
+以下迁移说明保留切换时的操作约束；接口跑通不授予自动批量写入、重试或补发许可。本次没有创建任务、草稿或自动化。
+
+最小切换
+1. 客户端先适配并读取受认证保护的 GET /api/mp/draft/capabilities。
+2. 操作者在既有安全配置中设置 MP_DRAFT_MODE=sync、MP_REDIS_URL（仅服务端），MP_DRAFT_CACHE_TTL 默认24h，可设1h–48h。本包不含任何真实环境文件。
+3. 新操作的 POST /api/mp/draft 必须 X-MP-Draft-API: 2，以及 Idempotency-Key: v2.<独立新操作标识>（总长16–128，沿用字符白名单）。缺版本头428；缺v2.前缀400。旧客户端停止写入并迁移，没有回退到MySQL队列。
+4. 保持原 JSON、认证、CORS、HTML/图片/SSRF限制。调用方 HTTP 总等待预算至少60s；服务端处理预算45s，路由写截止55s。需要核实全部代理/外网链路的实际超时，不能假设现有代理已满足。
+5. 只在 HTTP200、api_version=2、status=succeeded、provider_success=true、有有效media_id时报告“已新增草稿”。成功返回 article_count=1。微信成功回包无errcode时字段为null；收到实际0才返回0。
+6. client timeout/断线/502/504/409后，优先用同一个 Idempotency-Key 查询 GET /api/mp/draft/result。不要生成新key自动重发，不把任何20x或上传素材成功当草稿成功。结果查询返回操作对应的HTTP状态，不是统一200。
+7. GET /api/tasks/{旧ID}、GET /api/mp/draft/diagnostics 保留，继续访问旧MySQL历史；只读diagnostics不包含新的同步操作，需要通过request_id日志或短期结果查询定位。旧任务的key不可加v2.前缀后重发。
+
+结果语义
+成功：200 succeeded / provider_success=true / media_id /实际errcode（可null）。
+明确微信拒绝：502 failed / provider_success=false /真实非零errcode；有已成功上传则partial_success=true。
+微信写入响应丢失、5xx、非法响应或缺必要回执：502（预算耗尽504）needs_reconciliation，retryable=false。若 draft/add 已尝试则 provider_success=null；若仅图片上传结果不明、draft/add未调用则false。
+并发同键同正文：409 processing；查询或等待，不发第二次远端写入。
+同键不同正文：409冲突；不给另一篇正文重用key。
+缓存不可用：503，预留确认前不做远端写入。预留响应丢失也503，不假设没预留；查询同键可能processing。
+确认微信新增成功但最后Redis存回执失败：仍200 true +有效media_id +cache_warning=true；不能谎报草稿失败。旧pending记录保留，禁止因缓存失败重发。
+进程中断、记录仍pending且执行截止已过：409 needs_reconciliation；不接管、不重排。
+404无短期回执：不证明远端没有成功，也不授予再次写入许可。
+remote_write_possible 表示持久化的保守写入意图；可能为true但实际未写入，不把它当微信成功证据。
+
+短期幂等边界（必须告知调用方）
+Redis只记录账号+幂等键的SHA256键、正文规范化请求hash、opaque owner/request_id、截止/过期时间和脱敏紧凑回执；不放正文、标题、摘要、PreparedContent、图片字节/base64、原始key、token、secret或原始errmsg。
+SET NX +到期为唯一预留；Redis7 Lua核对owner/hash，原子更新并KEEPTTL，不延长最初期限，不删除pending、不重新取得所有权。每次远端写入前缓存保守pending意图，已确认图片回执存入后再推进。所有图片仍先下载解码，再写微信。
+只有在记录持续保留期间，才能阻止同键重复；到期、驱逐、重启造成数据丢失或清库会失去证据，不是永久exactly-once。部署前应核实所选Redis实例的隔离、noeviction/容量和持久化策略，本轮不修改现有Redis设置。即便启用持久化，也不宣称绝对不丢数据。缓存恢复但记录已丢时，服务不能识别曾用key；客户端不能自动把404或空库当作重新提交许可。
+不同key视为不同独立操作；相同正文用不同key不会全局去重。新路径仅在单次请求按图片hash+用途复用，不再读取/写入MySQL跨任务媒体账本；跨请求素材复用可另议，不为此另建队列或长期账本。
+正文仅在请求处理期间驻留内存；成功/失败/超时后不写数据库。原来真实任务与正文保持原样，不做删除、迁移清库或重新发送。
+
+MySQL仍保留的依赖
+启动LoadConfig/OpenMySQL/Ping/001_schema；GET健康ready；旧任务查询/diagnostics；旧worker的存量任务；两个博客API。静态Nuxt站使用文件，TTS已经同步且不写MySQL；当前没有视频API。
+因此本次消除的是新公众号的正文、PreparedContent和媒体账本写入，不等于整API可无MySQL启动，也不立即消除旧worker轮询。整库移除需另评估博客客户端、存量任务与健康检查。
+
+部署与调用验收约束
+核实全部外部调用方已按版本2处理并停止旧batch写入；原仓库没有前端MP调用方，不能据此证明外部脚本都已迁移。
+保留原API镜像/配置作为回滚点；切换只涉及API，站点、MySQL数据、agent-workflow/ty1和FRP不变。此次源码同步不重新部署、不修改任何运行凭据。
+如果只升级二进制保持legacy模式，行为兼容但仍写MySQL；真正启用sync必须明确设置配置。Redis故障后不得自动回滚为legacy或补发。
+用户确认公众号草稿接口已经跑通；本地stub测试本身不是生产微信证明。已有回读与操作者验收应另行保留，本文不将本次只读核查或代码测试当作新的真实写入验收。batch 是否恢复由操作者另行决定。
+sync 模式代码不启动旧 worker。存量 queued/processing 任务的处理需先只读核对，不能仅凭已完成稿件就丢弃其它旧任务。保留所有旧表与真实记录。
+
+show_cover_pic 核查
+当前AddDraft及同步包装均将请求show_cover_pic=1和thumb_media_id原样发送。新增本地HTTP契约测试验证该请求字段没有在mysite丢失；未修改字段行为。
+微信官方旧/新草稿新增文档本轮均无法读取，未取得能够说明回读归0原因的官方规则。不能推断是必定被忽略、SDK缺陷或封面未存储。测试owner已确认thumb匹配；仅此字段差异不改判整稿成功/失败，不为它重复创建或修改真实草稿。
+
+参考（技术实现仅取官方文档）
+https://redis.io/docs/latest/commands/set/
+https://pkg.go.dev/net/http#ResponseController.SetWriteDeadline
+https://github.com/redis/go-redis/releases/tag/v9.22.0
+无法读取的微信文档：
+https://developers.weixin.qq.com/doc/offiaccount/Draft_Box/Add_draft.html
+https://developers.weixin.qq.com/doc/service/api/draftbox/draftmanage/api_draft_add.html
+
+Content-only layout update (content_only_cas_v1):
+POST /api/mp/draft/update, authenticated exactly like the existing draft API.
+X-MP-Draft-API: 2; Idempotency-Key: v2.layout.<unique operation> (or v2.update.).
+Body: media_id, index:0, expected_content_sha256 (lowercase SHA256 of exact current
+UTF-8 HTML content), content. No metadata fields are accepted. Only existing
+single-article drafts are supported. The server performs official draft/get,
+compares the exact content hash, and permits only p.style changes; all parsed
+text nodes, other HTML tokens and attributes must remain equivalent. It sends
+all freshly observed article metadata, except temporary url/thumb_url, unchanged
+to official draft/update, replacing only content. It verifies exact content and
+all nonvolatile metadata through a second official get before status succeeded.
+The hash mismatch is HTTP409 precondition_failed before any update. This is a
+fresh-read precondition, not an atomic provider CAS; editing in WeChat between
+the fresh read and the write is not locked by the provider API. Coordinate edits
+while the authorized update runs. Official draft/add is never used by this route.
+The existing Redis receipt reservation and write-intent rules apply. For response
+loss, unknown outcome, interruption or cache miss, never send another update;
+query the same key through GET /api/mp/draft/result and reconcile official get.
+Provider-acknowledged update plus failed/different readback returns retained
+media_id, provider_success true and needs_reconciliation, not success. No new
+MySQL task or body/metadata cache is written.

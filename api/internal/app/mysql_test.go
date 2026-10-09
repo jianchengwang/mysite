@@ -39,7 +39,8 @@ func TestSQLReserveDuplicateAccountAndConflict(t *testing.T) {
 func TestSQLClaimUsesAccountAndTransaction(t *testing.T) {
 	s, m := mockStore(t)
 	m.ExpectBegin()
-	m.ExpectQuery("SELECT .*destination_account_id=\\?.*FOR UPDATE SKIP LOCKED").WithArgs("synthetic-app").WillReturnRows(taskRows())
+	m.ExpectQuery(regexp.QuoteMeta(claimIDSQL)).WithArgs("synthetic-app").WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(strings.Repeat("a", 32)))
+	m.ExpectQuery(regexp.QuoteMeta(claimRowSQL)).WithArgs("synthetic-app", strings.Repeat("a", 32)).WillReturnRows(taskRows())
 	m.ExpectExec("UPDATE mysite_tasks.*lease_expires_at=.*").WithArgs(strings.Repeat("a", 32)).WillReturnResult(sqlmock.NewResult(0, 1))
 	m.ExpectCommit()
 	task, e := s.Claim(context.Background())

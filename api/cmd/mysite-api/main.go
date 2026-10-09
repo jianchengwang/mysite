@@ -13,6 +13,8 @@ import (
 )
 
 func main() {
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+	disableDraftWorker := flag.Bool("disable-draft-worker", false, "Disable draft consumption for read-only candidate verification")
 	migrate := flag.Bool("migrate", false, "Apply embedded MySQL migrations, then exit")
 	content := flag.String("import-content", "", "Transactionally import a Nuxt content directory to MySQL, then exit")
 	flag.Parse()
@@ -59,17 +61,57 @@ func main() {
 		os.Exit(1)
 	}
 	worker := &app.Worker{AccountID: config.AppID, Store: store, Publisher: app.NewWeChat(config.AppID, config.AppSecret), Images: app.SafeImageClient()}
-	go worker.Run(ctx)
-	server := app.HTTPServer(config.Address, (&app.Server{Config: config, Store: store, Content: store, TTS: app.NewTTSService(app.NewMiMoTTS(config.MiMoAPIKey))}).Handler())
+	diagnosticCtx, diagnosticCancel := context.WithTimeout(ctx, 3*time.Second)
+	diagnostic, diagnosticError := store.DraftDiagnostics(diagnosticCtx)
+	diagnosticCancel()
+	if diagnosticError != nil {
+		slog.Warn("mp_draft_queue_snapshot_unavailable")
+	} else {
+		slog.Info("mp_draft_queue_snapshot", "current_account_only", true, "persisted_creation_task_count", diagnostic.PersistedTaskCount, "counts_by_status", diagnostic.Counts)
+	}
+
+	var syncDraft *app.SyncDraftService
+	if config.DraftMode == "sync" {
+		cache, err := app.NewRedisDraftCache(config.DraftRedisURL)
+		if err != nil {
+			slog.Error("draft receipt cache configuration invalid")
+			os.Exit(1)
+		}
+		defer cache.Close()
+		redisCtx, redisCancel := context.WithTimeout(ctx, 2*time.Second)
+		err = cache.Ping(redisCtx)
+		redisCancel()
+		if err != nil {
+			slog.Error("draft receipt cache unavailable; no fallback to MySQL writes")
+			os.Exit(1)
+		}
+		syncDraft = app.NewSyncDraftService(cache, app.NewWeChat(config.AppID, config.AppSecret), app.SafeImageClient(), config.DraftCacheTTL)
+		syncDraft.AcceptContext = ctx
+	}
+	if *disableDraftWorker || config.DraftMode == "sync" {
+		reason := "read_only_candidate"
+		if config.DraftMode == "sync" {
+			reason = "synchronous_mode_no_mysql_draft_writes"
+		}
+		slog.Info("mp_draft_worker_disabled", "reason", reason)
+	} else {
+		go worker.Run(ctx)
+	}
+	server := app.HTTPServer(config.Address, (&app.Server{Config: config, Store: store, Content: store, TTS: app.NewTTSService(app.NewMiMoTTS(config.MiMoAPIKey)), SyncDraft: syncDraft}).Handler())
+	shutdownDone := make(chan struct{})
 	go func() {
+		defer close(shutdownDone)
 		<-ctx.Done()
-		shutdownCtx, c := context.WithTimeout(context.Background(), 10*time.Second)
+		shutdownCtx, c := context.WithTimeout(context.Background(), 60*time.Second)
 		defer c()
 		_ = server.Shutdown(shutdownCtx)
 	}()
-	slog.Info("mysite API started", "address", config.Address, "wechat_configured", config.AppID != "")
+	slog.Info("mysite API started", "mp_draft_mode", config.DraftMode, "address", config.Address, "wechat_configured", config.AppID != "")
 	if e = server.ListenAndServe(); e != nil && e != http.ErrServerClosed {
 		slog.Error("HTTP server failed")
 		os.Exit(1)
+	}
+	if ctx.Err() != nil {
+		<-shutdownDone
 	}
 }

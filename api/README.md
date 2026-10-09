@@ -1,5 +1,9 @@
 # Personal Go API
 
+默认 `MP_DRAFT_MODE=legacy` 保留原队列。同步模式已在本机生产 API 启用（2026-10-09 核查：`MP_DRAFT_MODE=sync`、缓存时长24h、容器健康）；接口契约与操作约束见`MP-SYNC-MIGRATION.txt`。配置为 `sync` 后，新的公众号请求只把账号绑定的请求 hash 和短期脱敏回执写 Redis，不写 MySQL 正文或媒体账本。旧任务读取、博客 API、MySQL 启动/健康检查仍保留。
+
+同步客户端先读 `GET /api/mp/draft/capabilities`，POST 显式携带 `X-MP-Draft-API: 2` 与以 `v2.` 开头的幂等键。200 且 `status=succeeded`、`provider_success=true`、有效 `media_id` 才是草稿新增成功；未知结果的 `provider_success` 为 null。客户端断线后用同一键查询 `GET /api/mp/draft/result`，不换键自动重试。不要把旧任务的 key 改名为 v2 后重发。
+
 Go ≥1.26 + MySQL 8.0+，服务原有 MD to WeChat 页面及云端审核内容包。没有通用任意 URL 代理、客户端微信 token、发布/群发接口或内存生产任务库。
 
 ## 运行
@@ -122,3 +126,20 @@ go test -tags integration ./internal/app -run TestMySQLIntegration -count=1
 - [Go MySQL driver](https://github.com/go-sql-driver/mysql)
 
 官方微信文档在当前云环境无法直接读取；字段依据仓库已有适配及本地契约测试实现，真实账号权限、格式、网络白名单必须在单独授权的上线验收中确认。
+
+
+## 草稿阶段可观察性
+
+202 只表示请求已持久化入队，`accepted:true`，不表示微信成功。GET 任务返回 HTTP 200 也只表示成功读取任务。调用方必须检查 `status == "succeeded"` **且** `provider_success == true`，并保存有效 `result.media_id` 后才能宣布草稿已创建。
+
+创建请求被拒绝时 `accepted:false`、`status:not_accepted`、`task_id:null`；没有创建入队任务。成功受理的响应包含 `task_id`、`poll_url`。同一 Idempotency-Key 的重复请求返回原任务，不再次入队；terminal 状态不自动重试。
+
+任务回执和 JSON 日志包含 `task_id/stage/status/provider_errcode/provider_http_status/redacted_message/retryable/attempt/time`（日志时间为 `event_time`）。阶段包括 preparing、prepare_images、token、upload_*_reserve/pending/confirmed、prepare_draft、draft_add_pending/confirmed。最终失败仍保留实际失败阶段。`provider_errcode:null` 表示未收到有效微信错误码，不能凭空填入历史 40164。旧任务无法回溯丢失的阶段或错误码，明确标为 legacy。
+
+微信 HTTP 200 的非零 errcode 是失败，原始 errmsg 不进入日志/回执；只使用固定脱敏说明。有效 media_id 才可成功。写入超时、5xx、非法响应或缺少 media_id 都是 needs_reconciliation，retryable:false。Token 请求的暂时网络/5xx 失败没有远端写入，可标 retryable:true；该字段仅是建议，不触发重排队或自动重试。过期 Token 写入失败会清空本机缓存，当前任务不重试；下一次独立授权任务再取 Token。
+
+`GET /api/mp/draft/diagnostics` 受原认证保护，仅查询当前账号的 all-time 持久任务数、状态计数及最近20个脱敏回执，不读取任务正文，不调用微信。任务数0仅证明当前目标账号没有已持久化创建任务；任务数非0时按状态、时间和 task_id 定位，不能将“入队”“旧失败”“读取草稿数0”互相替代。两个只读查询并非事务快照，活跃队列的计数与最近条目可能短暂不同。
+
+启动时输出只读 `mp_draft_queue_snapshot`。隔离候选可用 `-disable-draft-worker` 停止消费，仅测试健康检查和受保护接口，避免候选产生真实微信调用；生产默认保持原 worker 行为。健康 ready 只验证数据库，不证明微信发布链路已通。
+
+本次测试全部使用本地 HTTP stubs、合成凭据与 sqlmock。禁止将 stub 中 40164/40001 当作当前账号的真实故障；未通过本测试创建任何真实微信草稿。
