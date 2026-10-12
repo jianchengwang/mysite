@@ -1220,7 +1220,7 @@
       "title": "每日英语",
       "summary": "从短演讲和日常情景出发，练习原创双语短文、实用语块、跟读与口语表达。",
       "published": true,
-      "cover": "/collections-assets/daily-english/2026-10-12-cover.png",
+      "cover": "/collections-assets/daily-english/2026-10-13-cover.png",
       "readingGuide": "先听官方原声，再逐段阅读原创英中练习；英语后紧接中文，重点语块加粗，最后完成跟读和短口语表达。",
       "attribution": "演讲原声与逐字稿链接来自官方来源；合集文章为原创英语练习，不是演讲全文翻译。",
       "groups": [
@@ -1243,6 +1243,14 @@
               "order": 2,
               "published": true,
               "cover": "/collections-assets/daily-english/2026-10-12-cover.png"
+            },
+            {
+              "slug": "2026-10-13",
+              "title": "2026-10-13｜不同的做法，也有它的道理",
+              "description": "从按心情分类的书店出发，练习先理解再判断、实用语块、跟读与一分钟复述。",
+              "order": 3,
+              "published": true,
+              "cover": "/collections-assets/daily-english/2026-10-13-cover.png"
             }
           ]
         }
