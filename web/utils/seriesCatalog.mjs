@@ -1,4 +1,10 @@
 const segment = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const datedEntrySlug = /^\d{4}-\d{2}-\d{2}$/
+const isDatedSlug = (slug) => {
+  if (!datedEntrySlug.test(slug)) return false
+  const parsed = new Date(slug)
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === slug
+}
 const versionMarker = /(?:^|[^a-z\d])v6(?:$|[^a-z\d])/i
 const retired = new Set(['wenroudao', 'changanluan', 'mingyuelei'])
 export const cleanPath = (path) => path.replace(/\/+$/, '') || '/'
@@ -45,6 +51,21 @@ export function collectionView(series, preview = false) {
   }))
   const entries = groups.flatMap(group => group.entries)
   return { ...series, path, groups, entries, availableEntries: entries.filter(entry => entry.available), count: entries.length, preview }
+}
+
+export function startLinks(series) {
+  const first = series.availableEntries[0]
+  if (!first) return { primary: null, secondary: null }
+  if (series.id !== 'daily-english') return { primary: { label: '开始阅读', path: first.path }, secondary: null }
+  let latest = null
+  for (const entry of series.availableEntries) {
+    if (isDatedSlug(entry.slug) && (!latest || entry.slug > latest.slug)) latest = entry
+  }
+  if (!latest) return { primary: { label: '开始阅读', path: first.path }, secondary: null }
+  return {
+    primary: { label: '阅读最新一期', path: latest.path },
+    secondary: latest.path === first.path ? null : { label: '从第一篇开始', path: first.path }
+  }
 }
 
 export function visibleCollections(catalog, section, preview = false) {

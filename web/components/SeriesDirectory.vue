@@ -2,7 +2,7 @@
   <section class="series-directory">
     <header class="page-heading"><p class="eyebrow">{{ series.section === 'store' ? '小说合集' : '知识专题' }} · {{ series.availableEntries.length < series.count ? series.availableEntries.length : (series.count || series.expectedEntries) }}{{ series.section === 'store' ? '章' : '篇' }}</p><h1>{{ series.title }}</h1><p class="page-subtitle">{{ series.summary }}</p><p v-if="series.introduction" class="page-subtitle">{{ series.introduction }}</p>
       <img v-if="series.cover" class="series-cover" :src="series.cover" :alt="series.title + '封面'" width="900" height="500" />
-      <div v-if="first" class="series-start"><NuxtLink :to="first.path" class="primary-link">开始阅读 <span aria-hidden="true">↗</span></NuxtLink><span>{{ series.groups.length }}{{ series.section === 'store' ? '卷' : '个部分' }} · {{ series.availableEntries.length }}{{ series.section === 'store' ? '章' : '篇' }}可读</span></div>
+      <div v-if="start.primary" class="series-start"><NuxtLink :to="start.primary.path" class="primary-link">{{ start.primary.label }} <span aria-hidden="true">↗</span></NuxtLink><NuxtLink v-if="start.secondary" :to="start.secondary.path" class="series-start-secondary">{{ start.secondary.label }}</NuxtLink><span>{{ series.groups.length }}{{ series.section === 'store' ? '卷' : '个部分' }} · {{ series.availableEntries.length }}{{ series.section === 'store' ? '章' : '篇' }}可读</span></div>
     </header>
     <p v-if="series.plannedEntries && series.availableEntries.length < series.plannedEntries" class="preview-notice">更新中 · 已提供 {{ series.availableEntries.length }} / {{ series.plannedEntries }} 篇全文，其余篇目标明规划，完成后再开放正文。</p>
     <p v-if="!series.count" class="series-empty">目录与正文待权威内容包接入。</p>
@@ -19,8 +19,9 @@
   </section>
 </template>
 <script setup lang="ts">
+import { startLinks } from '~/utils/seriesCatalog.mjs'
 const props = defineProps<{ series: any }>()
-const first = computed(() => props.series.availableEntries[0])
+const start = computed(() => startLinks(props.series))
 useSeoMeta({ title: () => props.series.title + ' | JianchengWang', description: () => props.series.summary, ogTitle: () => props.series.title, ogDescription: () => props.series.summary, ogImage: () => props.series.cover || undefined })
 const config = useRuntimeConfig()
 useHead({ link: () => [{ rel: 'canonical', href: config.public.siteUrl + props.series.path }] })
