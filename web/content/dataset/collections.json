@@ -1251,6 +1251,14 @@
               "order": 3,
               "published": true,
               "cover": "/collections-assets/daily-english/2026-10-13-movement-cover.png"
+            },
+            {
+              "slug": "2026-10-14",
+              "title": "2026-10-14｜每天用的工具，还能更顺手",
+              "description": "从笔记应用出发，练习实用操作说明和五个常用表达。",
+              "order": 4,
+              "published": true,
+              "cover": "/collections-assets/daily-english/2026-10-13-movement-cover.png"
             }
           ]
         }
