@@ -1259,6 +1259,14 @@
               "order": 4,
               "published": true,
               "cover": "/collections-assets/daily-english/2026-10-13-movement-cover.png"
+            },
+            {
+              "slug": "2026-10-15",
+              "title": "每日英语｜给生活腾一点空间",
+              "description": "从清爽书桌出发，练习生活情景、五个语块和英语复述。",
+              "order": 5,
+              "published": true,
+              "cover": "/collections-assets/daily-english/2026-10-13-movement-cover.png"
             }
           ]
         }
