@@ -1267,6 +1267,14 @@
               "order": 5,
               "published": true,
               "cover": "/collections-assets/daily-english/2026-10-13-movement-cover.png"
+            },
+            {
+              "slug": "2026-10-16",
+              "title": "每日英语｜想不出点子时，先走一走",
+              "description": "从构思读书短视频出发，练习卡住、休息、想出点子、试验和缩小选择范围。",
+              "order": 6,
+              "published": true,
+              "cover": "/collections-assets/daily-english/2026-10-13-movement-cover.png"
             }
           ]
         }
