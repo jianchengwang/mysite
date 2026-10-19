@@ -1299,6 +1299,14 @@
               "order": 9,
               "published": true,
               "cover": "/collections-assets/daily-english/2026-10-13-movement-cover.png"
+            },
+            {
+              "slug": "2026-10-20",
+              "title": "每日英语｜练得更好，不只练得更久",
+              "description": "练习明确目标、征求反馈和调整方法，用原创双语短文描述自己的学习过程。",
+              "order": 10,
+              "published": true,
+              "cover": "/collections-assets/daily-english/2026-10-13-movement-cover.png"
             }
           ]
         }
