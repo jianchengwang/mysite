@@ -1323,6 +1323,14 @@
               "order": 12,
               "published": true,
               "cover": "/collections-assets/daily-english/2026-10-13-movement-cover.png"
+            },
+            {
+              "slug": "2026-10-23",
+              "title": "每日英语｜从使用工具，到动手做一个",
+              "description": "从保存书名的小工具出发，练习动手开始、排错、试用、征求反馈和逐步改进。",
+              "order": 13,
+              "published": true,
+              "cover": "/collections-assets/daily-english/2026-10-13-movement-cover.png"
             }
           ]
         }
