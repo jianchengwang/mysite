@@ -1349,14 +1349,14 @@
       "section": "column",
       "title": "微调实战",
       "summary": "沿着工具调用任务，完成从任务契约、数据、基线到SFT/LoRA、评测和离线部署的可检查闭环。",
-      "introduction": "共规划8课，目前提供第1课全文与配套专项练习；第2—8课仍在规划中，不代表已经完成训练或验证。",
+      "introduction": "八课正文与独立Notebook已齐备：先定义任务与证据，再训练比较，最后练习离线回滚和偏好数据审计。CPU检查通过；Colab及可选预训练模型/GPU路径未实测。",
       "published": true,
       "cover": null,
       "expectedEntries": 8,
       "plannedEntries": 8,
       "expectedGroups": 3,
       "catalogPath": "/column/finetuning-practice",
-      "readingGuide": "先阅读第1课，再打开文内的Colab专项练习。首课使用虚构数据、普通CPU和Python标准库，不下载模型、不训练、不执行真实工具。后续每课完成正文与独立notebook后再开放，不先放空壳文章。",
+      "readingGuide": "按01—08顺序阅读，每课打开对应Colab专项练习。Notebook自带虚构数据与答案；第4、5课默认在CPU训练tiny机制模型，其余默认仅标准库。真实模型路径单独启用并明确标记未实测，不自动申请GPU或执行真实工具。",
       "attribution": "理论衔接：从LLM到Agent第13、14章。历史实验与教学算例分别标明，不把人工构造分数当成新模型成绩。",
       "groups": [
         {
@@ -1375,14 +1375,14 @@
               "order": 2,
               "title": "02｜数据工程：把纸上样本变成可靠训练输入",
               "description": "数据字典、来源manifest、去重与分组划分，再检查真实模板、截断和回答mask。",
-              "published": false
+              "published": true
             },
             {
               "slug": "03",
               "order": 3,
               "title": "03｜建立未微调基线与评分器",
               "description": "固定基座与题集，测试评分器，保存B0/B1逐题输出。",
-              "published": false
+              "published": true
             }
           ]
         },
@@ -1395,21 +1395,21 @@
               "order": 4,
               "title": "04｜第一轮 SFT＋LoRA：理解一次更新",
               "description": "检查可训练参数和数据流，短程训练并验证adapter与tokenizer恢复。",
-              "published": false
+              "published": true
             },
             {
               "slug": "05",
               "order": 5,
               "title": "05｜超参数与资源：一次只回答一个问题",
               "description": "用单变量对照和逐题差异理解学习率、epoch、batch与rank。",
-              "published": false
+              "published": true
             },
             {
               "slug": "06",
               "order": 6,
               "title": "06｜评测与选择：质量、速度和安全分开算",
               "description": "验证集选择候选，新盲测检验泛化，旧题用于回归。",
-              "published": false
+              "published": true
             }
           ]
         },
@@ -1422,14 +1422,14 @@
               "order": 7,
               "title": "07｜离线部署与回滚：能加载只是开始",
               "description": "在mock工具环境验证加载、健康检查、回滚与执行层约束。",
-              "published": false
+              "published": true
             },
             {
               "slug": "08",
               "order": 8,
               "title": "08｜蒸馏与偏好优化：有了闭环后再扩展",
               "description": "审阅教师数据和偏好对，按真实缺口决定是否增加训练方法。",
-              "published": false
+              "published": true
             }
           ]
         }
