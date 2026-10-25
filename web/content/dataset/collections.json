@@ -1356,40 +1356,40 @@
       "id": "finetuning-practice",
       "section": "column",
       "title": "微调实战",
-      "summary": "沿着工具调用任务，完成从任务契约、数据、基线到SFT/LoRA、评测和离线部署的可检查闭环。",
-      "introduction": "八课正文与独立Notebook已齐备：先定义任务与证据，再训练比较，最后练习离线回滚和偏好数据审计。CPU检查通过；Colab及可选预训练模型/GPU路径未实测。",
+      "summary": "从一条便笺请求开始，学会准备数据、训练小模型、比较结果和处理上线后的问题。",
+      "introduction": "用户说要发便笺，却没说发给谁，模型该怎么办？八课围绕这个例子，从手写期望回答走到训练、评测和回滚，每课都有能独立运行的Notebook。",
       "published": true,
       "cover": null,
       "expectedEntries": 8,
       "plannedEntries": 8,
       "expectedGroups": 3,
       "catalogPath": "/column/finetuning-practice",
-      "readingGuide": "按01—08顺序阅读，每课打开对应Colab专项练习。Notebook自带虚构数据与答案；第4、5课默认在CPU训练tiny机制模型，其余默认仅标准库。真实模型路径单独启用并明确标记未实测，不自动申请GPU或执行真实工具。",
-      "attribution": "理论衔接：从LLM到Agent第13、14章。历史实验与教学算例分别标明，不把人工构造分数当成新模型成绩。",
+      "readingGuide": "建议按01—08阅读，边读边打开对应练习。前两课先把请求和答案理清，第4、5课在CPU训练一个小模型，后面练习比较与发布。可选预训练模型路径另有说明，尚未实测。",
+      "attribution": "理论衔接：从LLM到Agent第13、14章。人工例子、随机小模型与真实预训练模型的结果分别说明。",
       "groups": [
         {
           "id": "prepare",
-          "title": "先定义任务与证据",
+          "title": "先把题目和答案理清",
           "entries": [
             {
               "slug": "01",
               "order": 1,
-              "title": "01｜先定义“学会”，再开始训练",
-              "description": "任务契约、12条教学样本、来源分组与严格评分；CPU练习，不训练模型。",
+              "title": "01｜少了负责人，这条便笺还该发吗？",
+              "description": "比较信息齐全与缺少负责人的请求，先手写答案，再让程序检查。",
               "published": true
             },
             {
               "slug": "02",
               "order": 2,
-              "title": "02｜数据工程：把纸上样本变成可靠训练输入",
-              "description": "数据字典、来源manifest、去重与分组划分，再检查真实模板、截断和回答mask。",
+              "title": "02｜一句请求怎样变成训练数据",
+              "description": "跟着同一条请求，看文本怎样变成模型能读的token与训练标签。",
               "published": true
             },
             {
               "slug": "03",
               "order": 3,
-              "title": "03｜建立未微调基线与评分器",
-              "description": "固定基座与题集，测试评分器，保存B0/B1逐题输出。",
+              "title": "03｜先看看模型原来会怎么答",
+              "description": "先试坏输出能否被发现，再准备未训练模型的对照。",
               "published": true
             }
           ]
@@ -1401,42 +1401,42 @@
             {
               "slug": "04",
               "order": 4,
-              "title": "04｜第一轮 SFT＋LoRA：理解一次更新",
-              "description": "检查可训练参数和数据流，短程训练并验证adapter与tokenizer恢复。",
+              "title": "04｜让模型学会追问：跑一次小训练",
+              "description": "在CPU上更新小模型参数，观察loss变化，并从中断处继续。",
               "published": true
             },
             {
               "slug": "05",
               "order": 5,
-              "title": "05｜超参数与资源：一次只回答一个问题",
-              "description": "用单变量对照和逐题差异理解学习率、epoch、batch与rank。",
+              "title": "05｜多训几步，还是改学习率？",
+              "description": "只改一个条件，比较学习率与训练步数带来的变化。",
               "published": true
             },
             {
               "slug": "06",
               "order": 6,
-              "title": "06｜评测与选择：质量、速度和安全分开算",
-              "description": "验证集选择候选，新盲测检验泛化，旧题用于回归。",
+              "title": "06｜两个版本，究竟选哪一个？",
+              "description": "用具体反例理解为什么不能只挑总分最高的版本。",
               "published": true
             }
           ]
         },
         {
           "id": "deliver",
-          "title": "最后交付与扩展",
+          "title": "把模型用起来，再继续改进",
           "entries": [
             {
               "slug": "07",
               "order": 7,
-              "title": "07｜离线部署与回滚：能加载只是开始",
-              "description": "在mock工具环境验证加载、健康检查、回滚与执行层约束。",
+              "title": "07｜换个环境运行，出问题怎么退回？",
+              "description": "练习打包、模拟切换失败与回滚，再检查调用权限和重复请求。",
               "published": true
             },
             {
               "slug": "08",
               "order": 8,
-              "title": "08｜蒸馏与偏好优化：有了闭环后再扩展",
-              "description": "审阅教师数据和偏好对，按真实缺口决定是否增加训练方法。",
+              "title": "08｜请模型写示范，再教它分辨好坏",
+              "description": "筛掉不可靠示范，给同一请求构造好坏回答，理解偏好训练。",
               "published": true
             }
           ]
