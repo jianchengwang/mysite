@@ -1379,6 +1379,14 @@
               "order": 19,
               "published": true,
               "cover": "/collections-assets/daily-english/2026-10-13-movement-cover.png"
+            },
+            {
+              "slug": "2026-10-30",
+              "title": "每日英语｜先做一个小版本，再一起改进",
+              "description": "从纸质学习应用原型的原创情景出发，练习试用、发现问题和逐步改进。",
+              "order": 20,
+              "published": true,
+              "cover": "/collections-assets/daily-english/2026-10-13-movement-cover.png"
             }
           ]
         }
