@@ -1,3 +1,11 @@
+# 每日英语同步入口（已下线）
+
+> 2026-10-31：用户要求移除 mysite「每日英语」专栏与 Notion 合集；后续仅由「每日英语」Bot 定时私聊交付聊天稿+学习卡视频。本入口停止同步到站点与 Notion；X/微信草稿继续暂停。历史文章与封面已从源码树删除，备份见运行目录 `serve/mysite/legacy/daily-english-archive-*`。
+
+以下为历史说明，不再执行。
+
+---
+
 # 每日英语同步入口
 
 合集 ID：`daily-english`；公开目录：`https://www.jianchengwang.info/column/daily-english/`。
