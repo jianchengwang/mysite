@@ -51,8 +51,8 @@ API `api/.env.example` 新增空 `MIMO_API_KEY=`。空值时 TTS 返回 503，�
 ```sh
 export MYSITE_BASE_URL=http://127.0.0.1:9001
 export MYSITE_ACCESS_KEY_FILE=/Users/mini/Workspace/workflows/.secrets/mysite-backend.key
-python3 /Users/mini/Workspace/workflows/storyboard/mysite_tts.py check
-python3 /Users/mini/Workspace/workflows/storyboard/mysite_tts.py synthesize \
+python3 /Users/mini/Workspace/agent-workspace/shared/local/video-workflows/storyboard/mysite_tts.py check
+python3 /Users/mini/Workspace/agent-workspace/shared/local/video-workflows/storyboard/mysite_tts.py synthesize \
   --text-file /absolute/path/dialogue.txt --output /absolute/path/narration.wav --voice 冰糖
 ```
 
@@ -63,12 +63,12 @@ python3 /Users/mini/Workspace/workflows/storyboard/mysite_tts.py synthesize \
 使用缓存 Go 1.26，与 go.mod 一致，未改 Go 版本或依赖。所有合成成功路径均为明确的本地 synthetic WAV mock，不能代表真实 MiMo 成功。
 
 ```sh
-cd /Users/mini/Workspace/code-agent/mysite/api
-MYSITE_TTS_ADAPTER_PATH=/Users/mini/Workspace/workflows/storyboard/mysite_tts.py \
+cd /Users/mini/Workspace/agent-workspace/projects/mysite/repos/mysite/api
+MYSITE_TTS_ADAPTER_PATH=/Users/mini/Workspace/agent-workspace/shared/local/video-workflows/storyboard/mysite_tts.py \
   go test -race ./... -count=1
 go vet ./...
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
-  -s /Users/mini/Workspace/workflows/storyboard -p 'test_mysite_tts.py' -v
+  -s /Users/mini/Workspace/agent-workspace/shared/local/video-workflows/storyboard -p 'test_mysite_tts.py' -v
 ```
 
 覆盖鉴权/缺失配置、长度和白名单、未知字段、并发/滚动限流、deadline/cancellation、上游错误脱敏、HTTP redirect、JSON/base64/WAV/响应上限与不完整生成、客户端私有 Key 文件/缺失 Key 不请求、原子输出/不覆盖，以及真实 Python→随机回环 Go HTTP→mock MiMo transport 集成。既有 Go 公众号/数据库 sqlmock 等测试一并执行。MySQL 真实 integration build-tag 测试未启用；该功能无 schema 改动。

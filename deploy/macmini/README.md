@@ -2,12 +2,12 @@
 
 本地开发仍使用 3000；Docker 生产固定使用 9001。FRP 已按后续明确确认，仅调整 `mysite-api` 为本地 `127.0.0.1:9001` 到远端 `9001`。
 
-开发目录为 `/Users/mini/Workspace/code-agent/mysite`，运行目录为 `/Users/mini/Workspace/serve/mysite`。构建在 Docker 内执行，Nuxt 只生成静态页面；运行容器是 Nginx 静态服务器和 Go API，没有 Nuxt dev server。
+开发目录为 `/Users/mini/Workspace/agent-workspace/projects/mysite/repos/mysite`，运行目录为 `/Users/mini/Workspace/serve/mysite`。构建在 Docker 内执行，Nuxt 只生成静态页面；运行容器是 Nginx 静态服务器和 Go API，没有 Nuxt dev server。
 
 ## 一键部署
 
 ```sh
-cd /Users/mini/Workspace/code-agent/mysite
+cd /Users/mini/Workspace/agent-workspace/projects/mysite/repos/mysite
 ./deploy/macmini/deploy.sh
 ```
 
@@ -56,7 +56,7 @@ curl --fail http://127.0.0.1:9001/health/ready
 ## 回滚
 
 ```sh
-cd /Users/mini/Workspace/code-agent/mysite
+cd /Users/mini/Workspace/agent-workspace/projects/mysite/repos/mysite
 ./deploy/macmini/rollback.sh
 ```
 
@@ -98,7 +98,7 @@ curl --fail http://127.0.0.1:9001/health/ready
 Docker Hub 连接失败时，可在已验证的 Node 25 和现有依赖下生成静态站，并基于本地既有 Nginx 镜像构建新镜像；构建不加载开发 `.env`。此模式只允许 Go API 源码没有本地差异、且已运行 API 镜像与 Git 基线一致的情况。旧原生输出先归档到运行目录 `legacy/native-output/`。
 
 ```sh
-cd /Users/mini/Workspace/code-agent/mysite
+cd /Users/mini/Workspace/agent-workspace/projects/mysite/repos/mysite
 MYSITE_BUILD_MODE=cached-local MYSITE_DEPLOY_PREVIEW_ONLY=1 ./deploy/macmini/deploy.sh
 ```
 
